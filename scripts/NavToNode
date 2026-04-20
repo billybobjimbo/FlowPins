@@ -1,0 +1,17 @@
+function FlowPinsTool() {
+  var d = new QDialog();
+  var layout = new QVBoxLayout();
+  node.subNodes(node.root()).forEach(function(item) {
+if ((node.getName(item) == "MyDrawingNode")) {
+selection.clearSelection(); selection.addNodeToSelection(item);
+} else {
+
+}
+});
+
+  d.setLayout(layout);
+  // d.exec();
+}
+
+// Generator: Final V6 Active
+FlowPinsTool();

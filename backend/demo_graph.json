@@ -1,0 +1,26 @@
+{
+    "nodes": [
+      {
+        "id": "node_0",
+        "type": "fp",
+        "data": { "nodeKind": "start", "label": "Start" }
+      },
+      {
+        "id": "node_1",
+        "type": "fp",
+        "data": { 
+          "nodeKind": "const_int", 
+          "props": { "value": 42 } 
+        }
+      },
+      {
+        "id": "node_2",
+        "type": "fp",
+        "data": { "nodeKind": "print_exec" }
+      }
+    ],
+    "edges": [
+      { "source": "node_0", "sourceHandle": "exec", "target": "node_2", "targetHandle": "in:exec_in" },
+      { "source": "node_1", "sourceHandle": "value", "target": "node_2", "targetHandle": "in:value" }
+    ]
+  }

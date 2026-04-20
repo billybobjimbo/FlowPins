@@ -1,0 +1,77 @@
+/* src/renderer/src/assets/main.css */
+@import "./base.css";
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Body is just a host for the app */
+body {
+  overflow: hidden;
+  user-select: none;
+  background: #0a0a0a;
+
+  /* optional global wallpaper (OFF by default) */
+  /* background-image: url("./wavy-lines.svg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat; */
+}
+
+/* App frame: Library | Canvas | Inspector */
+#root {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: stretch;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ReactFlow gesture sanity */
+.react-flow {
+  touch-action: none;
+}
+
+/* Keep the grid behind nodes */
+.react-flow__background {
+  z-index: 0;
+}
+.react-flow__viewport {
+  z-index: 1;
+}
+
+/* --- ReactFlow theming (safe) --- */
+.react-flow__controls {
+  background: rgba(10, 10, 10, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 12px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.react-flow__controls button {
+  background: transparent;
+  border: 0;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.react-flow__controls button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.react-flow__minimap {
+  background: rgba(10, 10, 10, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 12px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+

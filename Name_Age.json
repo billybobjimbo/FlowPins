@@ -1,0 +1,689 @@
+{
+  "nodes": [
+    {
+      "id": "node_1776048862942",
+      "type": "fp",
+      "position": {
+        "x": 1155,
+        "y": 615
+      },
+      "data": {
+        "label": "Const String",
+        "nodeKind": "const_string",
+        "profile": "Core - Data",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "string"
+          }
+        ],
+        "props": {
+          "value": "What is your name?"
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 1155,
+        "y": 615
+      }
+    },
+    {
+      "id": "node_1776049825234",
+      "type": "fp",
+      "position": {
+        "x": 1470,
+        "y": 615
+      },
+      "data": {
+        "label": "Read Console Line",
+        "nodeKind": "console_readline",
+        "profile": "Core - Input",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "text",
+            "pin_type": "string"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 1470,
+        "y": 615
+      }
+    },
+    {
+      "id": "node_1776049864695",
+      "type": "fp",
+      "position": {
+        "x": 1470,
+        "y": 390
+      },
+      "data": {
+        "label": "Print / Log",
+        "nodeKind": "console_print",
+        "profile": "Core - Exec",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "message",
+            "pin_type": "any"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_1776049877071",
+      "type": "fp",
+      "position": {
+        "x": 1155,
+        "y": 390
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Core - Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 1155,
+        "y": 390
+      }
+    },
+    {
+      "id": "node_1776049909759",
+      "type": "fp",
+      "position": {
+        "x": 1830,
+        "y": 390
+      },
+      "data": {
+        "label": "Set Variable",
+        "nodeKind": "set_var",
+        "profile": "Core - Variables",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "var_name",
+            "pin_type": "string"
+          },
+          {
+            "name": "value",
+            "pin_type": "any"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {
+          "var_name": "inputName"
+        }
+      },
+      "width": 200,
+      "height": 177,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 1830,
+        "y": 390
+      }
+    },
+    {
+      "id": "node_1776050088054_dsbfp",
+      "type": "fp",
+      "position": {
+        "x": 2190,
+        "y": 390
+      },
+      "data": {
+        "label": "Print / Log",
+        "nodeKind": "console_print",
+        "profile": "Core - Exec",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "message",
+            "pin_type": "any"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 2190,
+        "y": 390
+      }
+    },
+    {
+      "id": "node_1776050094031_bfcgx",
+      "type": "fp",
+      "position": {
+        "x": 1830,
+        "y": 615
+      },
+      "data": {
+        "label": "Const String",
+        "nodeKind": "const_string",
+        "profile": "Core - Data",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "string"
+          }
+        ],
+        "props": {
+          "value": "What is your age?"
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 1830,
+        "y": 615
+      }
+    },
+    {
+      "id": "node_1776050114214_h9js6",
+      "type": "fp",
+      "position": {
+        "x": 2775,
+        "y": 390
+      },
+      "data": {
+        "label": "Set Variable",
+        "nodeKind": "set_var",
+        "profile": "Core - Variables",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "var_name",
+            "pin_type": "string"
+          },
+          {
+            "name": "value",
+            "pin_type": "any"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {
+          "var_name": "age"
+        }
+      },
+      "width": 200,
+      "height": 177,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 2775,
+        "y": 390
+      }
+    },
+    {
+      "id": "node_1776050121486_gvwxv",
+      "type": "fp",
+      "position": {
+        "x": 2160,
+        "y": 615
+      },
+      "data": {
+        "label": "Read Console Line",
+        "nodeKind": "console_readline",
+        "profile": "Core - Input",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "text",
+            "pin_type": "string"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 2160,
+        "y": 615
+      }
+    },
+    {
+      "id": "node_1776050223320",
+      "type": "fp",
+      "position": {
+        "x": 2415,
+        "y": 615
+      },
+      "data": {
+        "label": "Convert to Int",
+        "nodeKind": "parse_int",
+        "profile": "Core - Math",
+        "injectedInputs": [
+          {
+            "name": "text",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "result",
+            "pin_type": "int"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2415,
+        "y": 615
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1776050316294_6r8lp",
+      "type": "fp",
+      "position": {
+        "x": 3375,
+        "y": 390
+      },
+      "data": {
+        "label": "Print / Log",
+        "nodeKind": "console_print",
+        "profile": "Core - Exec",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "message",
+            "pin_type": "any"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 3375,
+        "y": 390
+      }
+    },
+    {
+      "id": "node_1776050331201",
+      "type": "fp",
+      "position": {
+        "x": 3090,
+        "y": 585
+      },
+      "data": {
+        "label": "Format String (2 Args)",
+        "nodeKind": "format_string_2",
+        "profile": "Core - Text",
+        "injectedInputs": [
+          {
+            "name": "template",
+            "pin_type": "string"
+          },
+          {
+            "name": "arg0",
+            "pin_type": "any"
+          },
+          {
+            "name": "arg1",
+            "pin_type": "any"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "result",
+            "pin_type": "string"
+          }
+        ],
+        "props": {}
+      },
+      "width": 209,
+      "height": 177,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 3090,
+        "y": 585
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1776050373150",
+      "type": "fp",
+      "position": {
+        "x": 2775,
+        "y": 705
+      },
+      "data": {
+        "label": "Get Variable",
+        "nodeKind": "get_var",
+        "profile": "Core - Variables",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "any"
+          }
+        ],
+        "props": {
+          "var_name": "inputName"
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2775,
+        "y": 705
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1776050392232_ti6aa",
+      "type": "fp",
+      "position": {
+        "x": 2775,
+        "y": 855
+      },
+      "data": {
+        "label": "Get Variable",
+        "nodeKind": "get_var",
+        "profile": "Core - Variables",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "any"
+          }
+        ],
+        "props": {
+          "var_name": "age"
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2775,
+        "y": 855
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1776050875022_w3gnz",
+      "type": "fp",
+      "position": {
+        "x": 2775,
+        "y": 585
+      },
+      "data": {
+        "label": "Const String",
+        "nodeKind": "const_string",
+        "profile": "Core - Data",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "string"
+          }
+        ],
+        "props": {
+          "value": "Hello {0}, you {1} years old."
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 2775,
+        "y": 585
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1776049877071",
+      "sourceHandle": "exec_out",
+      "target": "node_1776049864695",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776049877071exec_out-node_1776049864695exec_in",
+      "selected": false
+    },
+    {
+      "source": "node_1776048862942",
+      "sourceHandle": "value",
+      "target": "node_1776049864695",
+      "targetHandle": "message",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776048862942value-node_1776049864695message",
+      "selected": false
+    },
+    {
+      "source": "node_1776049864695",
+      "sourceHandle": "exec_out",
+      "target": "node_1776049909759",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776049864695exec_out-node_1776049909759exec_in",
+      "selected": false
+    },
+    {
+      "source": "node_1776049825234",
+      "sourceHandle": "text",
+      "target": "node_1776049909759",
+      "targetHandle": "value",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776049825234text-node_1776049909759value",
+      "selected": false
+    },
+    {
+      "source": "node_1776049909759",
+      "sourceHandle": "exec_out",
+      "target": "node_1776050088054_dsbfp",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776049909759exec_out-node_1776050088054_dsbfpexec_in",
+      "selected": false
+    },
+    {
+      "source": "node_1776050094031_bfcgx",
+      "sourceHandle": "value",
+      "target": "node_1776050088054_dsbfp",
+      "targetHandle": "message",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776050094031_bfcgxvalue-node_1776050088054_dsbfpmessage",
+      "selected": false
+    },
+    {
+      "source": "node_1776050088054_dsbfp",
+      "sourceHandle": "exec_out",
+      "target": "node_1776050114214_h9js6",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776050088054_dsbfpexec_out-node_1776050114214_h9js6exec_in",
+      "selected": false
+    },
+    {
+      "source": "node_1776050121486_gvwxv",
+      "sourceHandle": "text",
+      "target": "node_1776050223320",
+      "targetHandle": "text",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776050121486_gvwxvtext-node_1776050223320text",
+      "selected": false
+    },
+    {
+      "source": "node_1776050223320",
+      "sourceHandle": "result",
+      "target": "node_1776050114214_h9js6",
+      "targetHandle": "value",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776050223320result-node_1776050114214_h9js6value",
+      "selected": false
+    },
+    {
+      "source": "node_1776050114214_h9js6",
+      "sourceHandle": "exec_out",
+      "target": "node_1776050316294_6r8lp",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776050114214_h9js6exec_out-node_1776050316294_6r8lpexec_in",
+      "selected": false
+    },
+    {
+      "source": "node_1776050331201",
+      "sourceHandle": "result",
+      "target": "node_1776050316294_6r8lp",
+      "targetHandle": "message",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776050331201result-node_1776050316294_6r8lpmessage",
+      "selected": false
+    },
+    {
+      "source": "node_1776050373150",
+      "sourceHandle": "value",
+      "target": "node_1776050331201",
+      "targetHandle": "arg0",
+      "style": {
+        "stroke": "#888888",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776050373150value-node_1776050331201arg0",
+      "selected": false
+    },
+    {
+      "source": "node_1776050392232_ti6aa",
+      "sourceHandle": "value",
+      "target": "node_1776050331201",
+      "targetHandle": "arg1",
+      "style": {
+        "stroke": "#888888",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776050392232_ti6aavalue-node_1776050331201arg1",
+      "selected": false
+    },
+    {
+      "source": "node_1776050875022_w3gnz",
+      "sourceHandle": "value",
+      "target": "node_1776050331201",
+      "targetHandle": "template",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776050875022_w3gnzvalue-node_1776050331201template"
+    }
+  ]
+}
