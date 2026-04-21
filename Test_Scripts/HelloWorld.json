@@ -1,0 +1,144 @@
+{
+  "nodes": [
+    {
+      "id": "node_1775852799407",
+      "type": "fp",
+      "position": {
+        "x": 1620,
+        "y": 1155
+      },
+      "data": {
+        "label": "https://reactflow.dev/",
+        "nodeKind": "https://reactflow.dev/",
+        "profile": "General",
+        "injectedInputs": [],
+        "injectedOutputs": [],
+        "props": {}
+      },
+      "width": 209,
+      "height": 97
+    },
+    {
+      "id": "node_1775853500595",
+      "type": "fp",
+      "position": {
+        "x": -105,
+        "y": 195
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Core - Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -105,
+        "y": 195
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1775853513539",
+      "type": "fp",
+      "position": {
+        "x": 435,
+        "y": 195
+      },
+      "data": {
+        "label": "Print / Log",
+        "nodeKind": "console_print",
+        "profile": "Core - Exec",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "message",
+            "pin_type": "any"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 435,
+        "y": 195
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1775853526267",
+      "type": "fp",
+      "position": {
+        "x": -105,
+        "y": 360
+      },
+      "data": {
+        "label": "Const String",
+        "nodeKind": "const_string",
+        "profile": "Core - Data",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "string"
+          }
+        ],
+        "props": {
+          "value": "Hello World"
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": true,
+      "positionAbsolute": {
+        "x": -105,
+        "y": 360
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1775853500595",
+      "sourceHandle": "exec_out",
+      "target": "node_1775853513539",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1775853500595exec_out-node_1775853513539exec_in"
+    },
+    {
+      "source": "node_1775853526267",
+      "sourceHandle": "value",
+      "target": "node_1775853513539",
+      "targetHandle": "message",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1775853526267value-node_1775853513539message"
+    }
+  ]
+}

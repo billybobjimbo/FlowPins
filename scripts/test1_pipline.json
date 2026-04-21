@@ -1,9 +1,0 @@
-{
-  "nodes": [
-    { "id": "n_start1", "type": "fp", "position": { "x": 100, "y": 200 }, "data": { "label": "Start", "nodeKind": "start", "profile": "General", "props": {} } },
-    { "id": "n_joint1", "type": "fp", "position": { "x": 400, "y": 200 }, "data": { "label": "Joint / Peg", "nodeKind": "uni_joint", "profile": "Universal Rigging", "props": { "name": "Spine_01", "offset_x": 0, "offset_y": 50 } } }
-  ],
-  "edges": [
-    { "id": "e_1", "source": "n_start1", "target": "n_joint1", "sourceHandle": "exec_out", "targetHandle": "exec_in", "style": { "stroke": "#ffffff", "strokeWidth": 2 } }
-  ]
-}

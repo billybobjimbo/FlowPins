@@ -1,0 +1,558 @@
+{
+  "nodes": [
+    {
+      "id": "node_1776685024306",
+      "type": "fp",
+      "position": {
+        "x": 300,
+        "y": -15
+      },
+      "data": {
+        "label": "If (Branch)",
+        "nodeKind": "if_branch",
+        "profile": "Core - Logic",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "condition",
+            "pin_type": "bool"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "true",
+            "pin_type": "exec"
+          },
+          {
+            "name": "false",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 300,
+        "y": -15
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1776685035835",
+      "type": "fp",
+      "position": {
+        "x": -300,
+        "y": -150
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Core - Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -300,
+        "y": -150
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1776685072050",
+      "type": "fp",
+      "position": {
+        "x": 825,
+        "y": -15
+      },
+      "data": {
+        "label": "Print / Log",
+        "nodeKind": "console_print",
+        "profile": "Core - Exec",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "message",
+            "pin_type": "any"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 825,
+        "y": -15
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1776685772010",
+      "type": "fp",
+      "position": {
+        "x": -300,
+        "y": 285
+      },
+      "data": {
+        "label": "Const Int",
+        "nodeKind": "const_int",
+        "profile": "Core - Data",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "value": 16
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": true,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": -300,
+        "y": 285
+      }
+    },
+    {
+      "id": "node_1776685801969",
+      "type": "fp",
+      "position": {
+        "x": 300,
+        "y": -165
+      },
+      "data": {
+        "label": "Const String",
+        "nodeKind": "const_string",
+        "profile": "Core - Data",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "text",
+            "pin_type": "string"
+          }
+        ],
+        "props": {
+          "value": "You are an adult"
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 300,
+        "y": -165
+      }
+    },
+    {
+      "id": "node_1776685819337_3riwj",
+      "type": "fp",
+      "position": {
+        "x": 300,
+        "y": 195
+      },
+      "data": {
+        "label": "Const String",
+        "nodeKind": "const_string",
+        "profile": "Core - Data",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "text",
+            "pin_type": "string"
+          }
+        ],
+        "props": {
+          "value": "You are a minor"
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 300,
+        "y": 195
+      }
+    },
+    {
+      "id": "node_1776685839866",
+      "type": "fp",
+      "position": {
+        "x": -45,
+        "y": 135
+      },
+      "data": {
+        "label": "Compare (int)",
+        "nodeKind": "compare_int",
+        "profile": "Core - Math",
+        "injectedInputs": [
+          {
+            "name": "a",
+            "pin_type": "int"
+          },
+          {
+            "name": "b",
+            "pin_type": "int"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "result",
+            "pin_type": "bool"
+          }
+        ],
+        "props": {
+          "op": ">="
+        }
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": -45,
+        "y": 135
+      }
+    },
+    {
+      "id": "node_1776685928449_dbzfx",
+      "type": "fp",
+      "position": {
+        "x": 825,
+        "y": 165
+      },
+      "data": {
+        "label": "Print / Log",
+        "nodeKind": "console_print",
+        "profile": "Core - Exec",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "message",
+            "pin_type": "any"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 825,
+        "y": 165
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1776686333279",
+      "type": "fp",
+      "position": {
+        "x": -600,
+        "y": 135
+      },
+      "data": {
+        "label": "Read Console Line",
+        "nodeKind": "console_readline",
+        "profile": "Core - Input",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "text",
+            "pin_type": "string"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -600,
+        "y": 135
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1776686407745_atx6d",
+      "type": "fp",
+      "position": {
+        "x": -45,
+        "y": -150
+      },
+      "data": {
+        "label": "Print / Log",
+        "nodeKind": "console_print",
+        "profile": "Core - Exec",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "message",
+            "pin_type": "any"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -45,
+        "y": -150
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1776686433968",
+      "type": "fp",
+      "position": {
+        "x": -300,
+        "y": -15
+      },
+      "data": {
+        "label": "Const String",
+        "nodeKind": "const_string",
+        "profile": "Core - Data",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "text",
+            "pin_type": "string"
+          }
+        ],
+        "props": {
+          "value": "Enter your age:"
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -300,
+        "y": -15
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1776686527758",
+      "type": "fp",
+      "position": {
+        "x": -300,
+        "y": 135
+      },
+      "data": {
+        "label": "Convert to Int",
+        "nodeKind": "parse_int",
+        "profile": "Core - Math",
+        "injectedInputs": [
+          {
+            "name": "text",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "result",
+            "pin_type": "int"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -300,
+        "y": 135
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1776685839866",
+      "sourceHandle": "result",
+      "target": "node_1776685024306",
+      "targetHandle": "condition",
+      "style": {
+        "stroke": "#888888",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776685839866result-node_1776685024306condition",
+      "animated": false,
+      "selected": false
+    },
+    {
+      "source": "node_1776685024306",
+      "sourceHandle": "false",
+      "target": "node_1776685928449_dbzfx",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776685024306false-node_1776685928449_dbzfxexec_in",
+      "animated": false,
+      "selected": false
+    },
+    {
+      "source": "node_1776685772010",
+      "sourceHandle": "value",
+      "target": "node_1776685839866",
+      "targetHandle": "b",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776685772010value-node_1776685839866b",
+      "animated": false,
+      "selected": false
+    },
+    {
+      "source": "node_1776685801969",
+      "sourceHandle": "text",
+      "target": "node_1776685072050",
+      "targetHandle": "message",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776685801969text-node_1776685072050message",
+      "animated": false,
+      "selected": false
+    },
+    {
+      "source": "node_1776685024306",
+      "sourceHandle": "true",
+      "target": "node_1776685072050",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776685024306true-node_1776685072050exec_in",
+      "animated": false,
+      "selected": false
+    },
+    {
+      "source": "node_1776685819337_3riwj",
+      "sourceHandle": "text",
+      "target": "node_1776685928449_dbzfx",
+      "targetHandle": "message",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776685819337_3riwjtext-node_1776685928449_dbzfxmessage",
+      "animated": false,
+      "selected": false
+    },
+    {
+      "source": "node_1776685035835",
+      "sourceHandle": "exec_out",
+      "target": "node_1776686407745_atx6d",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776685035835exec_out-node_1776686407745_atx6dexec_in",
+      "animated": false
+    },
+    {
+      "source": "node_1776686433968",
+      "sourceHandle": "text",
+      "target": "node_1776686407745_atx6d",
+      "targetHandle": "message",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776686433968text-node_1776686407745_atx6dmessage",
+      "animated": false
+    },
+    {
+      "source": "node_1776686407745_atx6d",
+      "sourceHandle": "exec_out",
+      "target": "node_1776685024306",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776686407745_atx6dexec_out-node_1776685024306exec_in",
+      "animated": false
+    },
+    {
+      "source": "node_1776686333279",
+      "sourceHandle": "text",
+      "target": "node_1776686527758",
+      "targetHandle": "text",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776686333279text-node_1776686527758text",
+      "selected": false,
+      "animated": false
+    },
+    {
+      "source": "node_1776686527758",
+      "sourceHandle": "result",
+      "target": "node_1776685839866",
+      "targetHandle": "a",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776686527758result-node_1776685839866a",
+      "selected": false,
+      "animated": false
+    }
+  ]
+}

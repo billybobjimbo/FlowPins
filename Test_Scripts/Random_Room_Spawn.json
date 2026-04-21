@@ -1,0 +1,1179 @@
+{
+  "nodes": [
+    {
+      "id": "node_1774883088478",
+      "type": "fp",
+      "position": {
+        "x": 420,
+        "y": 615
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 420,
+        "y": 615
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1774883260213",
+      "type": "fp",
+      "position": {
+        "x": 1020,
+        "y": 615
+      },
+      "data": {
+        "label": "For Loop",
+        "nodeKind": "for_loop",
+        "profile": "Flow",
+        "injectedInputs": [
+          {
+            "name": "exec",
+            "pin_type": "exec"
+          },
+          {
+            "name": "start",
+            "pin_type": "int"
+          },
+          {
+            "name": "end",
+            "pin_type": "int"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "loop_body",
+            "pin_type": "exec"
+          },
+          {
+            "name": "index",
+            "pin_type": "int"
+          },
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {
+          "start": 0,
+          "end": 10
+        }
+      },
+      "width": 200,
+      "height": 177,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1020,
+        "y": 615
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1774883263154",
+      "type": "fp",
+      "position": {
+        "x": 2715,
+        "y": 765
+      },
+      "data": {
+        "label": "obj_wall",
+        "nodeKind": "spawn_instance",
+        "profile": "Game",
+        "injectedInputs": [
+          {
+            "name": "exec",
+            "pin_type": "exec"
+          },
+          {
+            "name": "x",
+            "pin_type": "int"
+          },
+          {
+            "name": "y",
+            "pin_type": "int"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "inst_id",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "obj_name": "obj_wall"
+        }
+      },
+      "width": 200,
+      "height": 177,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2715,
+        "y": 765
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1774884449550",
+      "type": "fp",
+      "position": {
+        "x": 660,
+        "y": 675
+      },
+      "data": {
+        "label": "20Y",
+        "nodeKind": "const_int",
+        "profile": "Values",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "value": 20
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 660,
+        "y": 675
+      }
+    },
+    {
+      "id": "node_1774884485130_kufj9",
+      "type": "fp",
+      "position": {
+        "x": 1650,
+        "y": 615
+      },
+      "data": {
+        "label": "For Loop",
+        "nodeKind": "for_loop",
+        "profile": "Flow",
+        "injectedInputs": [
+          {
+            "name": "exec",
+            "pin_type": "exec"
+          },
+          {
+            "name": "start",
+            "pin_type": "int"
+          },
+          {
+            "name": "end",
+            "pin_type": "int"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "loop_body",
+            "pin_type": "exec"
+          },
+          {
+            "name": "index",
+            "pin_type": "int"
+          },
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {
+          "start": 0,
+          "end": 10
+        }
+      },
+      "width": 200,
+      "height": 177,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1650,
+        "y": 615
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1774884515491_adwgt",
+      "type": "fp",
+      "position": {
+        "x": 1380,
+        "y": 675
+      },
+      "data": {
+        "label": "20X",
+        "nodeKind": "const_int",
+        "profile": "Values",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "value": 20
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 1380,
+        "y": 675
+      }
+    },
+    {
+      "id": "node_1774884573516",
+      "type": "fp",
+      "position": {
+        "x": 1380,
+        "y": 945
+      },
+      "data": {
+        "label": "Multiply",
+        "nodeKind": "multiply_int",
+        "profile": "Math",
+        "injectedInputs": [
+          {
+            "name": "a",
+            "pin_type": "int"
+          },
+          {
+            "name": "b",
+            "pin_type": "int"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "result",
+            "pin_type": "int"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 1380,
+        "y": 945
+      }
+    },
+    {
+      "id": "node_1774884575540_vybow",
+      "type": "fp",
+      "position": {
+        "x": 1890,
+        "y": 840
+      },
+      "data": {
+        "label": "Multiply",
+        "nodeKind": "multiply_int",
+        "profile": "Math",
+        "injectedInputs": [
+          {
+            "name": "a",
+            "pin_type": "int"
+          },
+          {
+            "name": "b",
+            "pin_type": "int"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "result",
+            "pin_type": "int"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 1890,
+        "y": 840
+      }
+    },
+    {
+      "id": "node_1774884623019",
+      "type": "fp",
+      "position": {
+        "x": 1065,
+        "y": 960
+      },
+      "data": {
+        "label": "64x64_Sprite",
+        "nodeKind": "const_int",
+        "profile": "Values",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "value": 64
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1065,
+        "y": 960
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1774884642138_9nfvn",
+      "type": "fp",
+      "position": {
+        "x": 1650,
+        "y": 870
+      },
+      "data": {
+        "label": "64x64_Sprite",
+        "nodeKind": "const_int",
+        "profile": "Values",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "value": 64
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1650,
+        "y": 870
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1774885207349",
+      "type": "fp",
+      "position": {
+        "x": 1635,
+        "y": 1125
+      },
+      "data": {
+        "label": "Random Int",
+        "nodeKind": "random_int",
+        "profile": "Math",
+        "injectedInputs": [
+          {
+            "name": "min",
+            "pin_type": "int"
+          },
+          {
+            "name": "max",
+            "pin_type": "int"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "val",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "min": 0,
+          "max": 100
+        }
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 1635,
+        "y": 1125
+      }
+    },
+    {
+      "id": "node_1774885218649",
+      "type": "fp",
+      "position": {
+        "x": 1380,
+        "y": 1125
+      },
+      "data": {
+        "label": "Const Int",
+        "nodeKind": "const_int",
+        "profile": "Values",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "value": 1
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1380,
+        "y": 1125
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1774885221164_es7np",
+      "type": "fp",
+      "position": {
+        "x": 1380,
+        "y": 1275
+      },
+      "data": {
+        "label": "Const Int",
+        "nodeKind": "const_int",
+        "profile": "Values",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "value": 100
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1380,
+        "y": 1275
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1774885257421",
+      "type": "fp",
+      "position": {
+        "x": 1935,
+        "y": 1125
+      },
+      "data": {
+        "label": "Compare (int)",
+        "nodeKind": "compare_int",
+        "profile": "Math",
+        "injectedInputs": [
+          {
+            "name": "a",
+            "pin_type": "int"
+          },
+          {
+            "name": "b",
+            "pin_type": "int"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "result",
+            "pin_type": "bool"
+          }
+        ],
+        "props": {
+          "op": "<="
+        }
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1935,
+        "y": 1125
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1774885269301",
+      "type": "fp",
+      "position": {
+        "x": 1380,
+        "y": 1410
+      },
+      "data": {
+        "label": "Const Int",
+        "nodeKind": "const_int",
+        "profile": "Values",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "value": 20
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 1380,
+        "y": 1410
+      }
+    },
+    {
+      "id": "node_1774885305782",
+      "type": "fp",
+      "position": {
+        "x": 2250,
+        "y": 615
+      },
+      "data": {
+        "label": "If (Branch)",
+        "nodeKind": "if_branch",
+        "profile": "Logic",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "condition",
+            "pin_type": "bool"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "true",
+            "pin_type": "exec"
+          },
+          {
+            "name": "false",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2250,
+        "y": 615
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1774917715498_r5d6f",
+      "type": "fp",
+      "position": {
+        "x": 2700,
+        "y": 1140
+      },
+      "data": {
+        "label": "Random Int",
+        "nodeKind": "random_int",
+        "profile": "Math",
+        "injectedInputs": [
+          {
+            "name": "min",
+            "pin_type": "int"
+          },
+          {
+            "name": "max",
+            "pin_type": "int"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "val",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "min": 0,
+          "max": 100
+        }
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 2700,
+        "y": 1140
+      }
+    },
+    {
+      "id": "node_1774917733226_6lg4s",
+      "type": "fp",
+      "position": {
+        "x": 2445,
+        "y": 1140
+      },
+      "data": {
+        "label": "Const Int",
+        "nodeKind": "const_int",
+        "profile": "Values",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "value": 1
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2445,
+        "y": 1140
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1774917733226_42hwx",
+      "type": "fp",
+      "position": {
+        "x": 2445,
+        "y": 1275
+      },
+      "data": {
+        "label": "Const Int",
+        "nodeKind": "const_int",
+        "profile": "Values",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "value": 100
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 2445,
+        "y": 1275
+      }
+    },
+    {
+      "id": "node_1774917751210_sbfz5",
+      "type": "fp",
+      "position": {
+        "x": 2955,
+        "y": 1140
+      },
+      "data": {
+        "label": "Compare (int)",
+        "nodeKind": "compare_int",
+        "profile": "Math",
+        "injectedInputs": [
+          {
+            "name": "a",
+            "pin_type": "int"
+          },
+          {
+            "name": "b",
+            "pin_type": "int"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "result",
+            "pin_type": "bool"
+          }
+        ],
+        "props": {
+          "op": "<="
+        }
+      },
+      "width": 200,
+      "height": 147,
+      "selected": true,
+      "positionAbsolute": {
+        "x": 2955,
+        "y": 1140
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1774917777242_ghzts",
+      "type": "fp",
+      "position": {
+        "x": 2700,
+        "y": 1305
+      },
+      "data": {
+        "label": "Const Int",
+        "nodeKind": "const_int",
+        "profile": "Values",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "value": 2
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 2700,
+        "y": 1305
+      }
+    },
+    {
+      "id": "node_1774917793515_oflex",
+      "type": "fp",
+      "position": {
+        "x": 3375,
+        "y": 645
+      },
+      "data": {
+        "label": "If (Branch)",
+        "nodeKind": "if_branch",
+        "profile": "Logic",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "condition",
+            "pin_type": "bool"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "true",
+            "pin_type": "exec"
+          },
+          {
+            "name": "false",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 3375,
+        "y": 645
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1774917891163_0pugj",
+      "type": "fp",
+      "position": {
+        "x": 3780,
+        "y": 870
+      },
+      "data": {
+        "label": "Coffee Machine",
+        "nodeKind": "spawn_instance",
+        "profile": "Game",
+        "injectedInputs": [
+          {
+            "name": "exec",
+            "pin_type": "exec"
+          },
+          {
+            "name": "x",
+            "pin_type": "int"
+          },
+          {
+            "name": "y",
+            "pin_type": "int"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "inst_id",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "obj_name": "obj_coffee_pot"
+        }
+      },
+      "width": 200,
+      "height": 177,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 3780,
+        "y": 870
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1774883088478",
+      "sourceHandle": "exec_out",
+      "target": "node_1774883260213",
+      "targetHandle": "exec",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774883088478exec_out-node_1774883260213exec",
+      "selected": false
+    },
+    {
+      "source": "node_1774884449550",
+      "sourceHandle": "value",
+      "target": "node_1774883260213",
+      "targetHandle": "end",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774884449550value-node_1774883260213end",
+      "selected": false
+    },
+    {
+      "source": "node_1774883260213",
+      "sourceHandle": "loop_body",
+      "target": "node_1774884485130_kufj9",
+      "targetHandle": "exec",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774883260213loop_body-node_1774884485130_kufj9exec",
+      "selected": false
+    },
+    {
+      "source": "node_1774884515491_adwgt",
+      "sourceHandle": "value",
+      "target": "node_1774884485130_kufj9",
+      "targetHandle": "end",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774884515491_adwgtvalue-node_1774884485130_kufj9end",
+      "selected": false
+    },
+    {
+      "source": "node_1774883260213",
+      "sourceHandle": "index",
+      "target": "node_1774884573516",
+      "targetHandle": "a",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774883260213index-node_1774884573516a",
+      "selected": false
+    },
+    {
+      "source": "node_1774884623019",
+      "sourceHandle": "value",
+      "target": "node_1774884573516",
+      "targetHandle": "b",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774884623019value-node_1774884573516b",
+      "selected": false
+    },
+    {
+      "source": "node_1774884485130_kufj9",
+      "sourceHandle": "index",
+      "target": "node_1774884575540_vybow",
+      "targetHandle": "a",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774884485130_kufj9index-node_1774884575540_vybowa",
+      "selected": false
+    },
+    {
+      "source": "node_1774884642138_9nfvn",
+      "sourceHandle": "value",
+      "target": "node_1774884575540_vybow",
+      "targetHandle": "b",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774884642138_9nfvnvalue-node_1774884575540_vybowb",
+      "selected": false
+    },
+    {
+      "source": "node_1774884575540_vybow",
+      "sourceHandle": "result",
+      "target": "node_1774883263154",
+      "targetHandle": "x",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774884575540_vybowresult-node_1774883263154x",
+      "selected": false
+    },
+    {
+      "source": "node_1774884573516",
+      "sourceHandle": "result",
+      "target": "node_1774883263154",
+      "targetHandle": "y",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774884573516result-node_1774883263154y",
+      "selected": false
+    },
+    {
+      "source": "node_1774885218649",
+      "sourceHandle": "value",
+      "target": "node_1774885207349",
+      "targetHandle": "min",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774885218649value-node_1774885207349min",
+      "selected": false
+    },
+    {
+      "source": "node_1774885221164_es7np",
+      "sourceHandle": "value",
+      "target": "node_1774885207349",
+      "targetHandle": "max",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774885221164_es7npvalue-node_1774885207349max",
+      "selected": false
+    },
+    {
+      "source": "node_1774885207349",
+      "sourceHandle": "val",
+      "target": "node_1774885257421",
+      "targetHandle": "a",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774885207349val-node_1774885257421a",
+      "selected": false
+    },
+    {
+      "source": "node_1774885269301",
+      "sourceHandle": "value",
+      "target": "node_1774885257421",
+      "targetHandle": "b",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774885269301value-node_1774885257421b",
+      "selected": false
+    },
+    {
+      "source": "node_1774885257421",
+      "sourceHandle": "result",
+      "target": "node_1774885305782",
+      "targetHandle": "condition",
+      "style": {
+        "stroke": "#888888",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774885257421result-node_1774885305782condition",
+      "selected": false
+    },
+    {
+      "source": "node_1774884485130_kufj9",
+      "sourceHandle": "loop_body",
+      "target": "node_1774885305782",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774884485130_kufj9loop_body-node_1774885305782exec_in",
+      "selected": false
+    },
+    {
+      "source": "node_1774885305782",
+      "sourceHandle": "true",
+      "target": "node_1774883263154",
+      "targetHandle": "exec",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774885305782true-node_1774883263154exec",
+      "selected": false
+    },
+    {
+      "source": "node_1774917733226_6lg4s",
+      "sourceHandle": "value",
+      "target": "node_1774917715498_r5d6f",
+      "targetHandle": "min",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774917733226_6lg4svalue-node_1774917715498_r5d6fmin",
+      "selected": false
+    },
+    {
+      "source": "node_1774917733226_42hwx",
+      "sourceHandle": "value",
+      "target": "node_1774917715498_r5d6f",
+      "targetHandle": "max",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774917733226_42hwxvalue-node_1774917715498_r5d6fmax",
+      "selected": false
+    },
+    {
+      "source": "node_1774917715498_r5d6f",
+      "sourceHandle": "val",
+      "target": "node_1774917751210_sbfz5",
+      "targetHandle": "a",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774917715498_r5d6fval-node_1774917751210_sbfz5a",
+      "selected": false
+    },
+    {
+      "source": "node_1774917777242_ghzts",
+      "sourceHandle": "value",
+      "target": "node_1774917751210_sbfz5",
+      "targetHandle": "b",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774917777242_ghztsvalue-node_1774917751210_sbfz5b",
+      "selected": false
+    },
+    {
+      "source": "node_1774885305782",
+      "sourceHandle": "false",
+      "target": "node_1774917793515_oflex",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774885305782false-node_1774917793515_oflexexec_in",
+      "selected": false
+    },
+    {
+      "source": "node_1774917751210_sbfz5",
+      "sourceHandle": "result",
+      "target": "node_1774917793515_oflex",
+      "targetHandle": "condition",
+      "style": {
+        "stroke": "#888888",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774917751210_sbfz5result-node_1774917793515_oflexcondition",
+      "selected": false
+    },
+    {
+      "source": "node_1774917793515_oflex",
+      "sourceHandle": "true",
+      "target": "node_1774917891163_0pugj",
+      "targetHandle": "exec",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774917793515_oflextrue-node_1774917891163_0pugjexec"
+    },
+    {
+      "source": "node_1774884575540_vybow",
+      "sourceHandle": "result",
+      "target": "node_1774917891163_0pugj",
+      "targetHandle": "x",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774884575540_vybowresult-node_1774917891163_0pugjx"
+    },
+    {
+      "source": "node_1774884573516",
+      "sourceHandle": "result",
+      "target": "node_1774917891163_0pugj",
+      "targetHandle": "y",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1774884573516result-node_1774917891163_0pugjy",
+      "selected": false
+    }
+  ]
+}

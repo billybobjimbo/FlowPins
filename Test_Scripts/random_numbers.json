@@ -1,0 +1,277 @@
+{
+  "nodes": [
+    {
+      "id": "node_1776707014273",
+      "type": "fp",
+      "position": {
+        "x": -105,
+        "y": 525
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Core - Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -105,
+        "y": 525
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1776707019680",
+      "type": "fp",
+      "position": {
+        "x": 285,
+        "y": 525
+      },
+      "data": {
+        "label": "Import Module",
+        "nodeKind": "sys_import",
+        "profile": "Core - System",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {
+          "module_name": "random"
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 285,
+        "y": 525
+      }
+    },
+    {
+      "id": "node_1776707025280",
+      "type": "fp",
+      "position": {
+        "x": 675,
+        "y": 525
+      },
+      "data": {
+        "label": "Print / Log",
+        "nodeKind": "console_print",
+        "profile": "Core - Exec",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "message",
+            "pin_type": "any"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 675,
+        "y": 525
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1776707032648",
+      "type": "fp",
+      "position": {
+        "x": 285,
+        "y": 675
+      },
+      "data": {
+        "label": "Random Int",
+        "nodeKind": "random_int",
+        "profile": "Core - Math",
+        "injectedInputs": [
+          {
+            "name": "min",
+            "pin_type": "int"
+          },
+          {
+            "name": "max",
+            "pin_type": "int"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "val",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "min": 0,
+          "max": 100
+        }
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 285,
+        "y": 675
+      }
+    },
+    {
+      "id": "node_1776707081177",
+      "type": "fp",
+      "position": {
+        "x": -105,
+        "y": 675
+      },
+      "data": {
+        "label": "Const Int",
+        "nodeKind": "const_int",
+        "profile": "Core - Data",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "value": 0
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -105,
+        "y": 675
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1776707083544_e5szv",
+      "type": "fp",
+      "position": {
+        "x": -105,
+        "y": 825
+      },
+      "data": {
+        "label": "Const Int",
+        "nodeKind": "const_int",
+        "profile": "Core - Data",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "value": 10
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -105,
+        "y": 825
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1776707081177",
+      "sourceHandle": "value",
+      "target": "node_1776707032648",
+      "targetHandle": "min",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776707081177value-node_1776707032648min",
+      "animated": false,
+      "selected": false
+    },
+    {
+      "source": "node_1776707083544_e5szv",
+      "sourceHandle": "value",
+      "target": "node_1776707032648",
+      "targetHandle": "max",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776707083544_e5szvvalue-node_1776707032648max",
+      "animated": false,
+      "selected": false
+    },
+    {
+      "source": "node_1776707019680",
+      "sourceHandle": "exec_out",
+      "target": "node_1776707025280",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776707019680exec_out-node_1776707025280exec_in",
+      "animated": false,
+      "selected": false
+    },
+    {
+      "source": "node_1776707014273",
+      "sourceHandle": "exec_out",
+      "target": "node_1776707019680",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776707014273exec_out-node_1776707019680exec_in",
+      "selected": false,
+      "animated": false
+    },
+    {
+      "source": "node_1776707032648",
+      "sourceHandle": "val",
+      "target": "node_1776707025280",
+      "targetHandle": "message",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1776707032648val-node_1776707025280message",
+      "selected": false,
+      "animated": false
+    }
+  ]
+}
