@@ -1,4 +1,8 @@
 // src/renderer/src/libraries/seed.ts
+// ============================================================================
+// FLOWPINS: LIBRARY SEED
+// Maps NODE_LIBRARY entries to LibraryItem records for the panel accordion.
+// ============================================================================
 import { NODE_LIBRARY } from "./index";
 
 export type LibraryProfile = "python" | "toonboom_js" | "maya_python";

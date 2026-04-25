@@ -12,6 +12,10 @@ const getProfileColor = (profile: string) => {
   if (p.includes('lua') || p.includes('fusion')) return "#242a59"; // Navy
   if (p.includes('c#') || p.includes('unity')) return "#e66900"; // Orange
   if (p.includes('game') || p.includes('gml')) return "#00ff8c"; // GameMaker Cyan
+  if (p.includes('pipeline - naming'))   return "#f5a623"; // Amber - Naming
+  if (p.includes('pipeline - reporting')) return "#e8943a"; // Dark Amber - Reporting
+  if (p.includes('pipeline - image'))     return "#ffcc44"; // Yellow - Image
+  if (p.includes('pipeline'))             return "#f5a623"; // Amber - Pipeline (fallback)
   if (p.includes('core')) return "#aaaaaa"; // Neutral Grey for Standard Library
   
   return "#ffffff"; // Fallback

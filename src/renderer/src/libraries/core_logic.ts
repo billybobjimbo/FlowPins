@@ -1,4 +1,21 @@
-// src/libraries/core_logic.ts
+// src/renderer/src/libraries/core_logic.ts
+// ============================================================================
+// FLOWPINS: CORE NODE LIBRARY
+// Language-agnostic node specifications.
+//
+// Pin naming convention (enforced throughout all specs and translators):
+//   Execution input  -> "exec_in"
+//   Execution output -> "exec_out"
+//   Loop body exec   -> "loop_body"
+//
+// Profile naming convention:
+//   "Core - *"       -> language-agnostic building blocks
+//   "Pipeline - *"   -> file system, validation, reporting tools
+//   "App - *"        -> DCC-specific nodes
+//
+// To add a new node: define it here, then add translations to each
+// language dictionary in /translators/
+// ============================================================================
 import { NodeSpec } from './types';
 
 export const CORE_NODES: Record<string, NodeSpec> = {
@@ -488,4 +505,477 @@ export const CORE_NODES: Record<string, NodeSpec> = {
   
   
    
+
+  // ==========================================================================
+  // PIPELINE NODES - File System
+  // ==========================================================================
+
+  "fs_input_path": {
+    title: "Folder Path",
+    profile: "Pipeline - File System",
+    inputs: [],
+    outputs: [{ name: "path", pin_type: "string" }],
+    default_props: { path: "C:/images" },
+    ui_schema: [{ label: "Folder Path", prop_key: "path", type: "input" }]
+  },
+
+  "fs_file_path": {
+    title: "File Path",
+    profile: "Pipeline - File System",
+    inputs: [],
+    outputs: [{ name: "path", pin_type: "string" }],
+    default_props: { path: "C:/images/image.png" },
+    ui_schema: [{ label: "File Path", prop_key: "path", type: "input" }]
+  },
+
+  "fs_walk_folder": {
+    title: "Walk Folder",
+    profile: "Pipeline - File System",
+    inputs: [
+      { name: "exec_in", pin_type: "exec" },
+      { name: "folder_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "loop_body",  pin_type: "exec" },
+      { name: "exec_out",   pin_type: "exec" },
+      { name: "file_path",  pin_type: "string" },
+      { name: "file_name",  pin_type: "string" },
+      { name: "file_ext",   pin_type: "string" }
+    ],
+    default_props: { extension_filter: ".png" },
+    ui_schema: [{ label: "Extension Filter (e.g. .png)", prop_key: "extension_filter", type: "input" }]
+  },
+
+  "fs_file_exists": {
+    title: "File Exists?",
+    profile: "Pipeline - File System",
+    inputs: [{ name: "path", pin_type: "string" }],
+    outputs: [{ name: "exists", pin_type: "bool" }]
+  },
+
+  "fs_join_path": {
+    title: "Join Path",
+    profile: "Pipeline - File System",
+    inputs: [
+      { name: "folder",   pin_type: "string" },
+      { name: "filename", pin_type: "string" }
+    ],
+    outputs: [{ name: "path", pin_type: "string" }]
+  },
+
+  "fs_get_filename": {
+    title: "Get Filename",
+    profile: "Pipeline - File System",
+    inputs: [{ name: "path", pin_type: "string" }],
+    outputs: [
+      { name: "filename",  pin_type: "string" },
+      { name: "stem",      pin_type: "string" },
+      { name: "extension", pin_type: "string" }
+    ]
+  },
+
+  "fs_write_log": {
+    title: "Write Log File",
+    profile: "Pipeline - File System",
+    inputs: [
+      { name: "exec_in",   pin_type: "exec" },
+      { name: "file_path", pin_type: "string" },
+      { name: "message",   pin_type: "string" }
+    ],
+    outputs: [{ name: "exec_out", pin_type: "exec" }],
+    default_props: { file_path: "C:/output/report.txt" },
+    ui_schema: [{ label: "Log File Path", prop_key: "file_path", type: "input" }]
+  },
+
+  "fs_batch_rename": {
+    title: "Batch Rename",
+    profile: "Pipeline - File System",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec" },
+      { name: "folder_path", pin_type: "string" }
+    ],
+    outputs: [{ name: "exec_out", pin_type: "exec" }],
+    default_props: { find: "old_", replace: "new_", extension: ".png" },
+    ui_schema: [
+      { label: "Find Text",       prop_key: "find",      type: "input" },
+      { label: "Replace With",    prop_key: "replace",   type: "input" },
+      { label: "File Extension",  prop_key: "extension", type: "input" }
+    ]
+  },
+
+  // ==========================================================================
+  // PIPELINE NODES - Colourspace Validation
+  // ==========================================================================
+
+  "cs_read_png_profile": {
+    title: "Read PNG Colourspace",
+    profile: "Pipeline - Colourspace",
+    inputs: [
+      { name: "exec_in",   pin_type: "exec" },
+      { name: "file_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",     pin_type: "exec" },
+      { name: "profile_name", pin_type: "string" },
+      { name: "colourspace",  pin_type: "string" },
+      { name: "is_tagged",    pin_type: "bool" }
+    ]
+  },
+
+  "cs_check_colourspace": {
+    title: "Check Colourspace",
+    profile: "Pipeline - Colourspace",
+    inputs: [
+      { name: "colourspace", pin_type: "string" },
+      { name: "expected",    pin_type: "string" }
+    ],
+    outputs: [
+      { name: "is_correct",      pin_type: "bool" },
+      { name: "result_message",  pin_type: "string" }
+    ],
+    default_props: { expected: "sRGB" },
+    ui_schema: [{ label: "Expected Colourspace", prop_key: "expected", type: "input" }]
+  },
+
+  "cs_batch_validate": {
+    title: "Batch Validate PNG Folder",
+    profile: "Pipeline - Colourspace",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec" },
+      { name: "folder_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",    pin_type: "exec" },
+      { name: "pass_list",   pin_type: "list" },
+      { name: "fail_list",   pin_type: "list" },
+      { name: "pass_count",  pin_type: "int" },
+      { name: "fail_count",  pin_type: "int" }
+    ],
+    default_props: { expected: "sRGB" },
+    ui_schema: [{ label: "Expected Colourspace", prop_key: "expected", type: "input" }]
+  },
+
+  "cs_print_report": {
+    title: "Print Validation Report",
+    profile: "Pipeline - Colourspace",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec" },
+      { name: "pass_list",   pin_type: "list" },
+      { name: "fail_list",   pin_type: "list" },
+      { name: "folder_path", pin_type: "string" }
+    ],
+    outputs: [{ name: "exec_out", pin_type: "exec" }],
+    default_props: { save_report: "true" },
+    ui_schema: [{
+      label: "Save Report to Folder",
+      prop_key: "save_report",
+      type: "dropdown",
+      options: ["true", "false"]
+    }]
+  },
+
+
+// ==========================================================================
+  // Pipeline - Naming
+  // ==========================================================================
+
+  "nm_check_convention": {
+    title: "Check Naming Convention",
+    profile: "Pipeline - Naming",
+    inputs: [
+      { name: "exec_in",   pin_type: "exec" },
+      { name: "filename",  pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",       pin_type: "exec" },
+      { name: "is_valid",       pin_type: "bool" },
+      { name: "result_message", pin_type: "string" }
+    ],
+    default_props: { pattern: "shot_###_layer_v##" },
+    ui_schema: [
+      { label: "Pattern (# = digit, * = any)", prop_key: "pattern", type: "input" }
+    ]
+  },
+
+  "nm_extract_version": {
+    title: "Extract Version Number",
+    profile: "Pipeline - Naming",
+    inputs: [{ name: "filename", pin_type: "string" }],
+    outputs: [
+      { name: "version_string", pin_type: "string" },
+      { name: "version_int",    pin_type: "int" },
+      { name: "found",          pin_type: "bool" }
+    ]
+  },
+
+  "nm_extract_shot": {
+    title: "Extract Shot Info",
+    profile: "Pipeline - Naming",
+    inputs: [{ name: "filename", pin_type: "string" }],
+    outputs: [
+      { name: "shot",    pin_type: "string" },
+      { name: "scene",   pin_type: "string" },
+      { name: "layer",   pin_type: "string" },
+      { name: "version", pin_type: "string" }
+    ],
+    default_props: {
+      shot_prefix:  "sh",
+      scene_prefix: "sc",
+      layer_prefix: "layer",
+      version_prefix: "v"
+    },
+    ui_schema: [
+      { label: "Shot Prefix (e.g. sh)",    prop_key: "shot_prefix",    type: "input" },
+      { label: "Scene Prefix (e.g. sc)",   prop_key: "scene_prefix",   type: "input" },
+      { label: "Layer Prefix (e.g. layer)",prop_key: "layer_prefix",   type: "input" },
+      { label: "Version Prefix (e.g. v)",  prop_key: "version_prefix", type: "input" }
+    ]
+  },
+
+  "nm_pad_frame_number": {
+    title: "Pad Frame Numbers",
+    profile: "Pipeline - Naming",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec" },
+      { name: "folder_path", pin_type: "string" }
+    ],
+    outputs: [{ name: "exec_out", pin_type: "exec" }],
+    default_props: { padding: 4, extension: ".png" },
+    ui_schema: [
+      { label: "Frame Padding (digits)", prop_key: "padding",   type: "number" },
+      { label: "File Extension",         prop_key: "extension", type: "input" }
+    ]
+  },
+
+  "nm_batch_check_folder": {
+    title: "Batch Check Naming",
+    profile: "Pipeline - Naming",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec" },
+      { name: "folder_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",   pin_type: "exec" },
+      { name: "pass_list",  pin_type: "list" },
+      { name: "fail_list",  pin_type: "list" },
+      { name: "pass_count", pin_type: "int" },
+      { name: "fail_count", pin_type: "int" }
+    ],
+    default_props: { pattern: "shot_###_layer_v##", extension: ".png" },
+    ui_schema: [
+      { label: "Expected Pattern",  prop_key: "pattern",   type: "input" },
+      { label: "File Extension",    prop_key: "extension", type: "input" }
+    ]
+  },
+
+  "nm_bump_version": {
+    title: "Bump Version Number",
+    profile: "Pipeline - Naming",
+    inputs: [{ name: "filename", pin_type: "string" }],
+    outputs: [
+      { name: "new_filename", pin_type: "string" },
+      { name: "new_version",  pin_type: "int" }
+    ],
+    default_props: { version_prefix: "v", padding: 2 },
+    ui_schema: [
+      { label: "Version Prefix (e.g. v)", prop_key: "version_prefix", type: "input" },
+      { label: "Version Padding",         prop_key: "padding",        type: "number" }
+    ]
+  },
+
+  // ==========================================================================
+  // Pipeline - Reporting
+  // ==========================================================================
+
+  "rp_save_csv": {
+    title: "Save Results to CSV",
+    profile: "Pipeline - Reporting",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec" },
+      { name: "pass_list",   pin_type: "list" },
+      { name: "fail_list",   pin_type: "list" },
+      { name: "folder_path", pin_type: "string" }
+    ],
+    outputs: [{ name: "exec_out", pin_type: "exec" }],
+    default_props: { filename: "report.csv" },
+    ui_schema: [{ label: "CSV Filename", prop_key: "filename", type: "input" }]
+  },
+
+  "rp_compare_folders": {
+    title: "Compare Two Folders",
+    profile: "Pipeline - Reporting",
+    inputs: [
+      { name: "exec_in",    pin_type: "exec" },
+      { name: "folder_a",   pin_type: "string" },
+      { name: "folder_b",   pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",       pin_type: "exec" },
+      { name: "only_in_a",      pin_type: "list" },
+      { name: "only_in_b",      pin_type: "list" },
+      { name: "in_both",        pin_type: "list" },
+      { name: "missing_count",  pin_type: "int" }
+    ],
+    default_props: { extension: ".png" },
+    ui_schema: [{ label: "File Extension", prop_key: "extension", type: "input" }]
+  },
+
+  "rp_count_files": {
+    title: "Count Files by Type",
+    profile: "Pipeline - Reporting",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec" },
+      { name: "folder_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",   pin_type: "exec" },
+      { name: "png_count",  pin_type: "int" },
+      { name: "exr_count",  pin_type: "int" },
+      { name: "tiff_count", pin_type: "int" },
+      { name: "total_count",pin_type: "int" },
+      { name: "summary",    pin_type: "string" }
+    ]
+  },
+
+  "rp_print_summary": {
+    title: "Print Summary",
+    profile: "Pipeline - Reporting",
+    inputs: [
+      { name: "exec_in",  pin_type: "exec" },
+      { name: "title",    pin_type: "string" },
+      { name: "pass_count", pin_type: "int" },
+      { name: "fail_count", pin_type: "int" },
+      { name: "notes",    pin_type: "string" }
+    ],
+    outputs: [{ name: "exec_out", pin_type: "exec" }],
+    default_props: { title: "FlowPins Report" },
+    ui_schema: [{ label: "Report Title", prop_key: "title", type: "input" }]
+  },
+
+  // ==========================================================================
+  // Pipeline - Image
+  // ==========================================================================
+
+  "img_get_dimensions": {
+    title: "Get Image Dimensions",
+    profile: "Pipeline - Image",
+    inputs: [
+      { name: "exec_in",   pin_type: "exec" },
+      { name: "file_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out", pin_type: "exec" },
+      { name: "width",    pin_type: "int" },
+      { name: "height",   pin_type: "int" },
+      { name: "summary",  pin_type: "string" }
+    ]
+  },
+
+  "img_check_dimensions": {
+    title: "Check Image Dimensions",
+    profile: "Pipeline - Image",
+    inputs: [
+      { name: "exec_in",   pin_type: "exec" },
+      { name: "file_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",       pin_type: "exec" },
+      { name: "is_correct",     pin_type: "bool" },
+      { name: "result_message", pin_type: "string" },
+      { name: "actual_width",   pin_type: "int" },
+      { name: "actual_height",  pin_type: "int" }
+    ],
+    default_props: { expected_width: 1920, expected_height: 1080 },
+    ui_schema: [
+      { label: "Expected Width",  prop_key: "expected_width",  type: "number" },
+      { label: "Expected Height", prop_key: "expected_height", type: "number" }
+    ]
+  },
+
+  "img_batch_check_dimensions": {
+    title: "Batch Check Dimensions",
+    profile: "Pipeline - Image",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec" },
+      { name: "folder_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",   pin_type: "exec" },
+      { name: "pass_list",  pin_type: "list" },
+      { name: "fail_list",  pin_type: "list" },
+      { name: "pass_count", pin_type: "int" },
+      { name: "fail_count", pin_type: "int" }
+    ],
+    default_props: { expected_width: 1920, expected_height: 1080, extension: ".png" },
+    ui_schema: [
+      { label: "Expected Width",  prop_key: "expected_width",  type: "number" },
+      { label: "Expected Height", prop_key: "expected_height", type: "number" },
+      { label: "File Extension",  prop_key: "extension",       type: "input" }
+    ]
+  },
+
+  "img_get_bit_depth": {
+    title: "Get Bit Depth",
+    profile: "Pipeline - Image",
+    inputs: [
+      { name: "exec_in",   pin_type: "exec" },
+      { name: "file_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",  pin_type: "exec" },
+      { name: "bit_depth", pin_type: "int" },
+      { name: "mode",      pin_type: "string" }
+    ]
+  },
+
+  "img_check_bit_depth": {
+    title: "Check Bit Depth",
+    profile: "Pipeline - Image",
+    inputs: [
+      { name: "exec_in",   pin_type: "exec" },
+      { name: "file_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",       pin_type: "exec" },
+      { name: "is_correct",     pin_type: "bool" },
+      { name: "result_message", pin_type: "string" }
+    ],
+    default_props: { expected_bit_depth: 8 },
+    ui_schema: [{
+      label: "Expected Bit Depth",
+      prop_key: "expected_bit_depth",
+      type: "dropdown",
+      options: ["8", "16", "32"]
+    }]
+  },
+
+  "img_batch_validate": {
+    title: "Full Image Batch Validate",
+    profile: "Pipeline - Image",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec" },
+      { name: "folder_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",   pin_type: "exec" },
+      { name: "pass_list",  pin_type: "list" },
+      { name: "fail_list",  pin_type: "list" },
+      { name: "pass_count", pin_type: "int" },
+      { name: "fail_count", pin_type: "int" }
+    ],
+    default_props: {
+      expected_width:     1920,
+      expected_height:    1080,
+      expected_bit_depth: 8,
+      expected_cs:        "sRGB",
+      extension:          ".png"
+    },
+    ui_schema: [
+      { label: "Expected Width",      prop_key: "expected_width",     type: "number" },
+      { label: "Expected Height",     prop_key: "expected_height",    type: "number" },
+      { label: "Expected Bit Depth",  prop_key: "expected_bit_depth", type: "number" },
+      { label: "Expected Colourspace",prop_key: "expected_cs",        type: "input" },
+      { label: "File Extension",      prop_key: "extension",          type: "input" }
+    ]
+  },
 };

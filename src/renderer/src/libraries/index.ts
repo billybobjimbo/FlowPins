@@ -1,4 +1,9 @@
 // src/renderer/src/libraries/index.ts
+// ============================================================================
+// FLOWPINS: LIBRARY INDEX
+// Combines all node spec libraries into a single NODE_LIBRARY export.
+// To add a new DCC node set: import it here and spread it into NODE_LIBRARY.
+// ============================================================================
 import { CORE_NODES } from './core_logic';
 import { TOONBOOM_NODES } from './toonboom';
 import { MAYA_NODES } from './maya';

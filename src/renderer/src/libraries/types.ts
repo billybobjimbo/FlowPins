@@ -1,5 +1,8 @@
-// src/libraries/types.ts
-
+// src/renderer/src/libraries/types.ts
+// ============================================================================
+// FLOWPINS: SHARED TYPE DEFINITIONS
+// NodeSpec, PinSpec, UIItem — the master rulebook for every node.
+// ============================================================================
 // 1. Define the colors for your node pins
 export const PIN_COLORS: Record<string, string> = {
   exec: "#ffffff",

@@ -1,3 +1,8 @@
+// src/renderer/src/main.tsx
+// ============================================================================
+// FLOWPINS: RENDERER ENTRY POINT
+// ============================================================================
+
 import './assets/main.css'
 
 import { StrictMode } from 'react'

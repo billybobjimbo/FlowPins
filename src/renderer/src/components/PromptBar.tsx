@@ -1,3 +1,10 @@
+// src/renderer/src/components/PromptBar.tsx
+// ============================================================================
+// FLOWPINS: EVELYN'S PROMPT BAR
+// The natural language input bar at the bottom of the canvas.
+// Auto-focuses after Evelyn responds so the composer can keep typing.
+// ============================================================================
+
 import { useState, useRef, useEffect } from 'react';
 
 interface PromptBarProps {

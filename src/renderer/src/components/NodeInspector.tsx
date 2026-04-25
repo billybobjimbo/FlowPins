@@ -1,3 +1,10 @@
+// src/renderer/src/components/NodeInspector.tsx
+// ============================================================================
+// FLOWPINS: NODE INSPECTOR PANEL
+// Renders editable properties for the selected node (right-hand panel).
+// Driven by the node's ui_schema definition in core_logic.ts.
+// ============================================================================
+
 import React from "react";
 import { type Node } from "reactflow";
 import { NODE_LIBRARY } from "../libraries"; 

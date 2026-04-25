@@ -1,4 +1,9 @@
-// src/libraries/toonboom.ts
+// src/renderer/src/libraries/toonboom.ts
+// ============================================================================
+// FLOWPINS: TOON BOOM HARMONY NODE LIBRARY
+// Node specs for Harmony scripting API nodes.
+// Translations live in /translators/harmony.ts
+// ============================================================================
 import { NodeSpec } from './types';
 
 export const TOONBOOM_NODES: Record<string, NodeSpec> = {
@@ -70,9 +75,6 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: 'exec_out', pin_type: 'exec' },
       { name: 'out_image', pin_type: 'image' } 
     ],
-    // ... default_props, etc ...
-  
-    
     default_props: { offset_x: 0, offset_y: 0 },
     ui_schema: [
       { label: "Drawing Name", prop_key: "node_name", type: "input" },
