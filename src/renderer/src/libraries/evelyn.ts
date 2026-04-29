@@ -1,15 +1,16 @@
-// src/renderer/src/libraries/evelyn.ts
+// src/libraries/evelyn.ts
 // ============================================================================
-// FLOWPINS: EVELYN — THE LIBRARIAN
+// EVELYN: THE FLOWPINS LIBRARIAN
 // Named after Evelyn Carnahan-O'Connell from The Mummy (1999).
-// A brilliant, slightly exasperated librarian who builds node graphs
-// from plain English prompts — and reserves the right to complain about it.
+// A brilliant, slightly exasperated librarian who will help you build node
+// graphs — but absolutely reserves the right to complain about it.
 //
-// Response tiers:
-//   EXACT   — found a perfect blueprint in the archives
-//   IMPROV  — built something approximate from available nodes
-//   BAFFLED — genuinely no idea, here's what she could find
+// Her response system has three tiers:
+//   1. EXACT  — Found a perfect blueprint in the archives.
+//   2. IMPROV — Couldn't find an exact match, built something approximate.
+//   3. BAFFLED — Genuinely no idea, but here's what she scraped together.
 // ============================================================================
+
 import { NODE_LIBRARY } from './index';
 import { LOCAL_TEMPLATES } from './templates';
 import { NodeSpec } from './types';
@@ -131,7 +132,8 @@ export class EvelynLibrarian {
       return { intent: 'mummy', entities: {}, confidence: 'high', rawPrompt: prompt };
     }
 
-    // --- Template keyword scan (highest priority after mummy) ---
+    // --- Template keyword scan (HIGHEST priority — runs before all intent regexes) ---
+    // Pipeline and custom templates always win over generic intent matching.
     for (const template of LOCAL_TEMPLATES) {
       if (template.keywords.some((kw: string) => p.includes(kw))) {
         return {
@@ -163,7 +165,7 @@ export class EvelynLibrarian {
     }
 
     // --- BRANCH / IF ---
-    if (/branch|if |condition|check|compare|when |unless/i.test(p)) {
+    if (/branch|if |condition|compare|when |unless/i.test(p)) {
       return { intent: 'branch', entities, confidence: 'high', rawPrompt: prompt };
     }
 

@@ -49,23 +49,34 @@ const getActiveAppProfile = (mode: string): string => {
   if (mode === 'cs_csharp')    return 'unity';
   if (mode === 'py_houdini')   return 'houdini';
   if (mode === 'py_standard')  return 'python';
+  if (mode === 'py_nuke')      return 'nuke';
   return '';
 };
 
 // Determines the top-level group a profile belongs to
 // e.g. "Core - Math" -> "Core", "Pipeline - Colourspace" -> "Pipeline"
+// "App - Toon Boom - Blur" -> "App - Toon Boom"
 const getTopGroup = (profile: string): string => {
   const p = profile.toLowerCase();
   if (p.startsWith('core'))     return 'Core';
   if (p.startsWith('pipeline')) return 'Pipeline';
-  if (p.startsWith('app'))      return profile; // App groups stay as-is
+  // App groups: "App - Toon Boom - Blur" -> "App - Toon Boom"
+  // "App - Maya" stays as "App - Maya"
+  if (p.startsWith('app')) {
+    const parts = profile.split(' - ');
+    if (parts.length >= 3) return parts.slice(0, 2).join(' - '); // "App - Toon Boom"
+    return profile; // "App - Maya" etc stay as-is
+  }
   return 'Other';
 };
 
 // Sort order for top-level groups
 const GROUP_ORDER: Record<string, number> = {
-  'Core':     0,
-  'Pipeline': 1,
+  'Core':          0,
+  'Pipeline':      1,
+  'App - Toon Boom': 2,
+  'App - Maya':    3,
+  'App - Houdini': 4,
 };
 
 const getTranslationDict = (mode: string): Record<string, any> => {
@@ -83,6 +94,16 @@ const getTranslationDict = (mode: string): Record<string, any> => {
 
 const getProfileColor = (profile: string): string => {
   const p = profile.toLowerCase();
+  if (p.includes('toon boom - blur'))      return '#5b9bd5';
+  if (p.includes('toon boom - effects'))   return '#7b68ee';
+  if (p.includes('toon boom - colour'))    return '#48a999';
+  if (p.includes('toon boom - output'))    return '#e8503a';
+  if (p.includes('toon boom - composite')) return '#4a83c4';
+  if (p.includes('toon boom - rigging'))   return '#66bb6a';
+  if (p.includes('toon boom - scene'))     return '#ffa726';
+  if (p.includes('toon boom - ui'))        return '#ab47bc';
+  if (p.includes('toon boom - camera'))    return '#26c6da';
+  if (p.includes('toon boom - query'))     return '#8d6e63';
   if (p.includes('toon boom') || p.includes('toonboom')) return '#4a83c4';
   if (p.includes('maya'))     return '#c343ea';
   if (p.includes('python'))   return '#2d572c';
@@ -292,6 +313,7 @@ export const LibraryPanel = ({
           }}
         >
           <option value="gml_standard">GameMaker (GML)</option>
+          <option value="py_nuke">Nuke (Py)</option>
           <option value="js_toonboom">Harmony (JS)</option>
           <option value="py_standard">Python (Std)</option>
           <option value="py_maya">Maya (Py)</option>
@@ -352,17 +374,79 @@ export const LibraryPanel = ({
                 const isAppGroup  = topGroup.toLowerCase().startsWith('app');
 
                 if (isAppGroup) {
-                  const profile = subProfiles[0];
-                  const matchingNodes = Object.entries(NODE_LIBRARY)
-                    .filter(([_, s]: [string, any]) => s.profile === profile)
-                    .filter(([_, s]: [string, any]) =>
-                      s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      profile.toLowerCase().includes(searchQuery.toLowerCase())
+                  // Multi-profile app groups (e.g. App - Toon Boom) get sub-accordions
+                  // Single-profile app groups (e.g. App - Maya) get a flat list
+                  const isMultiProfile = subProfiles.length > 1;
+
+                  // For single-profile flat groups
+                  if (!isMultiProfile) {
+                    const profile = subProfiles[0];
+                    const matchingNodes = Object.entries(NODE_LIBRARY)
+                      .filter(([_, s]: [string, any]) => s.profile === profile)
+                      .filter(([_, s]: [string, any]) =>
+                        s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        profile.toLowerCase().includes(searchQuery.toLowerCase())
+                      );
+                    if (searchQuery && matchingNodes.length === 0) return null;
+
+                    return (
+                      <div key={topGroup} style={{ marginBottom: '8px' }}>
+                        <div
+                          onClick={() => toggleTop(topGroup)}
+                          style={{
+                            color: isTopOpen ? topColor : '#888',
+                            fontSize: '10px', fontWeight: 'bold', padding: '8px 10px',
+                            background: '#151515', borderRadius: '4px', cursor: 'pointer',
+                            display: 'flex', justifyContent: 'space-between',
+                            border: `1px solid ${isTopOpen ? topColor + '44' : '#222'}`,
+                            userSelect: 'none', transition: 'all 0.2s', marginBottom: '4px'
+                          }}
+                        >
+                          <span>{topGroup.toUpperCase()}</span>
+                          <span style={{ fontSize: '8px', transform: isTopOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▶</span>
+                        </div>
+                        {isTopOpen && (
+                          <div style={{ paddingLeft: '8px' }}>
+                            {matchingNodes.map(([kind, spec]: [string, any]) => (
+                              <div
+                                key={kind} draggable onDragStart={(e) => onDragStart(e, kind)}
+                                style={{
+                                  padding: '9px 10px', background: '#1a1a1a', marginBottom: '3px',
+                                  borderRadius: '4px', fontSize: '12px', color: '#ccc',
+                                  cursor: 'grab', border: '1px solid #222', transition: 'all 0.1s'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = '#2a2a2a';
+                                  e.currentTarget.style.borderColor = topColor + '88';
+                                  e.currentTarget.style.transform = 'translateX(2px)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = '#1a1a1a';
+                                  e.currentTarget.style.borderColor = '#222';
+                                  e.currentTarget.style.transform = 'translateX(0)';
+                                }}
+                              >
+                                {spec.title}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     );
-                  if (searchQuery && matchingNodes.length === 0) return null;
+                  }
+
+                  // Multi-profile: render as nested accordion (same as Core/Pipeline)
+                  const allSubNodes = subProfiles.flatMap(p =>
+                    Object.entries(NODE_LIBRARY).filter(([_, s]: [string, any]) => s.profile === p)
+                  );
+                  const topMatchCount = allSubNodes.filter(([_, s]: [string, any]) =>
+                    s.title.toLowerCase().includes(searchQuery.toLowerCase())
+                  ).length;
+                  if (searchQuery && topMatchCount === 0) return null;
 
                   return (
                     <div key={topGroup} style={{ marginBottom: '8px' }}>
+                      {/* TOP-LEVEL HEADER e.g. APP - TOON BOOM */}
                       <div
                         onClick={() => toggleTop(topGroup)}
                         style={{
@@ -371,36 +455,79 @@ export const LibraryPanel = ({
                           background: '#151515', borderRadius: '4px', cursor: 'pointer',
                           display: 'flex', justifyContent: 'space-between',
                           border: `1px solid ${isTopOpen ? topColor + '44' : '#222'}`,
-                          userSelect: 'none', transition: 'all 0.2s', marginBottom: '4px'
+                          userSelect: 'none', transition: 'all 0.2s', marginBottom: '4px',
+                          letterSpacing: '1px'
                         }}
                       >
                         <span>{topGroup.toUpperCase()}</span>
                         <span style={{ fontSize: '8px', transform: isTopOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▶</span>
                       </div>
+
+                      {/* SUB-GROUP ACCORDIONS e.g. Blur, Colour, Effects */}
                       {isTopOpen && (
-                        <div style={{ paddingLeft: '8px' }}>
-                          {matchingNodes.map(([kind, spec]: [string, any]) => (
-                            <div
-                              key={kind} draggable onDragStart={(e) => onDragStart(e, kind)}
-                              style={{
-                                padding: '9px 10px', background: '#1a1a1a', marginBottom: '3px',
-                                borderRadius: '4px', fontSize: '12px', color: '#ccc',
-                                cursor: 'grab', border: '1px solid #222', transition: 'all 0.1s'
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.background = '#2a2a2a';
-                                e.currentTarget.style.borderColor = topColor + '88';
-                                e.currentTarget.style.transform = 'translateX(2px)';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.background = '#1a1a1a';
-                                e.currentTarget.style.borderColor = '#222';
-                                e.currentTarget.style.transform = 'translateX(0)';
-                              }}
-                            >
-                              {spec.title}
-                            </div>
-                          ))}
+                        <div style={{ paddingLeft: '8px', borderLeft: `2px solid ${topColor}22` }}>
+                          {subProfiles.map(profile => {
+                            const topPrefix = topGroup + ' - ';
+                            const subLabel = profile.startsWith(topPrefix)
+                              ? profile.slice(topPrefix.length)
+                              : profile;
+                            const subColor   = getProfileColor(profile);
+                            const isSubOpen  = searchQuery ? true : (subExpanded[profile] ?? false);
+                            const subNodes   = Object.entries(NODE_LIBRARY)
+                              .filter(([_, s]: [string, any]) => s.profile === profile)
+                              .filter(([_, s]: [string, any]) =>
+                                s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                subLabel.toLowerCase().includes(searchQuery.toLowerCase())
+                              );
+                            if (searchQuery && subNodes.length === 0) return null;
+
+                            return (
+                              <div key={profile} style={{ marginBottom: '4px' }}>
+                                <div
+                                  onClick={() => toggleSub(profile)}
+                                  style={{
+                                    color: isSubOpen ? subColor : subColor + 'aa',
+                                    fontSize: '10px', fontWeight: 'bold', padding: '6px 8px',
+                                    background: '#0d0d0d', borderRadius: '4px', cursor: 'pointer',
+                                    display: 'flex', justifyContent: 'space-between',
+                                    border: `1px solid ${isSubOpen ? subColor + '66' : subColor + '22'}`,
+                                    userSelect: 'none', transition: 'all 0.2s', marginBottom: '3px',
+                                    letterSpacing: '1px'
+                                  }}
+                                >
+                                  <span>{subLabel.toUpperCase()}</span>
+                                  <span style={{ fontSize: '7px', transform: isSubOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▶</span>
+                                </div>
+                                {isSubOpen && (
+                                  <div style={{ paddingLeft: '8px' }}>
+                                    {subNodes.map(([kind, spec]: [string, any]) => (
+                                      <div
+                                        key={kind} draggable onDragStart={(e) => onDragStart(e, kind)}
+                                        style={{
+                                          padding: '8px 10px', background: '#1a1a1a', marginBottom: '3px',
+                                          borderRadius: '4px', fontSize: '12px', color: '#ccc',
+                                          cursor: 'grab', border: `1px solid #222`, transition: 'all 0.1s',
+                                          borderLeft: `3px solid ${subColor}66`
+                                        }}
+                                        onMouseEnter={(e) => {
+                                          e.currentTarget.style.background = '#2a2a2a';
+                                          e.currentTarget.style.borderColor = subColor + '88';
+                                          e.currentTarget.style.transform = 'translateX(2px)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.currentTarget.style.background = '#1a1a1a';
+                                          e.currentTarget.style.borderColor = '#222';
+                                          e.currentTarget.style.transform = 'translateX(0)';
+                                        }}
+                                      >
+                                        {spec.title}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -434,10 +561,17 @@ export const LibraryPanel = ({
                       <div style={{ paddingLeft: '8px', borderLeft: `2px solid ${topColor}22` }}>
                         {subProfiles.map(profile => {
                           // Strip the top-group prefix for the sub-header label
-                          // e.g. "Core - Math" → "Math", "Pipeline - Colourspace" → "Colourspace"
-                          const subLabel = profile.includes(' - ')
-                            ? profile.split(' - ').slice(1).join(' - ')
-                            : profile;
+                          // e.g. "Core - Math" → "Math"
+                          // "Pipeline - Colourspace" → "Colourspace"
+                          // "App - Toon Boom - Blur" → "Blur"
+                          const subLabel = (() => {
+                            if (!profile.includes(' - ')) return profile;
+                            const topPrefix = topGroup + ' - ';
+                            if (profile.startsWith(topPrefix)) {
+                              return profile.slice(topPrefix.length); // "Blur", "Colour" etc
+                            }
+                            return profile.split(' - ').slice(1).join(' - ');
+                          })();
 
                           const subColor = getProfileColor(profile);
                           const isSubOpen = searchQuery
@@ -460,11 +594,11 @@ export const LibraryPanel = ({
                               <div
                                 onClick={() => toggleSub(profile)}
                                 style={{
-                                  color: isSubOpen ? subColor : '#666',
+                                  color: isSubOpen ? subColor : subColor + 'aa',
                                   fontSize: '10px', fontWeight: 'bold', padding: '6px 10px',
                                   background: '#151515', borderRadius: '4px', cursor: 'pointer',
                                   display: 'flex', justifyContent: 'space-between',
-                                  border: `1px solid ${isSubOpen ? subColor + '33' : '#222'}`,
+                                  border: `1px solid ${isSubOpen ? subColor + '66' : subColor + '22'}`,
                                   userSelect: 'none', transition: 'all 0.2s',
                                   marginBottom: isSubOpen ? '3px' : '0'
                                 }}

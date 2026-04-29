@@ -1,12 +1,3 @@
-// src/renderer/src/libraries/templates.ts
-// ============================================================================
-// FLOWPINS: EVELYN'S TEMPLATE ARCHIVE
-// Pre-built node graph blueprints that Evelyn can deploy from a prompt.
-// Each template has: id, keywords[], nodes[], edges[]
-//
-// To add a new template: add an entry to LOCAL_TEMPLATES with keywords
-// that Evelyn's parser will recognise.
-// ============================================================================
 export const LOCAL_TEMPLATES = [
   {
     id: "glass_distortion",
@@ -116,7 +107,7 @@ export const LOCAL_TEMPLATES = [
 
   {
     id: "colourspace_validator",
-    keywords: ["colourspace", "colorspace", "colour space", "color space", "icc", "srgb", "validate", "check images", "check frames", "check png", "image check"],
+    keywords: ["colourspace", "colorspace", "colour space", "color space", "icc", "srgb", "validate", "check images", "check frames", "check png", "image check", "check colour", "check color", "verify colourspace", "verify colorspace"],
     nodes: [
       { id: "cs_start",    nodeKind: "start",             x: 0,   y: 200 },
       { id: "cs_folder",   nodeKind: "fs_input_path",     x: 0,   y: 50,  props: { path: "C:/your/image/folder" } },
@@ -135,7 +126,7 @@ export const LOCAL_TEMPLATES = [
 
   {
     id: "batch_rename",
-    keywords: ["rename", "batch rename", "find replace", "mass rename", "bulk rename"],
+    keywords: ["rename", "batch rename", "find replace", "mass rename", "bulk rename", "rename files", "find and replace"],
     nodes: [
       { id: "br_start",  nodeKind: "start",           x: 0,   y: 200 },
       { id: "br_folder", nodeKind: "fs_input_path",   x: 0,   y: 50,  props: { path: "C:/your/folder" } },
@@ -146,15 +137,11 @@ export const LOCAL_TEMPLATES = [
       { source: "br_folder", target: "br_rename", sourceHandle: "path",     targetHandle: "folder_path" }
     ]
   }
+
 ,
-
-  // ==========================================================================
-  // PIPELINE TEMPLATES — Wave 2
-  // ==========================================================================
-
   {
     id: "naming_check",
-    keywords: ["naming", "convention", "filename check", "name check", "naming convention"],
+    keywords: ["naming", "convention", "filename check", "name check", "naming convention", "check names", "file naming", "name validation", "check filename"],
     nodes: [
       { id: "nc_start",   nodeKind: "start",               x: 0,   y: 200 },
       { id: "nc_folder",  nodeKind: "fs_input_path",        x: 0,   y: 50,  props: { path: "C:/your/folder" } },
@@ -172,7 +159,7 @@ export const LOCAL_TEMPLATES = [
 
   {
     id: "dimension_check",
-    keywords: ["dimensions", "resolution", "image size", "check resolution", "1920", "1080", "width height"],
+    keywords: ["dimensions", "resolution", "image size", "check resolution", "1920", "1080", "width height", "check dimensions", "verify resolution", "check size"],
     nodes: [
       { id: "dim_start",  nodeKind: "start",                    x: 0,   y: 200 },
       { id: "dim_folder", nodeKind: "fs_input_path",             x: 0,   y: 50,  props: { path: "C:/your/folder" } },
@@ -191,7 +178,7 @@ export const LOCAL_TEMPLATES = [
 
   {
     id: "full_image_validate",
-    keywords: ["full validate", "validate all", "full check", "image validate", "check everything", "complete check"],
+    keywords: ["full validate", "validate all", "full check", "image validate", "check everything", "complete check", "full validation", "delivery check", "delivery validate"],
     nodes: [
       { id: "fv_start",   nodeKind: "start",              x: 0,   y: 200 },
       { id: "fv_folder",  nodeKind: "fs_input_path",       x: 0,   y: 50,  props: { path: "C:/your/folder" } },
@@ -214,7 +201,7 @@ export const LOCAL_TEMPLATES = [
 
   {
     id: "compare_folders",
-    keywords: ["compare folders", "missing files", "folder diff", "compare", "missing frames"],
+    keywords: ["compare folders", "missing files", "folder diff", "missing frames", "find missing", "compare two folders", "which files are missing"],
     nodes: [
       { id: "cf_start",   nodeKind: "start",               x: 0,   y: 200 },
       { id: "cf_folder_a",nodeKind: "fs_input_path",        x: 0,   y: 50,  props: { path: "C:/folder_a" } },
@@ -230,7 +217,7 @@ export const LOCAL_TEMPLATES = [
 
   {
     id: "pad_frames",
-    keywords: ["pad frames", "frame padding", "pad numbers", "rename frames", "zero pad"],
+    keywords: ["pad frames", "frame padding", "pad numbers", "rename frames", "zero pad", "padding", "frame numbers", "number padding"],
     nodes: [
       { id: "pf_start",  nodeKind: "start",              x: 0,   y: 200 },
       { id: "pf_folder", nodeKind: "fs_input_path",       x: 0,   y: 50,  props: { path: "C:/your/frames" } },

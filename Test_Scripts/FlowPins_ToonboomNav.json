@@ -1,0 +1,509 @@
+{
+  "nodes": [
+    {
+      "id": "node_1777424320464",
+      "type": "fp",
+      "position": {
+        "x": 195,
+        "y": 165
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Core - Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 195,
+        "y": 165
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1777424377385",
+      "type": "fp",
+      "position": {
+        "x": 480,
+        "y": 165
+      },
+      "data": {
+        "label": "Get Top Level Groups",
+        "nodeKind": "tb_get_top_level_groups",
+        "profile": "App - Toon Boom - Scene",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "group_list",
+            "pin_type": "list"
+          },
+          {
+            "name": "group_count",
+            "pin_type": "int"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 177,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 480,
+        "y": 165
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1777424440513",
+      "type": "fp",
+      "position": {
+        "x": 1185,
+        "y": 165
+      },
+      "data": {
+        "label": "NAV Anchor Exists",
+        "nodeKind": "tb_nav_anchor_exists",
+        "profile": "App - Toon Boom - Scene",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "group_path",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "exists",
+            "pin_type": "boolean"
+          },
+          {
+            "name": "anchor_path",
+            "pin_type": "string"
+          }
+        ],
+        "props": {
+          "nav_prefix": "NAV_"
+        }
+      },
+      "width": 200,
+      "height": 177,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1185,
+        "y": 165
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1777424459160",
+      "type": "fp",
+      "position": {
+        "x": 1530,
+        "y": 165
+      },
+      "data": {
+        "label": "If (Branch)",
+        "nodeKind": "if_branch",
+        "profile": "Core - Logic",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "condition",
+            "pin_type": "bool"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "true",
+            "pin_type": "exec"
+          },
+          {
+            "name": "false",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1530,
+        "y": 165
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1777425000768",
+      "type": "fp",
+      "position": {
+        "x": 735,
+        "y": 165
+      },
+      "data": {
+        "label": "ForEach (List)",
+        "nodeKind": "foreach_list",
+        "profile": "Core - Logic",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "list",
+            "pin_type": "list"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "loop_body",
+            "pin_type": "exec"
+          },
+          {
+            "name": "completed",
+            "pin_type": "exec"
+          },
+          {
+            "name": "item",
+            "pin_type": "any"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 177,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 735,
+        "y": 165
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1777425323831",
+      "type": "fp",
+      "position": {
+        "x": 1860,
+        "y": 195
+      },
+      "data": {
+        "label": "Find MultiPort Out",
+        "nodeKind": "tb_find_multiport_out",
+        "profile": "App - Toon Boom - Scene",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "group_path",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "node_path",
+            "pin_type": "string"
+          },
+          {
+            "name": "found",
+            "pin_type": "boolean"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 177,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1860,
+        "y": 195
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1777425407834",
+      "type": "fp",
+      "position": {
+        "x": 2310,
+        "y": 450
+      },
+      "data": {
+        "label": "Plant NAV Composite",
+        "nodeKind": "tb_plant_nav_composite",
+        "profile": "App - Toon Boom - Scene",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "group_path",
+            "pin_type": "string"
+          },
+          {
+            "name": "mp_out_path",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "anchor_path",
+            "pin_type": "string"
+          },
+          {
+            "name": "anchor_name",
+            "pin_type": "string"
+          }
+        ],
+        "props": {
+          "nav_prefix": "NAV_",
+          "x_offset": 200
+        }
+      },
+      "width": 202,
+      "height": 177,
+      "selected": true,
+      "positionAbsolute": {
+        "x": 2310,
+        "y": 450
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1777425975383",
+      "type": "fp",
+      "position": {
+        "x": 1185,
+        "y": 405
+      },
+      "data": {
+        "label": "Launch Nav Window",
+        "nodeKind": "tb_launch_nav_window",
+        "profile": "App - Toon Boom - Scene",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "nav_prefix",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {
+          "nav_prefix": "NAV_",
+          "title": "NAV TO NODE"
+        }
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1185,
+        "y": 405
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1777424320464",
+      "sourceHandle": "exec_out",
+      "target": "node_1777424377385",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777424320464exec_out-node_1777424377385exec_in",
+      "animated": false
+    },
+    {
+      "source": "node_1777424440513",
+      "sourceHandle": "exec_out",
+      "target": "node_1777424459160",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777424440513exec_out-node_1777424459160exec_in",
+      "animated": false
+    },
+    {
+      "source": "node_1777424440513",
+      "sourceHandle": "exists",
+      "target": "node_1777424459160",
+      "targetHandle": "condition",
+      "style": {
+        "stroke": "#888888",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777424440513exists-node_1777424459160condition",
+      "animated": false
+    },
+    {
+      "source": "node_1777424377385",
+      "sourceHandle": "exec_out",
+      "target": "node_1777425000768",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777424377385exec_out-node_1777425000768exec_in",
+      "animated": false
+    },
+    {
+      "source": "node_1777424377385",
+      "sourceHandle": "group_list",
+      "target": "node_1777425000768",
+      "targetHandle": "list",
+      "style": {
+        "stroke": "#00d8ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777424377385group_list-node_1777425000768list",
+      "animated": false
+    },
+    {
+      "source": "node_1777425000768",
+      "sourceHandle": "loop_body",
+      "target": "node_1777424440513",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777425000768loop_body-node_1777424440513exec_in",
+      "animated": false
+    },
+    {
+      "source": "node_1777425000768",
+      "sourceHandle": "item",
+      "target": "node_1777424440513",
+      "targetHandle": "group_path",
+      "style": {
+        "stroke": "#826cf3",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777425000768item-node_1777424440513group_path",
+      "animated": false
+    },
+    {
+      "source": "node_1777424459160",
+      "sourceHandle": "false",
+      "target": "node_1777425323831",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777424459160false-node_1777425323831exec_in",
+      "animated": false
+    },
+    {
+      "source": "node_1777425000768",
+      "sourceHandle": "item",
+      "target": "node_1777425323831",
+      "targetHandle": "group_path",
+      "style": {
+        "stroke": "#826cf3",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777425000768item-node_1777425323831group_path",
+      "animated": false
+    },
+    {
+      "source": "node_1777425323831",
+      "sourceHandle": "exec_out",
+      "target": "node_1777425407834",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777425323831exec_out-node_1777425407834exec_in",
+      "animated": true
+    },
+    {
+      "source": "node_1777425000768",
+      "sourceHandle": "item",
+      "target": "node_1777425407834",
+      "targetHandle": "group_path",
+      "style": {
+        "stroke": "#826cf3",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777425000768item-node_1777425407834group_path",
+      "animated": true
+    },
+    {
+      "source": "node_1777425323831",
+      "sourceHandle": "node_path",
+      "target": "node_1777425407834",
+      "targetHandle": "mp_out_path",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777425323831node_path-node_1777425407834mp_out_path",
+      "animated": true
+    },
+    {
+      "source": "node_1777425000768",
+      "sourceHandle": "completed",
+      "target": "node_1777425975383",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777425000768completed-node_1777425975383exec_in",
+      "animated": false
+    }
+  ]
+}

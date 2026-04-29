@@ -1,12 +1,10 @@
 // src/renderer/src/libraries/translators/python.ts
 // ============================================================================
-// FLOWPINS: STANDARD PYTHON TRANSLATION DICTIONARY
-// Target: Python 3.8+ (standalone scripts)
-//
-// Inherited by: maya.ts, houdini.ts (via ...PYTHON_TRANSLATIONS spread)
-// Pin naming: exec_in / exec_out throughout.
-// Windows paths: use r"..." raw strings for all path values.
+// Standard Python translation dictionary.
+// All exec input pins are "exec_in". All exec output pins are "exec_out".
+// Tokens must match pin names defined in core_logic.ts exactly.
 // ============================================================================
+
 export const PYTHON_TRANSLATIONS: Record<string, any> = {
 
   // --- CORE: EXECUTION ---
@@ -155,7 +153,8 @@ fail_list = []
 regex = pattern.replace(".", "\\.").replace("*", ".*")
 regex = re.sub("#+", lambda m: "\\d{" + str(len(m.group())) + "}", regex)
 regex = "^" + regex + "$"
-print("\nFlowPins Naming Convention Check")
+print()
+print("FlowPins Naming Convention Check")
 print("Folder  : " + folder)
 print("Pattern : " + pattern)
 print("-" * 50)
@@ -170,7 +169,8 @@ for filename in sorted(os.listdir(folder)):
             print("  FAIL: " + filename)
 pass_count = len(pass_list)
 fail_count = len(fail_list)
-print("\nResult: " + str(pass_count) + " passed, " + str(fail_count) + " failed.")
+print()
+print("Result: " + str(pass_count) + " passed, " + str(fail_count) + " failed.")
 {exec_out}`,
 
   "nm_bump_version": `import re, os
@@ -195,8 +195,8 @@ else:
 from datetime import datetime
 pass_list   = {pass_list}
 fail_list   = {fail_list}
-folder      = {folder_path}
-csv_path    = os.path.join(folder, "{filename}")
+save_folder = {folder_path}
+csv_path    = os.path.join(save_folder, "{filename}")
 timestamp   = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 with open(csv_path, "w", newline="", encoding="utf-8") as csv_file:
     writer = csv.writer(csv_file)
@@ -219,7 +219,8 @@ only_in_a    = sorted(list(files_a - files_b))
 only_in_b    = sorted(list(files_b - files_a))
 in_both      = sorted(list(files_a & files_b))
 missing_count = len(only_in_a) + len(only_in_b)
-print("\nFlowPins Folder Comparison")
+print()
+print("FlowPins Folder Comparison")
 print("Folder A: " + folder_a + " (" + str(len(files_a)) + " files)")
 print("Folder B: " + folder_b + " (" + str(len(files_b)) + " files)")
 print("In both : " + str(len(in_both)) + "  |  Only in A: " + str(len(only_in_a)) + "  |  Only in B: " + str(len(only_in_b)))
@@ -244,12 +245,12 @@ for filename in os.listdir(folder):
     elif ext in (".tif", ".tiff"):                         tiff_count  += 1
     if   ext in (".png",".exr",".tif",".tiff",".jpg",".jpeg",".dpx"): total_count += 1
 summary = "PNG:" + str(png_count) + " EXR:" + str(exr_count) + " TIFF:" + str(tiff_count) + " Total:" + str(total_count)
-print("\nFlowPins File Count — " + folder)
+print("")
+print("FlowPins File Count — " + folder)
 print("  " + summary)
 {exec_out}`,
 
   "rp_print_summary": `from datetime import datetime
-import os
 title     = "{title}"
 separator = "=" * 60
 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -257,9 +258,8 @@ print(separator)
 print("  " + title.upper())
 print("  Generated: " + timestamp)
 print(separator)
-print("  PASSED : " + str({pass_count}))
-print("  FAILED : " + str({fail_count}))
-if {notes}: print("  Notes  : " + str({notes}))
+print("  PASSED : " + str(pass_count))
+print("  FAILED : " + str(fail_count))
 print(separator)
 {exec_out}`,
 
@@ -338,7 +338,8 @@ def get_colourspace(filepath):
     except Exception as e:
         return "ERROR: " + str(e)
 
-print("\nFlowPins Colourspace Validator — " + folder)
+print()
+print("FlowPins Colourspace Validator — " + folder)
 print("Expected: " + expected + "\n" + "-" * 50)
 for root, dirs, files in os.walk(folder):
     for filename in sorted(files):
@@ -435,7 +436,8 @@ expected_height = {expected_height}
 extension       = "{extension}"
 pass_list       = []
 fail_list       = []
-print("\nFlowPins Dimension Check — " + folder)
+print()
+print("FlowPins Dimension Check — " + folder)
 print("Expected: " + str(expected_width) + "x" + str(expected_height))
 print("-" * 50)
 for root, dirs, files in os.walk(folder):
@@ -502,7 +504,8 @@ DEPTH_MAP       = {"1":1,"L":8,"P":8,"RGB":8,"RGBA":8,"I":32,"F":32,"I;16":16,"I
 pass_list       = []
 fail_list       = []
 
-print("\nFlowPins Full Image Validator — " + folder)
+print()
+print("FlowPins Full Image Validator — " + folder)
 print("Expected: " + str(expected_width) + "x" + str(expected_height) +
       " | " + str(expected_depth) + "-bit | " + expected_cs)
 print("-" * 60)
@@ -548,7 +551,8 @@ for root, dirs, files in os.walk(folder):
 
 pass_count = len(pass_list)
 fail_count = len(fail_list)
-print("\nResult: " + str(pass_count) + " passed, " + str(fail_count) + " failed.")
+print()
+print("Result: " + str(pass_count) + " passed, " + str(fail_count) + " failed.")
 {exec_out}`,
 
   // ==========================================================================

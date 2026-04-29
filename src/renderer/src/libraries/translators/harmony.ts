@@ -1,13 +1,9 @@
 // src/renderer/src/libraries/translators/harmony.ts
 // ============================================================================
-// FLOWPINS: TOON BOOM HARMONY TRANSLATION DICTIONARY
-// Target: Harmony 21+ JavaScript scripting API
-//
-// Notes:
-//   - File I/O uses Qt classes (QFile, QDir, QTextStream)
-//   - Colourspace validation requires Python target (stubs provided here)
-//   - UI widgets use Harmony's Dialog/SpinBox classes, not raw Qt
+// Toon Boom Harmony (JavaScript) translation dictionary.
+// Target: Harmony 21+ scripting API
 // ============================================================================
+
 export const HARMONY_TRANSLATIONS: Record<string, any> = {
 
   // --- CORE: EXECUTION ---
@@ -225,5 +221,441 @@ MessageLog.trace("FlowPins: Colourspace validation requires Python target.");
 {exec_out}`,
   "cs_print_report":      `MessageLog.trace("FlowPins: Colourspace report requires Python target.");
 {exec_out}`,
+
+
+
+  // ==========================================================================
+  // NEW NODES — Wave 2 (all type strings confirmed from .xstage)
+  // ==========================================================================
+
+// ==========================================================================
+  // COMPOSITING
+  // ==========================================================================
+
+  "tb_composite": `// Create Composite node
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+var newComp_{node_id} = node.add("Top", "{node_name}", "COMPOSITE", xPos_{node_id}, yPos_{node_id}, 0);
+node.setTextAttr("Top/" + "{node_name}", "compositeMode", 1, "{composite_mode}");
+node.setTextAttr("Top/" + "{node_name}", "flattenOutput", 1, "{flatten}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, "Top/" + "{node_name}", 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  "tb_display": `// Create Display node
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+node.add("Top", "{node_name}", "DISPLAY", xPos_{node_id}, yPos_{node_id}, 0);
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, "Top/" + "{node_name}", 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  "tb_write": `// Create Write node
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+var writePath_{node_id} = "Top/" + "{node_name}";
+node.add("Top", "{node_name}", "WRITE", xPos_{node_id}, yPos_{node_id}, 0);
+node.setTextAttr(writePath_{node_id}, "drawingName",  1, "{drawing_name}");
+node.setTextAttr(writePath_{node_id}, "drawingType",  1, "{drawing_type}");
+node.setTextAttr(writePath_{node_id}, "leadingZeros", 1, "{leading_zeros}");
+node.setTextAttr(writePath_{node_id}, "colorSpace",   1, "{color_space}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, writePath_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  "tb_visibility": `// Create Visibility node
+var vis_{node_id} = node.add("Top", "{node_name}", "VISIBILITY", 0, 0, 0);
+node.setTextAttr(vis_{node_id}, "oglrender",  1, "{visible}");
+node.setTextAttr(vis_{node_id}, "softrender", 1, "{visible}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, vis_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  "tb_image_switch": `// Create Image Switch node
+var sw_{node_id} = node.add("Top", "{node_name}", "ImageSwitch", 0, 0, 0);
+node.setTextAttr(sw_{node_id}, "portIndex", 1, "{port_index}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, sw_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  // ==========================================================================
+  // BLUR NODES — type strings confirmed from xstage
+  // ==========================================================================
+
+  "tb_blur_box": `// Create Blur-Box node (type: BOXBLUR-PLUGIN confirmed from xstage)
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+var blur_{node_id} = node.add("Top", "{node_name}", "BOXBLUR-PLUGIN", xPos_{node_id}, yPos_{node_id}, 0);
+node.setTextAttr(blur_{node_id}, "radius",        1, "{radius}");
+node.setTextAttr(blur_{node_id}, "bidirectional", 1, "{bidirectional}");
+node.setTextAttr(blur_{node_id}, "precision",     1, "{precision}");
+node.setTextAttr(blur_{node_id}, "iterations",    1, "{iterations}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, blur_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  "tb_blur_gaussian": `// Create Blur-Gaussian node (type: GAUSSIANBLUR-PLUGIN confirmed from xstage)
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+var blur_{node_id} = node.add("Top", "{node_name}", "GAUSSIANBLUR-PLUGIN", xPos_{node_id}, yPos_{node_id}, 0);
+node.setTextAttr(blur_{node_id}, "blurriness", 1, "{blurriness}");
+node.setTextAttr(blur_{node_id}, "precision",  1, "{precision}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, blur_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  "tb_blur_variable": `// Create Blur-Variable node (type: BLUR_VARIABLE confirmed from xstage)
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+var blur_{node_id} = node.add("Top", "{node_name}", "BLUR_VARIABLE", xPos_{node_id}, yPos_{node_id}, 0);
+node.setTextAttr(blur_{node_id}, "blackRadius", 1, "{black_radius}");
+node.setTextAttr(blur_{node_id}, "whiteRadius", 1, "{white_radius}");
+node.setTextAttr(blur_{node_id}, "quality",     1, "{quality}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, blur_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  "tb_blur_directional": `// Create Blur-Directional node (type: BLUR_DIRECTIONAL confirmed from xstage)
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+var blur_{node_id} = node.add("Top", "{node_name}", "BLUR_DIRECTIONAL", xPos_{node_id}, yPos_{node_id}, 0);
+node.setTextAttr(blur_{node_id}, "radius", 1, "{radius}");
+node.setTextAttr(blur_{node_id}, "angle",  1, "{angle}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, blur_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  "tb_matte_blur": `// Create Matte-Blur node (type: MATTE_BLUR confirmed from xstage)
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+var mb_{node_id} = node.add("Top", "{node_name}", "MATTE_BLUR", xPos_{node_id}, yPos_{node_id}, 0);
+node.setTextAttr(mb_{node_id}, "radius",      1, "{radius}");
+node.setTextAttr(mb_{node_id}, "blurType",    1, "{blur_type}");
+node.setTextAttr(mb_{node_id}, "invertMatte", 1, "{invert_matte}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, mb_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  "tb_matte_resize": `// Create Matte-Resize node (type: MATTE_RESIZE confirmed from xstage)
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+var mr_{node_id} = node.add("Top", "{node_name}", "MATTE_RESIZE", xPos_{node_id}, yPos_{node_id}, 0);
+node.setTextAttr(mr_{node_id}, "radius", 1, "{radius}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, mr_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  // ==========================================================================
+  // COLOUR / EFFECTS NODES
+  // ==========================================================================
+
+  "tb_glow": `// Create Glow node (type: GLOW confirmed from xstage)
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+var glow_{node_id} = node.add("Top", "{node_name}", "GLOW", xPos_{node_id}, yPos_{node_id}, 0);
+node.setTextAttr(glow_{node_id}, "radius",         1, "{radius}");
+node.setTextAttr(glow_{node_id}, "blurType",       1, "{blur_type}");
+node.setTextAttr(glow_{node_id}, "colourGain",     1, "{colour_gain}");
+node.setTextAttr(glow_{node_id}, "multiplicative",  1, "{multiplicative}");
+node.setTextAttr(glow_{node_id}, "invertMatte",    1, "{invert_matte}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, glow_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  "tb_highlight": `// Create Highlight node (type: HIGHLIGHT confirmed from xstage)
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+var hl_{node_id} = node.add("Top", "{node_name}", "HIGHLIGHT", xPos_{node_id}, yPos_{node_id}, 0);
+node.setTextAttr(hl_{node_id}, "radius",     1, "{radius}");
+node.setTextAttr(hl_{node_id}, "blurType",   1, "{blur_type}");
+node.setTextAttr(hl_{node_id}, "colourGain", 1, "{colour_gain}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, hl_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  "tb_tone": `// Create Tone node (type: TONE confirmed from xstage)
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+var tone_{node_id} = node.add("Top", "{node_name}", "TONE", xPos_{node_id}, yPos_{node_id}, 0);
+node.setTextAttr(tone_{node_id}, "radius",     1, "{radius}");
+node.setTextAttr(tone_{node_id}, "blurType",   1, "{blur_type}");
+node.setTextAttr(tone_{node_id}, "colourGain", 1, "{colour_gain}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, tone_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  "tb_colour_scale": `// Create Colour-Scale node (type: COLOR_SCALE confirmed from xstage)
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+var cs_{node_id} = node.add("Top", "{node_name}", "COLOR_SCALE", xPos_{node_id}, yPos_{node_id}, 0);
+node.setTextAttr(cs_{node_id}, "red",        1, "{red}");
+node.setTextAttr(cs_{node_id}, "green",      1, "{green}");
+node.setTextAttr(cs_{node_id}, "blue",       1, "{blue}");
+node.setTextAttr(cs_{node_id}, "alpha",      1, "{alpha}");
+node.setTextAttr(cs_{node_id}, "saturation", 1, "{saturation}");
+node.setTextAttr(cs_{node_id}, "value",      1, "{value}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, cs_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  "tb_hue_saturation": `// Create Hue-Saturation node (type: HUE_SATURATION confirmed from xstage)
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+var hs_{node_id} = node.add("Top", "{node_name}", "HUE_SATURATION", xPos_{node_id}, yPos_{node_id}, 0);
+node.setTextAttr(hs_{node_id}, "masterrangecolor.hueShift",  1, "{hue_shift}");
+node.setTextAttr(hs_{node_id}, "masterrangecolor.saturation",1, "{saturation}");
+node.setTextAttr(hs_{node_id}, "masterrangecolor.lightness", 1, "{lightness}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, hs_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  "tb_colour_card": `// Create Colour-Card node (type: COLOR_CARD confirmed from xstage)
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+var cc_{node_id} = node.add("Top", "{node_name}", "COLOR_CARD", xPos_{node_id}, yPos_{node_id}, 0);
+node.setTextAttr(cc_{node_id}, "offsetZ", 1, "{offset_z}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, cc_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  "tb_cutter": `// Create Cutter node (type: CUTTER confirmed from xstage)
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+var cut_{node_id} = node.add("Top", "{node_name}", "CUTTER", xPos_{node_id}, yPos_{node_id}, 0);
+node.setTextAttr(cut_{node_id}, "inverted", 1, "{inverted}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, cut_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  "tb_gradient": `// Create Gradient node (type: GRADIENT-PLUGIN confirmed from xstage)
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+var grad_{node_id} = node.add("Top", "{node_name}", "GRADIENT-PLUGIN", xPos_{node_id}, yPos_{node_id}, 0);
+node.setTextAttr(grad_{node_id}, "type", 1, "{gradient_type}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, grad_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  "tb_colour_override": `// Create Colour-Override node (type: COLOR_OVERRIDE_TVG confirmed from xstage)
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+var co_{node_id} = node.add("Top", "{node_name}", "COLOR_OVERRIDE_TVG", xPos_{node_id}, yPos_{node_id}, 0);
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, co_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  "tb_multi_layer_write": `// Create Multi-Layer-Write node (type: MultiLayerWrite confirmed from xstage)
+var xPos_{node_id} = parseFloat("{offset_x}") || 0;
+var yPos_{node_id} = parseFloat("{offset_y}") || 0;
+var mlw_{node_id} = node.add("Top", "{node_name}", "MultiLayerWrite", xPos_{node_id}, yPos_{node_id}, 0);
+node.setTextAttr(mlw_{node_id}, "drawingName", 1, "{drawing_name}");
+node.setTextAttr(mlw_{node_id}, "drawingType", 1, "{drawing_type}");
+node.setTextAttr(mlw_{node_id}, "colorSpace",  1, "{color_space}");
+if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
+    node.link("Top/" + lastCreatedNode, 0, mlw_{node_id}, 0);
+}
+var lastCreatedNode = "{node_name}";
+{exec_out}`,
+
+  // ==========================================================================
+  // NAV TO NODE UTILITY TRANSLATIONS
+  // ==========================================================================
+
+  "tb_get_top_level_groups": `// Get all top-level GROUP nodes directly under Top
+var group_list  = [];
+var group_count = 0;
+var _children_{node_id} = node.subNodes("Top");
+for (var _i_{node_id} = 0; _i_{node_id} < _children_{node_id}.length; _i_{node_id}++) {
+  var _child_{node_id} = _children_{node_id}[_i_{node_id}];
+  if (node.type(_child_{node_id}) === "GROUP") {
+    group_list.push(_child_{node_id});
+  }
+}
+group_count = group_list.length;
+MessageLog.trace("NAV: Found " + group_count + " top-level groups.");
+{exec_out}`,
+
+  "tb_get_group_short_name": `// Extract short name from full group path
+// e.g. "Top/Riley/Riley_Body" -> "Riley_Body"
+var _parts_{node_id} = ({group_path}).split("/");
+var short_name = _parts_{node_id}[_parts_{node_id}.length - 1];
+{exec_out}`,
+
+  "tb_find_multiport_out": `// Find MULTIPORT_OUT inside a group
+var _grp_{node_id}      = {group_path};
+var _kids_{node_id}     = node.subNodes(_grp_{node_id});
+var node_path           = "";
+var found               = false;
+for (var _i_{node_id} = 0; _i_{node_id} < _kids_{node_id}.length; _i_{node_id}++) {
+  if (node.type(_kids_{node_id}[_i_{node_id}]) === "MULTIPORT_OUT") {
+    node_path = _kids_{node_id}[_i_{node_id}];
+    found     = true;
+    break;
+  }
+}
+MessageLog.trace("NAV: MULTIPORT_OUT in " + _grp_{node_id} + " -> " + (found ? node_path : "not found"));
+{exec_out}`,
+
+  "tb_nav_anchor_exists": `// Check if a NAV_ anchor composite already exists in this group
+var _grp_{node_id}     = {group_path};
+var _prefix_{node_id}  = "{nav_prefix}";
+var _parts_{node_id}   = _grp_{node_id}.split("/");
+var _short_{node_id}   = _parts_{node_id}[_parts_{node_id}.length - 1];
+var anchor_path        = _grp_{node_id} + "/" + _prefix_{node_id} + _short_{node_id};
+var exists             = (node.type(anchor_path) === "COMPOSITE");
+MessageLog.trace("NAV: Anchor check " + anchor_path + " -> " + exists);
+{exec_out}`,
+
+  "tb_get_node_coord": `// Get X, Y, Z coordinates of a node in the Node View
+var _np_{node_id} = {node_path};
+var coord_x       = node.coordX(_np_{node_id});
+var coord_y       = node.coordY(_np_{node_id});
+var coord_z       = node.coordZ(_np_{node_id});
+{exec_out}`,
+
+  "tb_plant_nav_composite": `// Plant a NAV_ anchor composite next to a MULTIPORT_OUT
+var _grp_{node_id}    = {group_path};
+var _mp_{node_id}     = {mp_out_path};
+var _prefix_{node_id} = "{nav_prefix}";
+var _offset_{node_id} = {x_offset};
+var _parts_{node_id}  = _grp_{node_id}.split("/");
+var _short_{node_id}  = _parts_{node_id}[_parts_{node_id}.length - 1];
+var anchor_name       = _prefix_{node_id} + _short_{node_id};
+var plant_path_{node_id} = _grp_{node_id} + "/" + anchor_name;
+var _ax_{node_id}     = node.coordX(_mp_{node_id}) + _offset_{node_id};
+var _ay_{node_id}     = node.coordY(_mp_{node_id});
+var _az_{node_id}     = node.coordZ(_mp_{node_id});
+node.add(_grp_{node_id}, anchor_name, "COMPOSITE", _ax_{node_id}, _ay_{node_id}, _az_{node_id});
+MessageLog.trace("NAV: Planted " + plant_path_{node_id});
+{exec_out}`,
+
+
+  "tb_launch_nav_window": `// ================================================================
+// LAUNCH NAV WINDOW — collects all NAV_ anchors and opens navigator
+// ================================================================
+var _prefix_{node_id} = "{nav_prefix}";
+var _title_{node_id}  = "{title}";
+
+// Scan Top for NAV_ anchor composites
+var _anchors_{node_id} = [];
+var _topGroups_{node_id} = node.subNodes("Top");
+for (var _gi_{node_id} = 0; _gi_{node_id} < _topGroups_{node_id}.length; _gi_{node_id}++) {
+  var _gp_{node_id}    = _topGroups_{node_id}[_gi_{node_id}];
+  if (node.type(_gp_{node_id}) !== "GROUP") continue;
+  var _parts_{node_id} = _gp_{node_id}.split("/");
+  var _short_{node_id} = _parts_{node_id}[_parts_{node_id}.length - 1];
+  var _apath_{node_id} = _gp_{node_id} + "/" + _prefix_{node_id} + _short_{node_id};
+  if (node.type(_apath_{node_id}) === "COMPOSITE") {
+    _anchors_{node_id}.push({
+      name:       _short_{node_id},
+      anchorPath: _apath_{node_id},
+      groupPath:  _gp_{node_id}
+    });
+  }
+}
+
+// Sort alphabetically
+_anchors_{node_id}.sort(function(a, b) { return a.name.localeCompare(b.name); });
+
+if (_anchors_{node_id}.length === 0) {
+  MessageBox.information("NAV TO NODE — No NAV_ anchors found. Run the scan first.");
+} else {
+  // Build navigator window
+  var _dlg_{node_id} = new QDialog();
+  _dlg_{node_id}.setWindowTitle(_title_{node_id} + " — " + _anchors_{node_id}.length + " groups");
+  _dlg_{node_id}.resize(300, Math.min(500, 80 + _anchors_{node_id}.length * 42));
+  _dlg_{node_id}.setWindowFlags(Qt.WindowStaysOnTopHint);
+
+  var _lay_{node_id} = new QVBoxLayout();
+  _dlg_{node_id}.setLayout(_lay_{node_id});
+
+  var _hdr_{node_id} = new QLabel("  " + _anchors_{node_id}.length + " navigable groups");
+  _hdr_{node_id}.setStyleSheet("color: #00d8ff; font-size: 11px; font-weight: bold; padding: 8px; background: #0a0a0a;");
+  _lay_{node_id}.addWidget(_hdr_{node_id}, 0, Qt.AlignTop);
+
+  var _list_{node_id} = new QListWidget();
+  _list_{node_id}.setStyleSheet(
+    "QListWidget { background: #111; border: none; color: #ccc; font-size: 13px; outline: none; }" +
+    "QListWidget::item { padding: 10px 14px; border-bottom: 1px solid #1e1e1e; }" +
+    "QListWidget::item:hover { background: #1e2a2e; color: #fff; }" +
+    "QListWidget::item:selected { background: #0a2030; color: #00d8ff; }"
+  );
+
+  for (var _ai_{node_id} = 0; _ai_{node_id} < _anchors_{node_id}.length; _ai_{node_id}++) {
+    var _item_{node_id} = new QListWidgetItem(_anchors_{node_id}[_ai_{node_id}].name);
+    _list_{node_id}.addItem(_item_{node_id});
+  }
+  _lay_{node_id}.addWidget(_list_{node_id}, 1, Qt.AlignTop);
+
+  var _data_{node_id} = _anchors_{node_id};
+  _list_{node_id}.itemClicked.connect(function(item) {
+    var _clicked_{node_id} = item.text();
+    for (var _ni_{node_id} = 0; _ni_{node_id} < _data_{node_id}.length; _ni_{node_id}++) {
+      if (_data_{node_id}[_ni_{node_id}].name === _clicked_{node_id}) {
+        var _t_{node_id} = _data_{node_id}[_ni_{node_id}];
+        selection.clearSelection();
+        selection.addNodeToSelection(_t_{node_id}.groupPath);
+        Action.perform("onActionEnterGroup()", "Node View");
+        selection.clearSelection();
+        selection.addNodeToSelection(_t_{node_id}.anchorPath);
+        Action.perform("onActionReframeSelection()", "Node View");
+        MessageLog.trace("NAV: Jumped to " + _t_{node_id}.groupPath);
+        break;
+      }
+    }
+  });
+
+  var _close_{node_id} = new QPushButton("Close Navigator");
+  _close_{node_id}.setStyleSheet(
+    "QPushButton { background: #1a1a1a; color: #555; border: 1px solid #2a2a2a; border-radius: 3px; padding: 7px; font-size: 11px; }" +
+    "QPushButton:hover { color: #999; background: #252525; }"
+  );
+  _close_{node_id}.clicked.connect(function() { _dlg_{node_id}.close(); });
+  _lay_{node_id}.addWidget(_close_{node_id}, 0, Qt.AlignBottom);
+
+  _dlg_{node_id}.show();
+}
+{exec_out}`,
+
 
 };

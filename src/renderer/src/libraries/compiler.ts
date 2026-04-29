@@ -1,18 +1,15 @@
 // src/renderer/src/libraries/compiler.ts
 // ============================================================================
-// FLOWPINS: COMPILER ENGINE
-// Translates the visual node graph into executable scripts.
-//
-// Architecture:
-//   - walkExecOrder()          : traverses execution chain in order
-//   - generateNodeCodeIsolated(): generates code for one node (no recursion)
-//   - generateCodeBlocks()     : public entry point, one CodeBlock per node
+// FLOWPINS COMPILER ENGINE
+// Extracted from App.tsx for testability and TD extensibility.
 //
 // To add a new DCC target:
-//   1. Create a new translation dictionary in /translators/
-//   2. Register it in TRANSLATION_REGISTRY below
+//   1. Create a new translation dictionary (e.g. blender.ts)
+//   2. Add it to TRANSLATION_REGISTRY below
 //   3. Add its mode key to the CompileMode type
+//   That's it. The compiler is fully language-agnostic.
 // ============================================================================
+
 import { type Node, type Edge } from 'reactflow';
 import { NODE_LIBRARY } from './index';
 import { HARMONY_TRANSLATIONS }  from './translators/harmony';
@@ -32,7 +29,8 @@ export type CompileMode =
   | 'cs_csharp'
   | 'lua_fusion'
   | 'py_standard'
-  | 'gml_standard';
+  | 'gml_standard'
+  | 'py_nuke';
 
 export type CodeBlock = { id: string | null; text: string };
 
@@ -47,6 +45,7 @@ const TRANSLATION_REGISTRY: Record<CompileMode, Record<string, any>> = {
   lua_fusion:  FUSION_TRANSLATIONS,
   py_standard: PYTHON_TRANSLATIONS,
   gml_standard:GML_TRANSLATIONS,
+  py_nuke:     PYTHON_TRANSLATIONS, // Nuke stub — uses Python until nuke.ts is built
 };
 
 // --- COMMENT PREFIX PER LANGUAGE --------------------------------------------
@@ -59,6 +58,7 @@ const COMMENT_PREFIX: Record<CompileMode, string> = {
   lua_fusion:   '--',
   py_standard:  '#',
   gml_standard: '//',
+  py_nuke:      '#',
 };
 
 // --- FILE HEADERS PER LANGUAGE ----------------------------------------------
@@ -152,15 +152,30 @@ function generateNodeCode(node: Node, state: CompilerState): string {
     // 1. node_id — always the safe version of this node's ID
     if (key === 'node_id') return safeId(node.id);
 
-    // 2. Exec output pins — follow the wire and recurse
+    // 2. Exec output pins
     const outPin = nodeSpec.outputs?.find((o: any) => o.name === key && o.pin_type === 'exec');
     if (outPin) {
+      // Branch/body pins (loop_body, true, false etc) need a fresh visited set
+      // so body nodes aren't blocked by the outer exec chain visit
+      const branchBodyPins = ['loop_body', 'true', 'false', 'then_1', 'then_2', 'then_3', 'try', 'catch'];
+      const isBranchBody = branchBodyPins.includes(key);
+
       const outEdge = edges.find(e => e.source === node.id && e.sourceHandle === key);
       if (!outEdge) return '';
       const nextNode = nodes.find(n => n.id === outEdge.target);
       if (!nextNode) return '';
 
-      // Clone visited set per branch so sibling branches don't block each other
+      if (isBranchBody) {
+        // Use a fresh visited set for branch bodies so they aren't blocked
+        const branchState = {
+          ...state,
+          execVisited: new Set<string>(),
+        };
+        const bodyCode = generateNodeCode(nextNode, branchState);
+        return bodyCode || `/* empty body: ${key} -> ${nextNode.data.nodeKind} */`;
+      }
+
+      // Regular exec_out — respect visited to avoid infinite loops
       if (state.execVisited.has(nextNode.id)) return '';
       state.execVisited.add(nextNode.id);
       return generateNodeCode(nextNode, state);
@@ -181,7 +196,7 @@ function generateNodeCode(node: Node, state: CompilerState): string {
         'rp_count_files':             { summary: 'summary', png_count: 'png_count', exr_count: 'exr_count', tiff_count: 'tiff_count', total_count: 'total_count' },
         'cs_batch_validate':          { pass_list: 'pass_list', fail_list: 'fail_list', pass_count: 'pass_count', fail_count: 'fail_count' },
         'img_batch_check_dimensions': { pass_list: 'pass_list', fail_list: 'fail_list', pass_count: 'pass_count', fail_count: 'fail_count' },
-        'img_batch_validate':         { pass_list: 'pass_list', fail_list: 'fail_list', pass_count: 'pass_count', fail_count: 'fail_count' },
+        'img_batch_validate':         { pass_list: 'pass_list', fail_list: 'fail_list', pass_count: 'pass_count', fail_count: 'fail_count', folder_path: 'folder' },
         'nm_batch_check_folder':      { pass_list: 'pass_list', fail_list: 'fail_list', pass_count: 'pass_count', fail_count: 'fail_count' },
         'rp_compare_folders':         { only_in_a: 'only_in_a', only_in_b: 'only_in_b', in_both: 'in_both', missing_count: 'missing_count' },
         'nm_extract_version':         { version_string: 'version_string', version_int: 'version_int', found: 'found' },
@@ -195,6 +210,13 @@ function generateNodeCode(node: Node, state: CompilerState): string {
         'img_get_bit_depth':          { bit_depth: 'bit_depth', mode: 'mode' },
         'img_check_bit_depth':        { is_correct: 'is_correct', result_message: 'result_message' },
         'fs_walk_folder':             { file_path: 'file_path', file_name: 'file_name', file_ext: 'file_ext' },
+        'tb_get_top_level_groups':    { group_list: 'group_list', group_count: 'group_count' },
+        'tb_find_multiport_out':      { node_path: 'node_path', found: 'found' },
+        'tb_nav_anchor_exists':       { exists: 'exists', anchor_path: 'anchor_path' },
+        'tb_plant_nav_composite':     { anchor_path: 'anchor_path', anchor_name: 'anchor_name' },
+        'tb_get_node_coord':          { coord_x: 'coord_x', coord_y: 'coord_y', coord_z: 'coord_z' },
+        'tb_get_group_short_name':    { short_name: 'short_name' },
+        'rp_save_csv':                { pass_list: 'pass_list', fail_list: 'fail_list' },
       };
       if (sourceNode && namedOutputs[sourceNode.data.nodeKind]?.[dataEdge.sourceHandle]) {
         return namedOutputs[sourceNode.data.nodeKind][dataEdge.sourceHandle];
@@ -242,22 +264,44 @@ function generateNodeCode(node: Node, state: CompilerState): string {
 // Returns nodes in the order they execute, following exec wires.
 // ============================================================================
 
+// Collect all node IDs that are branch/loop body targets
+// These should NOT appear as top-level blocks — they are emitted inline
+function getBranchBodyIds(nodes: Node[], edges: Edge[]): Set<string> {
+  const bodyIds = new Set<string>();
+  const branchPins = ['loop_body', 'true', 'false', 'then_1', 'then_2', 'then_3', 'try', 'catch'];
+  edges.forEach(edge => {
+    if (branchPins.includes(edge.sourceHandle ?? '')) {
+      bodyIds.add(edge.target);
+    }
+  });
+  return bodyIds;
+}
+
 function walkExecOrder(
   startNode: Node,
   nodes: Node[],
   edges: Edge[]
 ): Node[] {
   const ordered: Node[] = [];
-  const visited = new Set<string>();
+  const visited  = new Set<string>();
+  const bodyIds  = getBranchBodyIds(nodes, edges);
 
   function walk(node: Node) {
     if (visited.has(node.id)) return;
     visited.add(node.id);
+
+    // Skip nodes that are branch/loop bodies — they are emitted inline
+    // by their parent node, not as separate top-level blocks
+    if (bodyIds.has(node.id)) return;
+
     ordered.push(node);
 
-    // Find all exec output edges from this node, follow them in order
+    // Follow only exec_out — not loop_body/true/false (those are inline)
     const spec     = NODE_LIBRARY[node.data.nodeKind];
-    const execOuts = spec?.outputs?.filter((o: any) => o.pin_type === 'exec') || [];
+    const execOuts = spec?.outputs?.filter((o: any) =>
+      o.pin_type === 'exec' &&
+      !['loop_body','true','false','then_1','then_2','then_3','try','catch','completed'].includes(o.name)
+    ) || [];
 
     execOuts.forEach((pin: any) => {
       const edge = edges.find(e => e.source === node.id && e.sourceHandle === pin.name);
@@ -267,15 +311,17 @@ function walkExecOrder(
       }
     });
 
-    // Also follow loop_body, true, false, then_1/2/3
-    const branchPins = ['loop_body', 'true', 'false', 'then_1', 'then_2', 'then_3', 'try', 'catch'];
-    branchPins.forEach(pin => {
-      const edge = edges.find(e => e.source === node.id && e.sourceHandle === pin);
-      if (edge) {
-        const nextNode = nodes.find(n => n.id === edge.target);
-        if (nextNode) walk(nextNode);
-      }
-    });
+    // Also follow exec_out and completed (loop end) if not a branch pin
+    const execOutEdge = edges.find(e => e.source === node.id && e.sourceHandle === 'exec_out');
+    if (execOutEdge) {
+      const nextNode = nodes.find(n => n.id === execOutEdge.target);
+      if (nextNode && !bodyIds.has(nextNode.id)) walk(nextNode);
+    }
+    const completedEdge = edges.find(e => e.source === node.id && e.sourceHandle === 'completed');
+    if (completedEdge) {
+      const nextNode = nodes.find(n => n.id === completedEdge.target);
+      if (nextNode && !bodyIds.has(nextNode.id)) walk(nextNode);
+    }
   }
 
   walk(startNode);
@@ -305,11 +351,20 @@ function generateNodeCodeIsolated(node: Node, state: CompilerState): string {
 
     // Exec pins — return empty (we handle these via walkExecOrder)
     const outPin = nodeSpec.outputs?.find((o: any) => o.name === key && o.pin_type === 'exec');
-    if (outPin) return '';
-
-    // Loop body and branch pins — return placeholder comment
-    const branchPins = ['loop_body', 'true', 'false', 'then_1', 'then_2', 'then_3', 'try', 'catch'];
-    if (branchPins.includes(key)) return `${commentPrefix} → ${key}`;
+    if (outPin) {
+      // Branch/body pins — recurse with fresh visited set so body is emitted inline
+      const branchBodyPins = ['loop_body', 'true', 'false', 'then_1', 'then_2', 'then_3', 'try', 'catch'];
+      if (branchBodyPins.includes(key)) {
+        const outEdge  = edges.find(e => e.source === node.id && e.sourceHandle === key);
+        if (!outEdge) return '';
+        const nextNode = nodes.find(n => n.id === outEdge.target);
+        if (!nextNode) return '';
+        const branchState = { ...state, execVisited: new Set<string>() };
+        return generateNodeCode(nextNode, branchState);
+      }
+      // exec_out and other exec pins — silent in isolated mode
+      return '';
+    }
 
     // Data pins — resolve normally
     const dataEdge = edges.find(e => e.target === node.id && e.targetHandle === key);
@@ -323,7 +378,7 @@ function generateNodeCodeIsolated(node: Node, state: CompilerState): string {
         'rp_count_files':             { summary: 'summary', png_count: 'png_count', exr_count: 'exr_count', tiff_count: 'tiff_count', total_count: 'total_count' },
         'cs_batch_validate':          { pass_list: 'pass_list', fail_list: 'fail_list', pass_count: 'pass_count', fail_count: 'fail_count' },
         'img_batch_check_dimensions': { pass_list: 'pass_list', fail_list: 'fail_list', pass_count: 'pass_count', fail_count: 'fail_count' },
-        'img_batch_validate':         { pass_list: 'pass_list', fail_list: 'fail_list', pass_count: 'pass_count', fail_count: 'fail_count' },
+        'img_batch_validate':         { pass_list: 'pass_list', fail_list: 'fail_list', pass_count: 'pass_count', fail_count: 'fail_count', folder_path: 'folder' },
         'nm_batch_check_folder':      { pass_list: 'pass_list', fail_list: 'fail_list', pass_count: 'pass_count', fail_count: 'fail_count' },
         'rp_compare_folders':         { only_in_a: 'only_in_a', only_in_b: 'only_in_b', in_both: 'in_both', missing_count: 'missing_count' },
         'nm_extract_version':         { version_string: 'version_string', version_int: 'version_int', found: 'found' },
@@ -337,6 +392,13 @@ function generateNodeCodeIsolated(node: Node, state: CompilerState): string {
         'img_get_bit_depth':          { bit_depth: 'bit_depth', mode: 'mode' },
         'img_check_bit_depth':        { is_correct: 'is_correct', result_message: 'result_message' },
         'fs_walk_folder':             { file_path: 'file_path', file_name: 'file_name', file_ext: 'file_ext' },
+        'tb_get_top_level_groups':    { group_list: 'group_list', group_count: 'group_count' },
+        'tb_find_multiport_out':      { node_path: 'node_path', found: 'found' },
+        'tb_nav_anchor_exists':       { exists: 'exists', anchor_path: 'anchor_path' },
+        'tb_plant_nav_composite':     { anchor_path: 'anchor_path', anchor_name: 'anchor_name' },
+        'tb_get_node_coord':          { coord_x: 'coord_x', coord_y: 'coord_y', coord_z: 'coord_z' },
+        'tb_get_group_short_name':    { short_name: 'short_name' },
+        'rp_save_csv':                { pass_list: 'pass_list', fail_list: 'fail_list' },
       };
       if (sourceNode && namedOutputs[sourceNode.data.nodeKind]?.[dataEdge.sourceHandle]) {
         return namedOutputs[sourceNode.data.nodeKind][dataEdge.sourceHandle];
@@ -414,15 +476,29 @@ export function generateCodeBlocks(
   }
 
   // --- PASS 3: Toon Boom node-link routing (JS only) ---
-  // Harmony requires explicit node.link() calls for image/data connections
+  // Only emit node.link() calls for image-type connections between Harmony nodes.
+  // Pipeline/utility nodes use data pins that resolve inline — no link needed.
   if (mode === 'js_toonboom') {
-    let routingText = `\n${commentPrefix} --- Apply Node Connections ---\n`;
+    const imageNodeKinds = new Set([
+      'tb_composite', 'tb_display', 'tb_write', 'tb_multi_layer_write',
+      'tb_image_switch', 'tb_visibility', 'tb_blur_box', 'tb_blur_gaussian',
+      'tb_blur_radial', 'tb_blur_directional', 'tb_blur_variable',
+      'tb_matte_blur', 'tb_matte_resize', 'tb_glow', 'tb_highlight',
+      'tb_tone', 'tb_colour_scale', 'tb_hue_saturation', 'tb_colour_card',
+      'tb_cutter', 'tb_gradient', 'tb_colour_override', 'tb_refract',
+      'tb_dynamic_refract', 'tb_macro_refract_pro', 'uni_drawing',
+    ]);
+    let routingLines: string[] = [];
     edges.forEach(edge => {
-      if (edge.sourceHandle === 'exec_out' || edge.sourceHandle === 'exec' ||
-          edge.sourceHandle === 'exec_in') return;
+      // Skip exec wires
+      if (['exec_out','exec_in','exec','loop_body','true','false',
+           'then_1','then_2','then_3','try','catch','completed'].includes(edge.sourceHandle ?? '')) return;
       const sourceNode = nodes.find(n => n.id === edge.source);
       const targetNode = nodes.find(n => n.id === edge.target);
       if (!sourceNode || !targetNode) return;
+      // Only emit link for actual Harmony image node connections
+      if (!imageNodeKinds.has(sourceNode.data.nodeKind) &&
+          !imageNodeKinds.has(targetNode.data.nodeKind)) return;
       const sourceSpec = NODE_LIBRARY[sourceNode.data.nodeKind];
       const targetSpec = NODE_LIBRARY[targetNode.data.nodeKind];
       if (!sourceSpec || !targetSpec) return;
@@ -430,9 +506,11 @@ export function generateCodeBlocks(
       const inIndex  = Math.max(0, targetSpec.inputs?.findIndex((i: any) => i.name === edge.targetHandle) ?? 0);
       const srcName  = 'FP_' + safeId(sourceNode.id);
       const tgtName  = 'FP_' + safeId(targetNode.id);
-      routingText += `node.link(node.root() + "/${srcName}", ${outIndex}, node.root() + "/${tgtName}", ${inIndex});\n`;
+      routingLines.push(`node.link(node.root() + "/${srcName}", ${outIndex}, node.root() + "/${tgtName}", ${inIndex});`);
     });
-    if (edges.length > 0) blocks.push({ id: 'router', text: routingText });
+    if (routingLines.length > 0) {
+      blocks.push({ id: 'router', text: `\n${commentPrefix} --- Apply Node Connections ---\n` + routingLines.join('\n') + '\n' });
+    }
   }
 
   // --- File footer ---
@@ -454,6 +532,7 @@ export const MODE_LABELS: Record<CompileMode, string> = {
   lua_fusion:   'Fusion (Lua)',
   py_standard:  'Python (Std)',
   gml_standard: 'GameMaker (GML)',
+  py_nuke:      'Nuke (Py)',
 };
 
 export const MODE_EXTENSIONS: Record<CompileMode, string> = {
@@ -464,9 +543,10 @@ export const MODE_EXTENSIONS: Record<CompileMode, string> = {
   lua_fusion:   'lua',
   py_standard:  'py',
   gml_standard: 'gml',
+  py_nuke:      'py',
 };
 
 export const ALL_MODES: CompileMode[] = [
-  'js_toonboom', 'py_standard', 'py_maya', 'lua_fusion',
-  'cs_csharp', 'py_houdini', 'gml_standard'
+  'js_toonboom', 'py_standard', 'py_maya', 'py_nuke',
+  'py_houdini', 'lua_fusion', 'cs_csharp', 'gml_standard'
 ];

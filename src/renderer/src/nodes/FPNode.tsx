@@ -6,7 +6,17 @@ import { Handle, Position, type NodeProps } from "reactflow";
 const getProfileColor = (profile: string) => {
   const p = (profile || "").toLowerCase();
   
-  if (p.includes('toon boom') || p.includes('toonboom')) return "#4a83c4"; // Blue
+  if (p.includes('toon boom - blur'))     return "#5b9bd5"; // Light Blue - Blur
+  if (p.includes('toon boom - effects'))  return "#7b68ee"; // Purple - Effects  
+  if (p.includes('toon boom - colour'))   return "#48a999"; // Teal - Colour
+  if (p.includes('toon boom - output'))   return "#e8503a"; // Red - Output
+  if (p.includes('toon boom - composite'))return "#4a83c4"; // Blue - Composite
+  if (p.includes('toon boom - rigging'))  return "#66bb6a"; // Green - Rigging
+  if (p.includes('toon boom - scene'))    return "#ffa726"; // Orange - Scene
+  if (p.includes('toon boom - ui'))       return "#ab47bc"; // Violet - UI
+  if (p.includes('toon boom - camera'))   return "#26c6da"; // Cyan - Camera
+  if (p.includes('toon boom - query'))    return "#8d6e63"; // Brown - Query
+  if (p.includes('toon boom') || p.includes('toonboom')) return "#4a83c4"; // Blue - fallback
   if (p.includes('maya')) return "#c343ea"; // Grey
   if (p.includes('python')) return "#2d572c"; // Green
   if (p.includes('lua') || p.includes('fusion')) return "#242a59"; // Navy
