@@ -216,6 +216,15 @@ function generateNodeCode(node: Node, state: CompilerState): string {
         'tb_plant_nav_composite':     { anchor_path: 'anchor_path', anchor_name: 'anchor_name' },
         'tb_get_node_coord':          { coord_x: 'coord_x', coord_y: 'coord_y', coord_z: 'coord_z' },
         'tb_get_group_short_name':    { short_name: 'short_name' },
+        'tb_get_nodes_by_type':       { node_list: 'node_list', node_names: 'node_names', node_count: 'node_count' },
+        'tb_get_selected_node':       { node_path: 'node_path', node_name: 'node_name', node_type: 'node_type' },
+        'tb_filter_list_by_type':     { filtered_list: 'filtered_list', filtered_count: 'filtered_count' },
+        'tb_get_selection_count':     { count: 'count' },
+        'tb_get_selected_nodes':      { node_list: 'node_list', count: 'count' },
+        'tb_get_parent_group':        { parent_path: 'parent_path', parent_name: 'parent_name' },
+        'tb_get_active_view_group':   { group_path: 'group_path', group_name: 'group_name' },
+        'tb_string_append':           { result: 'result' },
+        'tb_sort_nodes_by_x':         { sorted_list: 'sorted_list', first_node: 'first_node' },
         'rp_save_csv':                { pass_list: 'pass_list', fail_list: 'fail_list' },
       };
       if (sourceNode && namedOutputs[sourceNode.data.nodeKind]?.[dataEdge.sourceHandle]) {
@@ -398,6 +407,15 @@ function generateNodeCodeIsolated(node: Node, state: CompilerState): string {
         'tb_plant_nav_composite':     { anchor_path: 'anchor_path', anchor_name: 'anchor_name' },
         'tb_get_node_coord':          { coord_x: 'coord_x', coord_y: 'coord_y', coord_z: 'coord_z' },
         'tb_get_group_short_name':    { short_name: 'short_name' },
+        'tb_get_nodes_by_type':       { node_list: 'node_list', node_names: 'node_names', node_count: 'node_count' },
+        'tb_get_selected_node':       { node_path: 'node_path', node_name: 'node_name', node_type: 'node_type' },
+        'tb_filter_list_by_type':     { filtered_list: 'filtered_list', filtered_count: 'filtered_count' },
+        'tb_get_selection_count':     { count: 'count' },
+        'tb_get_selected_nodes':      { node_list: 'node_list', count: 'count' },
+        'tb_get_parent_group':        { parent_path: 'parent_path', parent_name: 'parent_name' },
+        'tb_get_active_view_group':   { group_path: 'group_path', group_name: 'group_name' },
+        'tb_string_append':           { result: 'result' },
+        'tb_sort_nodes_by_x':         { sorted_list: 'sorted_list', first_node: 'first_node' },
         'rp_save_csv':                { pass_list: 'pass_list', fail_list: 'fail_list' },
       };
       if (sourceNode && namedOutputs[sourceNode.data.nodeKind]?.[dataEdge.sourceHandle]) {

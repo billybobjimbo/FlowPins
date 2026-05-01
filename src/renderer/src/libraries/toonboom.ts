@@ -103,20 +103,20 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
     title: "Link Nodes",
     profile: "App - Toon Boom - Scene",
     inputs: [
-      { name: "exec_in", pin_type: "exec" },
+      { name: "exec_in",     pin_type: "exec"   },
       { name: "source_node", pin_type: "string" },
-      { name: "source_port", pin_type: "int" },
+      { name: "source_port", pin_type: "int"    },
       { name: "target_node", pin_type: "string" },
-      { name: "target_port", pin_type: "int" }
+      { name: "target_port", pin_type: "int"    }
     ],
     outputs: [{ name: "exec_out", pin_type: "exec" }],
+    default_props: { source_port: 0, target_port: 0 },
     ui_schema: [
-      { label: "Source Node", prop_key: "source_node", type: "input" },
+      { label: "Source Node", prop_key: "source_node", type: "input"  },
       { label: "Source Port", prop_key: "source_port", type: "number" },
-      { label: "Target Node", prop_key: "target_node", type: "input" },
+      { label: "Target Node", prop_key: "target_node", type: "input"  },
       { label: "Target Port", prop_key: "target_port", type: "number" }
-    ],
-    
+    ]
   },
   "tb_publish_slider": {
     title: "Publish Slider", profile: "App - Toon Boom - Scene",
@@ -159,10 +159,14 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
     
   },
   "tb_msg_box": {
-    title: "Message Box", profile: "App - Toon Boom - UI",
-    inputs: [{ name: "exec_in", pin_type: "exec" }, { name: "message", pin_type: "string" }], 
+    title: "Message Box",
+    profile: "App - Toon Boom - UI",
+    inputs:  [{ name: "exec_in", pin_type: "exec" }, { name: "message", pin_type: "string" }],
     outputs: [{ name: "exec_out", pin_type: "exec" }],
-    
+    default_props: { message: "FlowPins message" },
+    ui_schema: [
+      { label: "Message", prop_key: "message", type: "input" }
+    ]
   },
   "tb_navigate_to_node": {
     title: "Navigate to Node", profile: "App - Toon Boom - UI",
@@ -236,11 +240,22 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
     
   },
   "tb_action_perform": {
-    title: "Perform Action", profile: "App - Toon Boom - Query",
-    inputs: [{ name: "exec_in", pin_type: "exec" }, { name: "action_name", pin_type: "string" }, { name: "view_name", pin_type: "string" }], 
-    outputs: [{ name: "exec_out", pin_type: "exec" }], 
-    default_props: { view_name: "Node View" },
-    
+    title: "Perform Action",
+    profile: "App - Toon Boom - Query",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec"   },
+      { name: "action_name", pin_type: "string" },
+      { name: "view_name",   pin_type: "string" }
+    ],
+    outputs: [{ name: "exec_out", pin_type: "exec" }],
+    default_props: {
+      action_name: "onActionFocusOnSelectionNV()",
+      view_name:   "Node View"
+    },
+    ui_schema: [
+      { label: "Action Name", prop_key: "action_name", type: "input" },
+      { label: "View Name",   prop_key: "view_name",   type: "input" }
+    ]
   },
   "tb_simple_dialog": {
     title: "Simple Window",
@@ -978,6 +993,252 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
     ui_schema: [
       { label: "NAV Prefix", prop_key: "nav_prefix", type: "input" },
       { label: "Window Title",prop_key: "title",      type: "input" }
+    ]
+  },
+
+  // ==========================================================================
+  // SCENE QUERY UTILITY NODES
+  // ==========================================================================
+
+  "tb_get_nodes_by_type": {
+    title: "Get All Nodes By Type",
+    profile: "App - Toon Boom - Query",
+    inputs: [
+      { name: "exec_in",    pin_type: "exec"   },
+      { name: "root_path",  pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",   pin_type: "exec"   },
+      { name: "node_list",  pin_type: "list"   },
+      { name: "node_names", pin_type: "list"   },
+      { name: "node_count", pin_type: "int"    }
+    ],
+    default_props: {
+      node_type: "DISPLAY",
+      root_path: "Top"
+    },
+    ui_schema: [
+      { label: "Node Type",  prop_key: "node_type", type: "input" },
+      { label: "Root Path",  prop_key: "root_path", type: "input" }
+    ]
+  },
+
+  "tb_set_active_display": {
+    title: "Set Active Display",
+    profile: "App - Toon Boom - Scene",
+    inputs: [
+      { name: "exec_in",      pin_type: "exec"   },
+      { name: "display_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out", pin_type: "exec" }
+    ],
+    default_props: {},
+    ui_schema: []
+  },
+
+  "tb_get_selected_node": {
+    title: "Get Selected Node",
+    profile: "App - Toon Boom - Query",
+    inputs: [
+      { name: "exec_in", pin_type: "exec" }
+    ],
+    outputs: [
+      { name: "exec_out",   pin_type: "exec"   },
+      { name: "node_path",  pin_type: "string" },
+      { name: "node_name",  pin_type: "string" },
+      { name: "node_type",  pin_type: "string" }
+    ],
+    default_props: {},
+    ui_schema: []
+  },
+
+  "tb_filter_list_by_type": {
+    title: "Filter List By Type",
+    profile: "App - Toon Boom - Query",
+    inputs: [
+      { name: "exec_in",   pin_type: "exec" },
+      { name: "node_list", pin_type: "list" }
+    ],
+    outputs: [
+      { name: "exec_out",      pin_type: "exec" },
+      { name: "filtered_list", pin_type: "list" },
+      { name: "filtered_count",pin_type: "int"  }
+    ],
+    default_props: { node_type: "DISPLAY" },
+    ui_schema: [
+      { label: "Node Type", prop_key: "node_type", type: "input" }
+    ]
+  },
+
+  // ==========================================================================
+  // PHASE 1 — SHARED UTILITY NODES
+  // Used across linkThisOut, getOverHere, nodeToGroupLinker, COMPO
+  // ==========================================================================
+
+  "tb_get_selection_count": {
+    title: "Get Selection Count",
+    profile: "App - Toon Boom - Query",
+    inputs: [
+      { name: "exec_in", pin_type: "exec" }
+    ],
+    outputs: [
+      { name: "exec_out", pin_type: "exec" },
+      { name: "count",    pin_type: "int"  }
+    ],
+    default_props: {},
+    ui_schema: []
+  },
+
+  "tb_get_selected_nodes": {
+    title: "Get Selected Nodes",
+    profile: "App - Toon Boom - Query",
+    inputs: [
+      { name: "exec_in", pin_type: "exec" }
+    ],
+    outputs: [
+      { name: "exec_out",   pin_type: "exec"   },
+      { name: "node_list",  pin_type: "list"   },
+      { name: "count",      pin_type: "int"    }
+    ],
+    default_props: {},
+    ui_schema: []
+  },
+
+  "tb_get_parent_group": {
+    title: "Get Parent Group",
+    profile: "App - Toon Boom - Query",
+    inputs: [
+      { name: "exec_in",   pin_type: "exec"   },
+      { name: "node_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",    pin_type: "exec"   },
+      { name: "parent_path", pin_type: "string" },
+      { name: "parent_name", pin_type: "string" }
+    ],
+    default_props: {},
+    ui_schema: []
+  },
+
+  "tb_set_node_coord": {
+    title: "Set Node Coordinate",
+    profile: "App - Toon Boom - Scene",
+    inputs: [
+      { name: "exec_in",   pin_type: "exec"   },
+      { name: "node_path", pin_type: "string" },
+      { name: "x",         pin_type: "float"  },
+      { name: "y",         pin_type: "float"  }
+    ],
+    outputs: [
+      { name: "exec_out", pin_type: "exec" }
+    ],
+    default_props: { x: 0, y: 0 },
+    ui_schema: [
+      { label: "X", prop_key: "x", type: "number" },
+      { label: "Y", prop_key: "y", type: "number" }
+    ]
+  },
+
+  "tb_begin_undo": {
+    title: "Begin Undo Block",
+    profile: "App - Toon Boom - Scene",
+    inputs: [
+      { name: "exec_in",    pin_type: "exec"   },
+      { name: "block_name", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out", pin_type: "exec" }
+    ],
+    default_props: { block_name: "FlowPins_Action" },
+    ui_schema: [
+      { label: "Block Name", prop_key: "block_name", type: "input" }
+    ]
+  },
+
+  "tb_end_undo": {
+    title: "End Undo Block",
+    profile: "App - Toon Boom - Scene",
+    inputs: [
+      { name: "exec_in",    pin_type: "exec"   },
+      { name: "block_name", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out", pin_type: "exec" }
+    ],
+    default_props: { block_name: "FlowPins_Action" },
+    ui_schema: [
+      { label: "Block Name", prop_key: "block_name", type: "input" }
+    ]
+  },
+
+  "tb_get_active_view_group": {
+    title: "Get Active View Group",
+    profile: "App - Toon Boom - Query",
+    inputs: [
+      { name: "exec_in", pin_type: "exec" }
+    ],
+    outputs: [
+      { name: "exec_out",    pin_type: "exec"   },
+      { name: "group_path",  pin_type: "string" },
+      { name: "group_name",  pin_type: "string" }
+    ],
+    default_props: {},
+    ui_schema: []
+  },
+
+  "tb_string_append": {
+    title: "Append String",
+    profile: "App - Toon Boom - Scene",
+    inputs: [
+      { name: "exec_in", pin_type: "exec"   },
+      { name: "base",    pin_type: "string" },
+      { name: "suffix",  pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out", pin_type: "exec"   },
+      { name: "result",   pin_type: "string" }
+    ],
+    default_props: { suffix: "/Multi-Port-Out" },
+    ui_schema: [
+      { label: "Suffix", prop_key: "suffix", type: "input" }
+    ]
+  },
+
+  "tb_sort_nodes_by_x": {
+    title: "Sort Nodes By X",
+    profile: "App - Toon Boom - Scene",
+    inputs: [
+      { name: "exec_in",   pin_type: "exec" },
+      { name: "node_list", pin_type: "list" }
+    ],
+    outputs: [
+      { name: "exec_out",    pin_type: "exec"   },
+      { name: "sorted_list", pin_type: "list"   },
+      { name: "first_node",  pin_type: "string" }
+    ],
+    default_props: { direction: "descending" },
+    ui_schema: [
+      { label: "Direction", prop_key: "direction", type: "dropdown",
+        options: ["descending", "ascending"] }
+    ]
+  },
+
+  "tb_arrange_nodes_near_target": {
+    title: "Arrange Nodes Near Target",
+    profile: "App - Toon Boom - Scene",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec"   },
+      { name: "node_list",   pin_type: "list"   },
+      { name: "target_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out", pin_type: "exec" }
+    ],
+    default_props: { offset_x: 500, offset_y: 100 },
+    ui_schema: [
+      { label: "Offset X", prop_key: "offset_x", type: "number" },
+      { label: "Offset Y", prop_key: "offset_y", type: "number" }
     ]
   },
 

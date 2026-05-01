@@ -88,18 +88,25 @@ export const HARMONY_TRANSLATIONS: Record<string, any> = {
   "tb_create_node":     "node.add({parent_path}, {node_name}, {node_type}, 0, 0, 0);\n{exec_out}",
   "tb_create_drawing":  "var xPos = parseFloat(\"{offset_x}\") || 0;\nvar yPos = parseFloat(\"{offset_y}\") || 0;\nvar newDrawing = node.add(\"Top\", \"{node_name}\", \"READ\", xPos, yPos, 0);\n{exec_out}",
   "tb_create_composite":"var xPos = parseFloat(\"{offset_x}\") || 0;\nvar yPos = parseFloat(\"{offset_y}\") || 0;\nvar newComp = node.add(\"Top\", \"{node_name}\", \"COMPOSITE\", xPos, yPos, 0);\nnode.setTextAttr(\"Top/\" + \"{node_name}\", \"COMPOSITE_MODE\", 1, \"Pass Through\");\n{exec_out}",
-  "tb_link_nodes":      "node.link(\"Top/\" + \"{source_node}\", {source_port}, \"Top/\" + \"{target_node}\", {target_port});\n{exec_out}",
+  "tb_link_nodes": `// Link two nodes together
+var _src_{node_id} = {source_node};
+var _tgt_{node_id} = {target_node};
+var _sp_{node_id}  = {source_port};
+var _tp_{node_id}  = {target_port};
+node.link(_src_{node_id}, _sp_{node_id}, _tgt_{node_id}, _tp_{node_id});
+MessageLog.trace("FlowPins: Linked " + _src_{node_id} + " -> " + _tgt_{node_id});
+{exec_out}`,
   "tb_publish_slider":  "node.linkAttr({node_path}, {attr_name}, '../../' + {publish_name});\n{exec_out}",
   "tb_end_macro":       "return;",
   "tb_ui_dialog":       "var dialog = new QDialog();\ndialog.setWindowTitle('{title}');\ndialog.setMinimumSize({width}, {height});\n{exec_out}",
   "tb_ui_input":        "var {var_name} = new QLineEdit();\nlayout.addWidget({var_name}, 0, Qt.AlignTop);\n{exec_out}",
   "tb_ui_button":       "var {var_name} = new QPushButton('{label}');\nlayout.addWidget({var_name}, 0, Qt.AlignTop);\n{exec_out}",
   "tb_ui_list":         "var {var_name} = new QListWidget();\nlayout.addWidget({var_name}, 1, Qt.AlignTop);",
-  "tb_msg_box":         "MessageBox.information({message});\n{exec_out}",
+  "tb_msg_box":         "MessageBox.information(\"{message}\");\n{exec_out}",
   "tb_navigate_to_node":"// Navigation Logic Block...\n{success}",
   "tb_simple_dialog":   "MessageBox.information('Test Successful!');\n{exec_out}",
   "tb_select_node":     "selection.clearSelection(); selection.addNodeToSelection({node_path});\n{exec_out}",
-  "tb_action_perform":  "Action.perform({action_name}, {view_name});\n{exec_out}",
+  "tb_action_perform":  "Action.perform(\"{action_name}\", \"{view_name}\");\n{exec_out}",
   "tb_get_root":        "node.root()",
   "tb_get_subnodes":    "node.subNodes({parent_node})",
   "tb_get_name":        "node.getName({node_path})",
@@ -654,6 +661,206 @@ if (_anchors_{node_id}.length === 0) {
   _lay_{node_id}.addWidget(_close_{node_id}, 0, Qt.AlignBottom);
 
   _dlg_{node_id}.show();
+}
+{exec_out}`,
+
+
+  // ==========================================================================
+  // SCENE QUERY UTILITY TRANSLATIONS
+  // ==========================================================================
+
+  "tb_get_nodes_by_type": `// Recursively find all nodes of a given type in the scene
+var _target_type_{node_id} = "{node_type}";
+var _root_{node_id}        = {root_path};
+var node_list              = [];
+var node_names             = [];
+var node_count             = 0;
+
+function _scanNodes_{node_id}(parentPath) {
+  var _children_{node_id} = node.subNodes(parentPath);
+  for (var _i_{node_id} = 0; _i_{node_id} < _children_{node_id}.length; _i_{node_id}++) {
+    var _child_{node_id} = _children_{node_id}[_i_{node_id}];
+    var _type_{node_id}  = node.type(_child_{node_id});
+    if (_type_{node_id} === _target_type_{node_id}) {
+      var _parts_{node_id} = _child_{node_id}.split("/");
+      var _short_{node_id} = _parts_{node_id}[_parts_{node_id}.length - 1];
+      node_list.push(_child_{node_id});
+      node_names.push(_short_{node_id});
+    }
+    if (_type_{node_id} === "GROUP") {
+      _scanNodes_{node_id}(_child_{node_id});
+    }
+  }
+}
+
+_scanNodes_{node_id}(_root_{node_id});
+node_count = node_list.length;
+MessageLog.trace("NAV: Found " + node_count + " nodes of type " + _target_type_{node_id});
+{exec_out}`,
+
+  "tb_set_active_display": `// Set the active display in Harmony's camera view
+// Extract just the node name from the full path
+var _dp_{node_id}    = {display_path};
+var _parts_{node_id} = _dp_{node_id}.split("/");
+var _dn_{node_id}    = _parts_{node_id}[_parts_{node_id}.length - 1];
+
+// Select the display node first
+selection.clearSelection();
+selection.addNodeToSelection(_dp_{node_id});
+
+// Try action against every known view until one works
+var _views_{node_id} = view.viewList();
+var _prev_{node_id}  = scene.getDefaultDisplay();
+var _switched_{node_id} = false;
+
+for (var _vi_{node_id} = 0; _vi_{node_id} < _views_{node_id}.length; _vi_{node_id}++) {
+  var _vtype_{node_id} = view.type(_views_{node_id}[_vi_{node_id}]);
+  if (_vtype_{node_id} === "cameraView" || _vtype_{node_id} === "cameraview") {
+    Action.perform("onActionSetAsDefaultDisplay()", _views_{node_id}[_vi_{node_id}]);
+    _switched_{node_id} = true;
+    MessageLog.trace("NAV: Tried camera view: " + _views_{node_id}[_vi_{node_id}]);
+    break;
+  }
+}
+
+// Fallback - try all views
+if (!_switched_{node_id}) {
+  for (var _vi2_{node_id} = 0; _vi2_{node_id} < _views_{node_id}.length; _vi2_{node_id}++) {
+    Action.perform("onActionSetAsDefaultDisplay()", _views_{node_id}[_vi2_{node_id}]);
+  }
+  MessageLog.trace("NAV: Tried all " + _views_{node_id}.length + " views");
+}
+
+MessageLog.trace("NAV: Was: " + _prev_{node_id} + " | Now: " + scene.getDefaultDisplay());
+{exec_out}`,
+
+  "tb_get_selected_node": `// Get the currently selected node in the Node View
+var _sel_{node_id} = selection.selectedNodes();
+var node_path = "";
+var node_name = "";
+var node_type = "";
+if (_sel_{node_id}.length > 0) {
+  node_path = _sel_{node_id}[0];
+  var _parts_{node_id} = node_path.split("/");
+  node_name = _parts_{node_id}[_parts_{node_id}.length - 1];
+  node_type = node.type(node_path);
+  MessageLog.trace("Selected: " + node_name + " [" + node_type + "]");
+} else {
+  MessageLog.trace("No node selected.");
+}
+{exec_out}`,
+
+  "tb_filter_list_by_type": `// Filter a node list to only include nodes of a specific type
+var _input_{node_id}    = {node_list};
+var _ftype_{node_id}    = "{node_type}";
+var filtered_list       = [];
+var filtered_count      = 0;
+for (var _i_{node_id} = 0; _i_{node_id} < _input_{node_id}.length; _i_{node_id}++) {
+  if (node.type(_input_{node_id}[_i_{node_id}]) === _ftype_{node_id}) {
+    filtered_list.push(_input_{node_id}[_i_{node_id}]);
+  }
+}
+filtered_count = filtered_list.length;
+{exec_out}`,
+
+
+  // ==========================================================================
+  // PHASE 1 — SHARED UTILITY TRANSLATIONS
+  // ==========================================================================
+
+  "tb_get_selection_count": `// Get number of currently selected nodes
+var count = selection.numberOfNodesSelected();
+MessageLog.trace("FlowPins: " + count + " nodes selected.");
+{exec_out}`,
+
+  "tb_get_selected_nodes": `// Get list of all currently selected nodes
+var node_list = selection.selectedNodes();
+var count     = node_list.length;
+MessageLog.trace("FlowPins: Got " + count + " selected nodes.");
+{exec_out}`,
+
+  "tb_get_parent_group": `// Get the parent group of a node
+var _np_{node_id}    = {node_path};
+var parent_path      = node.parentNode(_np_{node_id});
+var _parts_{node_id} = parent_path.split("/");
+var parent_name      = _parts_{node_id}[_parts_{node_id}.length - 1];
+MessageLog.trace("FlowPins: Parent of " + _np_{node_id} + " is " + parent_path);
+{exec_out}`,
+
+  "tb_set_node_coord": `// Set the position of a node in the Node View
+var _np_{node_id} = {node_path};
+var _nx_{node_id} = {x};
+var _ny_{node_id} = {y};
+node.setCoord(_np_{node_id}, _nx_{node_id}, _ny_{node_id});
+{exec_out}`,
+
+  "tb_begin_undo": `// Begin an undo/redo accumulator block
+var _bn_{node_id} = "{block_name}";
+scene.beginUndoRedoAccum(_bn_{node_id});
+MessageLog.trace("FlowPins: Undo block started — " + _bn_{node_id});
+{exec_out}`,
+
+  "tb_end_undo": `// End an undo/redo accumulator block
+var _bn_{node_id} = "{block_name}";
+scene.endUndoRedoAccum(_bn_{node_id});
+MessageLog.trace("FlowPins: Undo block ended — " + _bn_{node_id});
+{exec_out}`,
+
+  "tb_get_active_view_group": `// Get the current group shown in the active Node View
+var _views_{node_id}  = view.viewList("Node View");
+var _active_{node_id} = _views_{node_id}.length > 1
+  ? view.currentView()
+  : _views_{node_id}[0];
+var group_path        = view.group(_active_{node_id});
+var _parts_{node_id}  = group_path.split("/");
+var group_name        = _parts_{node_id}[_parts_{node_id}.length - 1];
+MessageLog.trace("FlowPins: Active view group is " + group_path);
+{exec_out}`,
+
+
+  "tb_string_append": `var result = {base} + "{suffix}";
+{exec_out}`,
+
+
+  "tb_sort_nodes_by_x": `// Sort a list of nodes by their X coordinate in the Node View
+var _list_{node_id} = {node_list};
+var _dir_{node_id}  = "{direction}";
+
+var sorted_list = _list_{node_id}.slice(); // copy array
+sorted_list.sort(function(a, b) {
+  return _dir_{node_id} === "descending"
+    ? node.coordX(b) - node.coordX(a)
+    : node.coordX(a) - node.coordX(b);
+});
+
+var first_node = sorted_list.length > 0 ? sorted_list[0] : "";
+MessageLog.trace("FlowPins: Sorted " + sorted_list.length + " nodes by X (" + _dir_{node_id} + ")");
+{exec_out}`,
+
+  "tb_arrange_nodes_near_target": `// Move selected nodes to a position relative to a target node
+var _nodes_{node_id}   = {node_list};
+var _target_{node_id}  = {target_path};
+var _offX_{node_id}    = {offset_x};
+var _offY_{node_id}    = {offset_y};
+
+if (_nodes_{node_id}.length === 0) {
+  MessageLog.trace("FlowPins: No nodes to arrange.");
+} else {
+  // Use first node as the reference point
+  var _xMin_{node_id} = node.coordX(_nodes_{node_id}[0]);
+  var _yMin_{node_id} = node.coordY(_nodes_{node_id}[0]);
+  var _tgtX_{node_id} = node.coordX(_target_{node_id});
+  var _tgtY_{node_id} = node.coordY(_target_{node_id});
+
+  for (var _i_{node_id} = 0; _i_{node_id} < _nodes_{node_id}.length; _i_{node_id}++) {
+    var _n_{node_id}   = _nodes_{node_id}[_i_{node_id}];
+    var _relX_{node_id} = node.coordX(_n_{node_id}) - _xMin_{node_id};
+    var _relY_{node_id} = node.coordY(_n_{node_id}) - _yMin_{node_id};
+    var _newX_{node_id} = _tgtX_{node_id} + _relX_{node_id} + _offX_{node_id};
+    var _newY_{node_id} = _tgtY_{node_id} + _relY_{node_id} + _offY_{node_id};
+    node.setCoord(_n_{node_id}, _newX_{node_id}, _newY_{node_id});
+    MessageLog.trace("FlowPins: Moved " + _n_{node_id} + " to (" + _newX_{node_id} + ", " + _newY_{node_id} + ")");
+  }
 }
 {exec_out}`,
 
