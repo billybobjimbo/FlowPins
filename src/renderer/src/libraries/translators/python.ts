@@ -42,12 +42,12 @@ export const PYTHON_TRANSLATIONS: Record<string, any> = {
   "func_call":   "res_{node_id} = {func_name}({arg0_in})\n{exec_out}",
 
   // --- CORE: VARIABLES ---
-  "set_var": "{var_name} = {value}\n{exec_out}",
+  "set_var": "{var_name} = {data_in}\n{exec_out}",
   "get_var": "{var_name}",
 
   // --- CORE: DATA / PRIMITIVES ---
   "const_int":       "{value}",
-  "const_string":    'r"{value}"',
+  "const_string":    "\"{value}\"",
   "const_bool":      (data: any) => data.props?.value === "true" ? "True" : "False",
   "string_join_path":"os.path.join({parent}, {child})",
 
@@ -83,522 +83,158 @@ export const PYTHON_TRANSLATIONS: Record<string, any> = {
   "change_coord":   "self.{axis} += {amount}\n{exec_out}",
 
   // ==========================================================================
-  // Pipeline - Naming (Python)
-  // Clean readable output — internal vars prefixed with _ only where needed
+  // PIPELINE TRANSLATIONS - File System
   // ==========================================================================
 
-  "nm_check_convention": `import re, os
-# Check filename against naming convention pattern
-# Pattern: # = single digit, ## = two digits, * = any characters
-_pattern = r"{pattern}"
-_filename = {filename}
-_stem = os.path.splitext(_filename)[0]
-_regex = _pattern.replace(".", "\\.").replace("*", ".*")
-_regex = re.sub("#+", lambda m: "\\d{" + str(len(m.group())) + "}", _regex)
-_regex = "^" + _regex + "$"
-is_valid = bool(re.match(_regex, _stem))
-result_message = (
-    "PASS: " + _filename + " matches pattern '{pattern}'"
-    if is_valid else
-    "FAIL: " + _filename + " does not match pattern '{pattern}'"
-)
+  "fs_input_path":  '"{path}"',
+  "fs_file_path":   '"{path}"',
+  "fs_join_path":   "os.path.join({folder}, {filename})",
+  "fs_file_exists": "os.path.exists({path})",
+
+  "fs_get_filename": `(lambda p: (os.path.basename(p), os.path.splitext(os.path.basename(p))[0], os.path.splitext(p)[1]))({path})`,
+
+  "fs_walk_folder": `import os
+_ext_filter_{node_id} = "{extension_filter}"
+for _root_{node_id}, _dirs_{node_id}, _files_{node_id} in os.walk({folder_path}):
+    for _file_{node_id} in sorted(_files_{node_id}):
+        if _file_{node_id}.lower().endswith(_ext_filter_{node_id}.lower()):
+            file_path = os.path.join(_root_{node_id}, _file_{node_id})
+            file_name = _file_{node_id}
+            file_ext  = os.path.splitext(_file_{node_id})[1]
+            {loop_body}
 {exec_out}`,
 
-  "nm_extract_version": `import re, os
-_stem = os.path.splitext({filename})[0]
-_match = re.search(r'[vV](\d+)', _stem)
-found          = bool(_match)
-version_string = _match.group(0) if found else ""
-version_int    = int(_match.group(1)) if found else 0`,
-
-  "nm_extract_shot": `import re, os
-_stem = os.path.splitext({filename})[0]
-def _find_part(prefix, text):
-    m = re.search(rf'(?i){re.escape(prefix)}(\w+)', text)
-    return m.group(1) if m else ""
-shot    = _find_part("{shot_prefix}",    _stem)
-scene   = _find_part("{scene_prefix}",   _stem)
-layer   = _find_part("{layer_prefix}",   _stem)
-version = _find_part("{version_prefix}", _stem)`,
-
-  "nm_pad_frame_number": `import os, re
-folder    = {folder_path}
-padding   = {padding}
-extension = "{extension}"
-renamed   = 0
-for filename in sorted(os.listdir(folder)):
-    if filename.lower().endswith(extension.lower()):
-        stem  = os.path.splitext(filename)[0]
-        match = re.search(r'(\d+)$', stem)
-        if match:
-            num      = int(match.group(1))
-            prefix   = stem[:match.start()]
-            new_name = prefix + str(num).zfill(padding) + extension
-            if new_name != filename:
-                os.rename(
-                    os.path.join(folder, filename),
-                    os.path.join(folder, new_name)
-                )
-                print("  Padded: " + filename + " -> " + new_name)
-                renamed += 1
-print("Frame padding complete: " + str(renamed) + " files renamed.")
+  "fs_write_log": `import os as _os_{node_id}
+_log_path_{node_id} = {file_path}
+_os_{node_id}.makedirs(_os_{node_id}.path.dirname(_log_path_{node_id}), exist_ok=True)
+with open(_log_path_{node_id}, "a", encoding="utf-8") as _lf_{node_id}:
+    _lf_{node_id}.write(str({message}) + "\\n")
 {exec_out}`,
 
-  "nm_batch_check_folder": `import os, re
-folder    = {folder_path}
-extension = "{extension}"
-pattern   = "{pattern}"
-pass_list = []
-fail_list = []
-regex = pattern.replace(".", "\\.").replace("*", ".*")
-regex = re.sub("#+", lambda m: "\\d{" + str(len(m.group())) + "}", regex)
-regex = "^" + regex + "$"
-print()
-print("FlowPins Naming Convention Check")
-print("Folder  : " + folder)
-print("Pattern : " + pattern)
-print("-" * 50)
-for filename in sorted(os.listdir(folder)):
-    if filename.lower().endswith(extension.lower()):
-        stem = os.path.splitext(filename)[0]
-        if re.match(regex, stem):
-            pass_list.append(filename)
-            print("  PASS: " + filename)
-        else:
-            fail_list.append(filename)
-            print("  FAIL: " + filename)
-pass_count = len(pass_list)
-fail_count = len(fail_list)
-print()
-print("Result: " + str(pass_count) + " passed, " + str(fail_count) + " failed.")
-{exec_out}`,
-
-  "nm_bump_version": `import re, os
-filename       = {filename}
-version_prefix = "{version_prefix}"
-padding        = {padding}
-stem           = os.path.splitext(filename)[0]
-ext            = os.path.splitext(filename)[1]
-match          = re.search(rf'(?i){re.escape(version_prefix)}(\d+)', stem)
-if match:
-    new_version  = int(match.group(1)) + 1
-    new_filename = stem[:match.start()] + version_prefix + str(new_version).zfill(padding) + stem[match.end():] + ext
-else:
-    new_version  = 1
-    new_filename = stem + "_" + version_prefix + str(new_version).zfill(padding) + ext`,
-
-  // ==========================================================================
-  // Pipeline - Reporting (Python)
-  // ==========================================================================
-
-  "rp_save_csv": `import csv, os
-from datetime import datetime
-pass_list   = {pass_list}
-fail_list   = {fail_list}
-save_folder = {folder_path}
-csv_path    = os.path.join(save_folder, "{filename}")
-timestamp   = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-with open(csv_path, "w", newline="", encoding="utf-8") as csv_file:
-    writer = csv.writer(csv_file)
-    writer.writerow(["Status", "File", "Timestamp"])
-    for f in pass_list:
-        writer.writerow(["PASS", os.path.basename(str(f)), timestamp])
-    for f in fail_list:
-        writer.writerow(["FAIL", str(f), timestamp])
-print("CSV report saved: " + csv_path)
-print("  " + str(len(pass_list)) + " passed, " + str(len(fail_list)) + " failed.")
-{exec_out}`,
-
-  "rp_compare_folders": `import os
-folder_a  = {folder_a}
-folder_b  = {folder_b}
-extension = "{extension}"
-files_a   = set(f for f in os.listdir(folder_a) if f.lower().endswith(extension.lower()))
-files_b   = set(f for f in os.listdir(folder_b) if f.lower().endswith(extension.lower()))
-only_in_a    = sorted(list(files_a - files_b))
-only_in_b    = sorted(list(files_b - files_a))
-in_both      = sorted(list(files_a & files_b))
-missing_count = len(only_in_a) + len(only_in_b)
-print()
-print("FlowPins Folder Comparison")
-print("Folder A: " + folder_a + " (" + str(len(files_a)) + " files)")
-print("Folder B: " + folder_b + " (" + str(len(files_b)) + " files)")
-print("In both : " + str(len(in_both)) + "  |  Only in A: " + str(len(only_in_a)) + "  |  Only in B: " + str(len(only_in_b)))
-if only_in_a:
-    print("\nMissing from B:")
-    for f in only_in_a: print("  " + f)
-if only_in_b:
-    print("\nMissing from A:")
-    for f in only_in_b: print("  " + f)
-{exec_out}`,
-
-  "rp_count_files": `import os
-folder      = {folder_path}
-png_count   = 0
-exr_count   = 0
-tiff_count  = 0
-total_count = 0
-for filename in os.listdir(folder):
-    ext = os.path.splitext(filename)[1].lower()
-    if   ext == ".png":                                    png_count   += 1
-    elif ext == ".exr":                                    exr_count   += 1
-    elif ext in (".tif", ".tiff"):                         tiff_count  += 1
-    if   ext in (".png",".exr",".tif",".tiff",".jpg",".jpeg",".dpx"): total_count += 1
-summary = "PNG:" + str(png_count) + " EXR:" + str(exr_count) + " TIFF:" + str(tiff_count) + " Total:" + str(total_count)
-print("")
-print("FlowPins File Count — " + folder)
-print("  " + summary)
-{exec_out}`,
-
-  "rp_print_summary": `from datetime import datetime
-title     = "{title}"
-separator = "=" * 60
-timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-print(separator)
-print("  " + title.upper())
-print("  Generated: " + timestamp)
-print(separator)
-print("  PASSED : " + str(pass_count))
-print("  FAILED : " + str(fail_count))
-print(separator)
+  "fs_batch_rename": `import os as _os_{node_id}
+_folder_{node_id}  = {folder_path}
+_find_{node_id}    = "{find}"
+_replace_{node_id} = "{replace}"
+_ext_{node_id}     = "{extension}"
+_renamed_{node_id} = 0
+for _fname_{node_id} in sorted(_os_{node_id}.listdir(_folder_{node_id})):
+    if _fname_{node_id}.lower().endswith(_ext_{node_id}.lower()) and _find_{node_id} in _fname_{node_id}:
+        _old_{node_id} = _os_{node_id}.path.join(_folder_{node_id}, _fname_{node_id})
+        _new_{node_id} = _os_{node_id}.path.join(_folder_{node_id}, _fname_{node_id}.replace(_find_{node_id}, _replace_{node_id}))
+        _os_{node_id}.rename(_old_{node_id}, _new_{node_id})
+        print(f"  Renamed: {_fname_{node_id}} -> {_os_{node_id}.path.basename(_new_{node_id})}")
+        _renamed_{node_id} += 1
+print(f"Batch Rename complete: {_renamed_{node_id}} files renamed.")
 {exec_out}`,
 
   // ==========================================================================
-  // Pipeline - Colourspace (Python)
+  // PIPELINE TRANSLATIONS - Colourspace
   // ==========================================================================
 
   "cs_read_png_profile": `from PIL import Image, ImageCms
-import io, os
-file_path    = {file_path}
+import io as _io_{node_id}, os as _os_{node_id}
+_cs_file_{node_id} = {file_path}
 profile_name = "Untagged"
 colourspace  = "Unknown"
 is_tagged    = False
 try:
-    with Image.open(file_path) as img:
-        info = img.info
-        if "icc_profile" in info:
+    with Image.open(_cs_file_{node_id}) as _img_{node_id}:
+        _info_{node_id} = _img_{node_id}.info
+        if "icc_profile" in _info_{node_id}:
             try:
-                icc         = ImageCms.ImageCmsProfile(io.BytesIO(info["icc_profile"]))
-                desc        = ImageCms.getProfileDescription(icc).strip()
-                desc_lower  = desc.lower()
-                colourspace = "sRGB"   if "srgb"   in desc_lower else \
-                              "Linear" if "linear"  in desc_lower else \
-                              "ACES"   if "aces"    in desc_lower else \
-                              "P3"     if "p3"      in desc_lower else desc
-                profile_name = desc
+                _icc_{node_id}  = ImageCms.ImageCmsProfile(_io_{node_id}.BytesIO(_info_{node_id}["icc_profile"]))
+                _desc_{node_id} = ImageCms.getProfileDescription(_icc_{node_id}).strip()
+                _dl_{node_id}   = _desc_{node_id}.lower()
+                colourspace  = "sRGB" if "srgb" in _dl_{node_id} else "Linear" if "linear" in _dl_{node_id} else "ACES" if "aces" in _dl_{node_id} else "P3" if "p3" in _dl_{node_id} else _desc_{node_id}
+                profile_name = _desc_{node_id}
                 is_tagged    = True
-            except:
-                profile_name = "ICC (unreadable)"
-                colourspace  = "ICC Embedded"
-                is_tagged    = True
-        elif "srgb" in info:
-            profile_name = "sRGB (chunk)"
-            colourspace  = "sRGB"
-            is_tagged    = True
-        elif "gamma" in info:
-            g            = info["gamma"]
-            colourspace  = "Linear" if abs(g - 1.0) < 0.01 else "Gamma " + str(round(g, 4))
-            profile_name = colourspace
-            is_tagged    = True
-except Exception as e:
-    print("FlowPins CS Error: " + str(e))
-    profile_name = "ERROR: " + str(e)
-    colourspace  = "ERROR"
+            except: profile_name = "ICC (unreadable)"; colourspace = "ICC Embedded"; is_tagged = True
+        elif "srgb" in _info_{node_id}:
+            profile_name = "sRGB (chunk)"; colourspace = "sRGB"; is_tagged = True
+        elif "gamma" in _info_{node_id}:
+            _g_{node_id} = _info_{node_id}["gamma"]
+            colourspace  = "Linear" if abs(_g_{node_id} - 1.0) < 0.01 else f"Gamma {_g_{node_id}:.4f}"
+            profile_name = colourspace; is_tagged = True
+        else:
+            profile_name = "Untagged"; colourspace = "Unknown"; is_tagged = False
+except Exception as _e_{node_id}:
+    print(f"FlowPins CS Error: {_e_{node_id}}")
+    profile_name = f"ERROR: {_e_{node_id}}"; colourspace = "ERROR"; is_tagged = False
 {exec_out}`,
 
-  "cs_check_colourspace": `expected       = "{expected}"
-is_correct     = (colourspace.lower() == expected.lower())
-result_message = ("PASS [" + colourspace + "]" if is_correct
-                  else "FAIL: expected " + expected + ", got [" + colourspace + "]")`,
+  "cs_check_colourspace": `_expected_{node_id}  = "{expected}"
+is_correct_{node_id} = ({colourspace}.lower() == _expected_{node_id}.lower())
+is_correct       = is_correct_{node_id}
+result_message   = f"PASS [{colourspace}]" if is_correct else f"FAIL: expected {_expected_{node_id}}, got [{colourspace}]"`,
 
   "cs_batch_validate": `from PIL import Image, ImageCms
-import os, io
-folder    = {folder_path}
-expected  = "{expected}"
+import os as _os_{node_id}, io as _io_{node_id}
+_folder_{node_id}   = {folder_path}
+_expected_{node_id} = "{expected}"
 pass_list = []
 fail_list = []
-
-def get_colourspace(filepath):
+def _get_cs_{node_id}(fp):
     try:
-        with Image.open(filepath) as img:
+        with Image.open(fp) as img:
             info = img.info
             if "icc_profile" in info:
                 try:
-                    d = ImageCms.getProfileDescription(
-                        ImageCms.ImageCmsProfile(io.BytesIO(info["icc_profile"]))
-                    ).strip().lower()
+                    d = ImageCms.getProfileDescription(ImageCms.ImageCmsProfile(_io_{node_id}.BytesIO(info["icc_profile"]))).strip().lower()
                     return "sRGB" if "srgb" in d else "Linear" if "linear" in d else "ACES" if "aces" in d else d
-                except:
-                    return "ICC Embedded"
+                except: return "ICC Embedded"
             elif "srgb" in info: return "sRGB"
             elif "gamma" in info:
                 g = info["gamma"]
-                return "Linear" if abs(g - 1.0) < 0.01 else "Gamma " + str(round(g, 2))
+                return "Linear" if abs(g-1.0)<0.01 else f"Gamma {g:.2f}"
             else: return "Untagged"
-    except Exception as e:
-        return "ERROR: " + str(e)
-
-print()
-print("FlowPins Colourspace Validator — " + folder)
-print("Expected: " + expected + "\n" + "-" * 50)
-for root, dirs, files in os.walk(folder):
-    for filename in sorted(files):
-        if filename.lower().endswith(".png"):
-            filepath = os.path.join(root, filename)
-            cs       = get_colourspace(filepath)
-            if cs.lower() == expected.lower():
-                pass_list.append(filepath)
-                print("  PASS: " + filename + " [" + cs + "]")
+    except Exception as e: return f"ERROR: {e}"
+print(f"\\nFlowPins Colourspace Validator — {_folder_{node_id}}")
+print(f"Expected: {_expected_{node_id}}\\n" + "-"*50)
+for _r_{node_id}, _d_{node_id}, _f_{node_id} in _os_{node_id}.walk(_folder_{node_id}):
+    for _fn_{node_id} in sorted(_f_{node_id}):
+        if _fn_{node_id}.lower().endswith(".png"):
+            _fp_{node_id} = _os_{node_id}.path.join(_r_{node_id}, _fn_{node_id})
+            _cs_{node_id} = _get_cs_{node_id}(_fp_{node_id})
+            if _cs_{node_id}.lower() == _expected_{node_id}.lower():
+                pass_list.append(_fp_{node_id})
+                print(f"  PASS: {_fn_{node_id}} [{_cs_{node_id}}]")
             else:
-                fail_list.append(filepath + " [" + cs + "]")
-                print("  FAIL: " + filename + " — got [" + cs + "]")
+                fail_list.append(f"{_fp_{node_id}} [{_cs_{node_id}}]")
+                print(f"  FAIL: {_fn_{node_id}} — got [{_cs_{node_id}}]")
 pass_count = len(pass_list)
 fail_count = len(fail_list)
 {exec_out}`,
 
-  "cs_print_report": `import os
-from datetime import datetime
-pass_list   = {pass_list}
-fail_list   = {fail_list}
-folder      = {folder_path}
-save_report = "{save_report}" == "true"
-timestamp   = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-separator   = "=" * 60
-lines = [
-    separator,
-    "FLOWPINS VALIDATION REPORT",
-    "Generated : " + timestamp,
-    "Folder    : " + str(folder),
-    "PASSED    : " + str(len(pass_list)),
-    "FAILED    : " + str(len(fail_list)),
-    separator
+  "cs_print_report": `import os as _os_{node_id}
+from datetime import datetime as _dt_{node_id}
+_pl_{node_id}   = {pass_list}
+_fl_{node_id}   = {fail_list}
+_fld_{node_id}  = {folder_path}
+_save_{node_id} = "{save_report}" == "true"
+_ts_{node_id}   = _dt_{node_id}.now().strftime("%Y-%m-%d %H:%M:%S")
+_lines_{node_id} = [
+    "=" * 60,
+    "FLOWPINS COLOURSPACE VALIDATION REPORT",
+    f"Generated : {_ts_{node_id}}",
+    f"Folder    : {_fld_{node_id}}",
+    f"PASSED    : {len(_pl_{node_id})}",
+    f"FAILED    : {len(_fl_{node_id})}",
+    "=" * 60
 ]
-if fail_list:
-    lines.append("\nFAILED FILES:")
-    for f in fail_list: lines.append("  FAIL: " + str(f))
-if pass_list:
-    lines.append("\nPASSED FILES:")
-    for f in pass_list: lines.append("  PASS: " + os.path.basename(str(f)))
-lines.append(separator)
-report = "\n".join(lines)
-print(report)
-if save_report and os.path.isdir(str(folder)):
-    report_name = "validation_report_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".txt"
-    report_path = os.path.join(str(folder), report_name)
-    with open(report_path, "w", encoding="utf-8") as report_file:
-        report_file.write(report)
-    print("Report saved: " + report_path)
+if _fl_{node_id}:
+    _lines_{node_id}.append("\\nFAILED FILES:")
+    for _f_{node_id} in _fl_{node_id}: _lines_{node_id}.append(f"  FAIL: {_f_{node_id}}")
+if _pl_{node_id}:
+    _lines_{node_id}.append("\\nPASSED FILES:")
+    for _p_{node_id} in _pl_{node_id}: _lines_{node_id}.append(f"  PASS: {_os_{node_id}.path.basename(_p_{node_id})}")
+_lines_{node_id}.append("=" * 60)
+_report_{node_id} = "\\n".join(_lines_{node_id})
+print(_report_{node_id})
+if _save_{node_id} and _os_{node_id}.path.isdir(_fld_{node_id}):
+    _rname_{node_id} = f"colourspace_report_{_dt_{node_id}.now().strftime('%Y%m%d_%H%M%S')}.txt"
+    _rpath_{node_id} = _os_{node_id}.path.join(_fld_{node_id}, _rname_{node_id})
+    with open(_rpath_{node_id}, "w", encoding="utf-8") as _rf_{node_id}: _rf_{node_id}.write(_report_{node_id})
+    print(f"Report saved: {_rpath_{node_id}}")
 {exec_out}`,
-
-  // ==========================================================================
-  // Pipeline - Image (Python)
-  // ==========================================================================
-
-  "img_get_dimensions": `from PIL import Image
-import os
-try:
-    with Image.open({file_path}) as img:
-        width   = img.width
-        height  = img.height
-        summary = str(width) + "x" + str(height)
-    print("  Dimensions: " + summary + " — " + os.path.basename({file_path}))
-except Exception as e:
-    width = 0; height = 0
-    summary = "ERROR: " + str(e)
-{exec_out}`,
-
-  "img_check_dimensions": `from PIL import Image
-import os
-expected_width  = {expected_width}
-expected_height = {expected_height}
-try:
-    with Image.open({file_path}) as img:
-        actual_width  = img.width
-        actual_height = img.height
-    is_correct     = (actual_width == expected_width and actual_height == expected_height)
-    result_message = (
-        "PASS: " + str(actual_width) + "x" + str(actual_height)
-        if is_correct else
-        "FAIL: expected " + str(expected_width) + "x" + str(expected_height) +
-        ", got " + str(actual_width) + "x" + str(actual_height)
-    )
-except Exception as e:
-    actual_width = 0; actual_height = 0
-    is_correct   = False
-    result_message = "ERROR: " + str(e)
-{exec_out}`,
-
-  "img_batch_check_dimensions": `from PIL import Image
-import os
-folder          = {folder_path}
-expected_width  = {expected_width}
-expected_height = {expected_height}
-extension       = "{extension}"
-pass_list       = []
-fail_list       = []
-print()
-print("FlowPins Dimension Check — " + folder)
-print("Expected: " + str(expected_width) + "x" + str(expected_height))
-print("-" * 50)
-for root, dirs, files in os.walk(folder):
-    for filename in sorted(files):
-        if filename.lower().endswith(extension.lower()):
-            filepath = os.path.join(root, filename)
-            try:
-                with Image.open(filepath) as img:
-                    w = img.width
-                    h = img.height
-                if w == expected_width and h == expected_height:
-                    pass_list.append(filepath)
-                    print("  PASS: " + filename + " [" + str(w) + "x" + str(h) + "]")
-                else:
-                    fail_list.append(filepath + " [" + str(w) + "x" + str(h) + "]")
-                    print("  FAIL: " + filename + " — got " + str(w) + "x" + str(h))
-            except Exception as e:
-                fail_list.append(filepath + " [ERROR]")
-                print("  ERROR: " + filename + " — " + str(e))
-pass_count = len(pass_list)
-fail_count = len(fail_list)
-{exec_out}`,
-
-  "img_get_bit_depth": `from PIL import Image
-import os
-DEPTH_MAP = {"1":1,"L":8,"P":8,"RGB":8,"RGBA":8,"CMYK":8,"I":32,"F":32,"I;16":16,"I;16B":16}
-try:
-    with Image.open({file_path}) as img:
-        mode      = img.mode
-        bit_depth = DEPTH_MAP.get(mode, 8)
-    print("  Bit depth: " + str(bit_depth) + "-bit (" + mode + ") — " + os.path.basename({file_path}))
-except Exception as e:
-    bit_depth = 0
-    mode      = "ERROR: " + str(e)
-{exec_out}`,
-
-  "img_check_bit_depth": `from PIL import Image
-DEPTH_MAP         = {"1":1,"L":8,"P":8,"RGB":8,"RGBA":8,"I":32,"F":32,"I;16":16,"I;16B":16}
-expected_bit_depth = {expected_bit_depth}
-try:
-    with Image.open({file_path}) as img:
-        mode      = img.mode
-        bit_depth = DEPTH_MAP.get(mode, 8)
-    is_correct     = (bit_depth == expected_bit_depth)
-    result_message = (
-        "PASS: " + str(bit_depth) + "-bit (" + mode + ")"
-        if is_correct else
-        "FAIL: expected " + str(expected_bit_depth) + "-bit, got " + str(bit_depth) + "-bit (" + mode + ")"
-    )
-except Exception as e:
-    is_correct     = False
-    result_message = "ERROR: " + str(e)
-{exec_out}`,
-
-  "img_batch_validate": `from PIL import Image, ImageCms
-import os, io
-folder          = {folder_path}
-expected_width  = {expected_width}
-expected_height = {expected_height}
-expected_depth  = {expected_bit_depth}
-expected_cs     = "{expected_cs}"
-extension       = "{extension}"
-DEPTH_MAP       = {"1":1,"L":8,"P":8,"RGB":8,"RGBA":8,"I":32,"F":32,"I;16":16,"I;16B":16}
-pass_list       = []
-fail_list       = []
-
-print()
-print("FlowPins Full Image Validator — " + folder)
-print("Expected: " + str(expected_width) + "x" + str(expected_height) +
-      " | " + str(expected_depth) + "-bit | " + expected_cs)
-print("-" * 60)
-
-for root, dirs, files in os.walk(folder):
-    for filename in sorted(files):
-        if filename.lower().endswith(extension.lower()):
-            filepath = os.path.join(root, filename)
-            errors   = []
-            try:
-                with Image.open(filepath) as img:
-                    w    = img.width
-                    h    = img.height
-                    mode = img.mode
-                    bd   = DEPTH_MAP.get(mode, 8)
-                    info = img.info
-                    if w != expected_width or h != expected_height:
-                        errors.append("size " + str(w) + "x" + str(h))
-                    if bd != expected_depth:
-                        errors.append(str(bd) + "-bit")
-                    cs = "Untagged"
-                    if "icc_profile" in info:
-                        try:
-                            d  = ImageCms.getProfileDescription(
-                                     ImageCms.ImageCmsProfile(io.BytesIO(info["icc_profile"]))
-                                 ).strip().lower()
-                            cs = "sRGB" if "srgb" in d else "Linear" if "linear" in d else d
-                        except:
-                            cs = "ICC Embedded"
-                    elif "srgb" in info:
-                        cs = "sRGB"
-                    if cs.lower() != expected_cs.lower():
-                        errors.append("cs:" + cs)
-                if errors:
-                    fail_list.append(filepath + " [" + ", ".join(errors) + "]")
-                    print("  FAIL: " + filename + " — " + ", ".join(errors))
-                else:
-                    pass_list.append(filepath)
-                    print("  PASS: " + filename)
-            except Exception as e:
-                fail_list.append(filepath + " [ERROR: " + str(e) + "]")
-                print("  ERROR: " + filename + " — " + str(e))
-
-pass_count = len(pass_list)
-fail_count = len(fail_list)
-print()
-print("Result: " + str(pass_count) + " passed, " + str(fail_count) + " failed.")
-{exec_out}`,
-
-  // ==========================================================================
-  // File System (Python) - clean readable versions
-  // ==========================================================================
-
-  "fs_input_path":  'r"{path}"',
-  "fs_file_path":   'r"{path}"',
-  "fs_join_path":   "os.path.join({folder}, {filename})",
-  "fs_file_exists": "os.path.exists({path})",
-  "fs_get_filename":`os.path.basename({path})`,
-
-  "fs_walk_folder": `import os
-extension = "{extension_filter}"
-for root, dirs, files in os.walk({folder_path}):
-    for file_name in sorted(files):
-        if file_name.lower().endswith(extension.lower()):
-            file_path = os.path.join(root, file_name)
-            file_ext  = os.path.splitext(file_name)[1]
-            {loop_body}
-{exec_out}`,
-
-  "fs_write_log": `import os
-log_path = {file_path}
-os.makedirs(os.path.dirname(log_path), exist_ok=True) if os.path.dirname(log_path) else None
-with open(log_path, "a", encoding="utf-8") as log_file:
-    log_file.write(str({message}) + "\n")
-{exec_out}`,
-
-  "fs_batch_rename": `import os
-folder    = {folder_path}
-find      = "{find}"
-replace   = "{replace}"
-extension = "{extension}"
-renamed   = 0
-for filename in sorted(os.listdir(folder)):
-    if filename.lower().endswith(extension.lower()) and find in filename:
-        old_path = os.path.join(folder, filename)
-        new_name = filename.replace(find, replace)
-        new_path = os.path.join(folder, new_name)
-        os.rename(old_path, new_path)
-        print("  Renamed: " + filename + " -> " + new_name)
-        renamed += 1
-print("Batch rename complete: " + str(renamed) + " files renamed.")
-{exec_out}`,
-
-
 
 };

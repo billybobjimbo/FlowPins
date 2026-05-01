@@ -41,7 +41,7 @@ export const HARMONY_TRANSLATIONS: Record<string, any> = {
   "func_call":   "var res_{node_id} = {func_name}({arg0_in});\n{exec_out}",
 
   // --- CORE: VARIABLES ---
-  "set_var": "var {var_name} = {value};\n{exec_out}",
+  "set_var": "var {var_name} = {data_in};\n{exec_out}",
   "get_var": "{var_name}",
 
   // --- CORE: DATA / PRIMITIVES ---

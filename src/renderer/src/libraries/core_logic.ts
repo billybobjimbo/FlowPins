@@ -1,21 +1,4 @@
-// src/renderer/src/libraries/core_logic.ts
-// ============================================================================
-// FLOWPINS: CORE NODE LIBRARY
-// Language-agnostic node specifications.
-//
-// Pin naming convention (enforced throughout all specs and translators):
-//   Execution input  -> "exec_in"
-//   Execution output -> "exec_out"
-//   Loop body exec   -> "loop_body"
-//
-// Profile naming convention:
-//   "Core - *"       -> language-agnostic building blocks
-//   "Pipeline - *"   -> file system, validation, reporting tools
-//   "App - *"        -> DCC-specific nodes
-//
-// To add a new node: define it here, then add translations to each
-// language dictionary in /translators/
-// ============================================================================
+// src/libraries/core_logic.ts
 import { NodeSpec } from './types';
 
 export const CORE_NODES: Record<string, NodeSpec> = {
@@ -261,9 +244,14 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     inputs: [{ name: "exec_in", pin_type: "exec" }, { name: "list", pin_type: "list" }], outputs: [{ name: "exec_out", pin_type: "exec" }, { name: "item", pin_type: "any" }]
   },
   "const_string": {
-    title: "Const String", profile: "Core - Data",
-    inputs: [], outputs: [{ name: "text", pin_type: "string" }],
-    default_props: { value: "" }
+    title: "Const String",
+    profile: "Core - Data",
+    inputs: [],
+    outputs: [{ name: "text", pin_type: "string" }],
+    default_props: { value: "Hello" },
+    ui_schema: [
+      { label: "String Value", prop_key: "value", type: "input" }
+    ]
   },
   "const_int": {
     title: "Const Int",
@@ -675,7 +663,10 @@ export const CORE_NODES: Record<string, NodeSpec> = {
   },
 
 
-// ==========================================================================
+  // ==========================================================================
+  // PIPELINE — NAMING, REPORTING, IMAGE (from wave2)
+  // ==========================================================================
+
   // Pipeline - Naming
   // ==========================================================================
 
@@ -978,4 +969,5 @@ export const CORE_NODES: Record<string, NodeSpec> = {
       { label: "File Extension",      prop_key: "extension",          type: "input" }
     ]
   },
+
 };
