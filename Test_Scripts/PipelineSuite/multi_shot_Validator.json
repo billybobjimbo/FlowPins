@@ -1,0 +1,179 @@
+{
+  "nodes": [
+    {
+      "id": "node_1777905992750",
+      "type": "fp",
+      "position": {
+        "x": 150,
+        "y": 495
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Core - Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 150,
+        "y": 495
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1777906003414",
+      "type": "fp",
+      "position": {
+        "x": 555,
+        "y": 495
+      },
+      "data": {
+        "label": "Read Shot List CSV",
+        "nodeKind": "csv_read_shot_list",
+        "profile": "Pipeline - File System",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "csv_path",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "shot_list",
+            "pin_type": "list"
+          },
+          {
+            "name": "shot_count",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "csv_path": "D:\\Pipeline_suite\\shot_list.csv"
+        }
+      },
+      "width": 200,
+      "height": 177,
+      "selected": true,
+      "dragging": false
+    },
+    {
+      "id": "node_1777906009950",
+      "type": "fp",
+      "position": {
+        "x": 885,
+        "y": 495
+      },
+      "data": {
+        "label": "Multi-Shot Validator",
+        "nodeKind": "csv_multi_shot_validate",
+        "profile": "Pipeline - Reporting",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "shot_list",
+            "pin_type": "list"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "total_shots",
+            "pin_type": "int"
+          },
+          {
+            "name": "passed_shots",
+            "pin_type": "int"
+          },
+          {
+            "name": "failed_shots",
+            "pin_type": "int"
+          },
+          {
+            "name": "report_path",
+            "pin_type": "string"
+          },
+          {
+            "name": "all_passed",
+            "pin_type": "boolean"
+          }
+        ],
+        "props": {
+          "report_path": "validation_report.csv",
+          "check_sequence": true,
+          "check_naming": true,
+          "check_dims": true,
+          "check_cs": true
+        }
+      },
+      "width": 200,
+      "height": 267,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 885,
+        "y": 495
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1777905992750",
+      "sourceHandle": "exec_out",
+      "target": "node_1777906003414",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777905992750exec_out-node_1777906003414exec_in",
+      "animated": true
+    },
+    {
+      "source": "node_1777906003414",
+      "sourceHandle": "exec_out",
+      "target": "node_1777906009950",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777906003414exec_out-node_1777906009950exec_in",
+      "animated": true
+    },
+    {
+      "source": "node_1777906003414",
+      "sourceHandle": "shot_list",
+      "target": "node_1777906009950",
+      "targetHandle": "shot_list",
+      "style": {
+        "stroke": "#00d8ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777906003414shot_list-node_1777906009950shot_list",
+      "animated": true
+    }
+  ]
+}

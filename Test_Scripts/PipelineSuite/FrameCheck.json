@@ -1,0 +1,313 @@
+{
+  "nodes": [
+    {
+      "id": "node_1777748949740",
+      "type": "fp",
+      "position": {
+        "x": -15,
+        "y": 375
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Core - Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -15,
+        "y": 375
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1777749001800",
+      "type": "fp",
+      "position": {
+        "x": 375,
+        "y": 375
+      },
+      "data": {
+        "label": "Load Config or Show Dialog",
+        "nodeKind": "cfg_load_or_show",
+        "profile": "Pipeline - Config",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "folder_path",
+            "pin_type": "string"
+          },
+          {
+            "name": "extension",
+            "pin_type": "string"
+          },
+          {
+            "name": "start_frame",
+            "pin_type": "int"
+          },
+          {
+            "name": "end_frame",
+            "pin_type": "int"
+          },
+          {
+            "name": "naming_pattern",
+            "pin_type": "string"
+          },
+          {
+            "name": "colourspace",
+            "pin_type": "string"
+          },
+          {
+            "name": "frame_padding",
+            "pin_type": "int"
+          },
+          {
+            "name": "cancelled",
+            "pin_type": "boolean"
+          }
+        ],
+        "props": {
+          "config_path": "studio_config.json",
+          "title": "FlowPins — Tool Settings",
+          "show_folder": true,
+          "show_extension": true,
+          "show_frames": true,
+          "show_naming": true,
+          "show_colourspace": true,
+          "show_padding": true,
+          "force_dialog": false
+        }
+      },
+      "width": 251,
+      "height": 357,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 375,
+        "y": 375
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1777749212534",
+      "type": "fp",
+      "position": {
+        "x": 750,
+        "y": 375
+      },
+      "data": {
+        "label": "Frame Sequence Check",
+        "nodeKind": "fs_frame_sequence_check",
+        "profile": "Pipeline - File System",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "folder_path",
+            "pin_type": "string"
+          },
+          {
+            "name": "start_frame",
+            "pin_type": "int"
+          },
+          {
+            "name": "end_frame",
+            "pin_type": "int"
+          },
+          {
+            "name": "extension",
+            "pin_type": "string"
+          },
+          {
+            "name": "padding",
+            "pin_type": "int"
+          },
+          {
+            "name": "naming_pattern",
+            "pin_type": "string"
+          },
+          {
+            "name": "colourspace",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "missing_frames",
+            "pin_type": "list"
+          },
+          {
+            "name": "found_count",
+            "pin_type": "int"
+          },
+          {
+            "name": "missing_count",
+            "pin_type": "int"
+          },
+          {
+            "name": "is_complete",
+            "pin_type": "boolean"
+          },
+          {
+            "name": "naming_fails",
+            "pin_type": "list"
+          },
+          {
+            "name": "cs_fails",
+            "pin_type": "list"
+          }
+        ],
+        "props": {
+          "extension": ".png",
+          "padding": 4,
+          "start_frame": 1001,
+          "end_frame": 1100,
+          "prefix": "###_comp-",
+          "naming_pattern": "###_comp-",
+          "colourspace": "sRGB"
+        }
+      },
+      "width": 216,
+      "height": 327,
+      "selected": true,
+      "positionAbsolute": {
+        "x": 750,
+        "y": 375
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1777748949740",
+      "sourceHandle": "exec_out",
+      "target": "node_1777749001800",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777748949740exec_out-node_1777749001800exec_in",
+      "animated": false
+    },
+    {
+      "source": "node_1777749001800",
+      "sourceHandle": "exec_out",
+      "target": "node_1777749212534",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777749001800exec_out-node_1777749212534exec_in",
+      "animated": true
+    },
+    {
+      "source": "node_1777749001800",
+      "sourceHandle": "folder_path",
+      "target": "node_1777749212534",
+      "targetHandle": "folder_path",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777749001800folder_path-node_1777749212534folder_path",
+      "animated": true
+    },
+    {
+      "source": "node_1777749001800",
+      "sourceHandle": "extension",
+      "target": "node_1777749212534",
+      "targetHandle": "extension",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777749001800extension-node_1777749212534extension",
+      "animated": true
+    },
+    {
+      "source": "node_1777749001800",
+      "sourceHandle": "start_frame",
+      "target": "node_1777749212534",
+      "targetHandle": "start_frame",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777749001800start_frame-node_1777749212534start_frame",
+      "animated": true
+    },
+    {
+      "source": "node_1777749001800",
+      "sourceHandle": "end_frame",
+      "target": "node_1777749212534",
+      "targetHandle": "end_frame",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777749001800end_frame-node_1777749212534end_frame",
+      "animated": true
+    },
+    {
+      "source": "node_1777749001800",
+      "sourceHandle": "frame_padding",
+      "target": "node_1777749212534",
+      "targetHandle": "padding",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777749001800frame_padding-node_1777749212534padding",
+      "animated": true
+    },
+    {
+      "source": "node_1777749001800",
+      "sourceHandle": "naming_pattern",
+      "target": "node_1777749212534",
+      "targetHandle": "naming_pattern",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777749001800naming_pattern-node_1777749212534naming_pattern",
+      "animated": true
+    },
+    {
+      "source": "node_1777749001800",
+      "sourceHandle": "colourspace",
+      "target": "node_1777749212534",
+      "targetHandle": "colourspace",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777749001800colourspace-node_1777749212534colourspace",
+      "animated": true
+    }
+  ]
+}

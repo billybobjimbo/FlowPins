@@ -970,4 +970,241 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  // ==========================================================================
+  // PIPELINE SUITE — TOOL 1: QUICK FRAME CHECK
+  // ==========================================================================
+
+  "fs_frame_sequence_check": {
+    title: "Frame Sequence Check",
+    profile: "Pipeline - File System",
+    inputs: [
+      { name: "exec_in",        pin_type: "exec"   },
+      { name: "folder_path",    pin_type: "string" },
+      { name: "start_frame",    pin_type: "int"    },
+      { name: "end_frame",      pin_type: "int"    },
+      { name: "extension",      pin_type: "string" },
+      { name: "padding",        pin_type: "int"    },
+      { name: "naming_pattern", pin_type: "string" },
+      { name: "colourspace",    pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",       pin_type: "exec"    },
+      { name: "missing_frames", pin_type: "list"    },
+      { name: "found_count",    pin_type: "int"     },
+      { name: "missing_count",  pin_type: "int"     },
+      { name: "is_complete",    pin_type: "boolean" },
+      { name: "naming_fails",   pin_type: "list"    },
+      { name: "cs_fails",       pin_type: "list"    }
+    ],
+    default_props: {
+      extension:       ".png",
+      padding:         4,
+      start_frame:     1001,
+      end_frame:       1100,
+      prefix:          "",
+      naming_pattern:  "",
+      colourspace:     ""
+    },
+    ui_schema: [
+      { label: "Extension",        prop_key: "extension",      type: "input"  },
+      { label: "Frame Padding",    prop_key: "padding",        type: "number" },
+      { label: "Start Frame",      prop_key: "start_frame",    type: "number" },
+      { label: "End Frame",        prop_key: "end_frame",      type: "number" },
+      { label: "Filename Prefix",  prop_key: "prefix",         type: "input"  },
+      { label: "Naming Pattern",   prop_key: "naming_pattern", type: "input"  },
+      { label: "Colourspace",      prop_key: "colourspace",    type: "input"  }
+    ]
+  },
+
+  // ==========================================================================
+  // PIPELINE SUITE — CONFIG SYSTEM
+  // ==========================================================================
+
+  "cfg_load_config": {
+    title: "Load Config",
+    profile: "Pipeline - Config",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec"   },
+      { name: "config_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",    pin_type: "exec"    },
+      { name: "config_data", pin_type: "any"     },
+      { name: "exists",      pin_type: "boolean" }
+    ],
+    default_props: { config_path: "studio_config.json" },
+    ui_schema: [
+      { label: "Config File Path", prop_key: "config_path", type: "input" }
+    ]
+  },
+
+  "cfg_save_config": {
+    title: "Save Config",
+    profile: "Pipeline - Config",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec"   },
+      { name: "config_path", pin_type: "string" },
+      { name: "config_data", pin_type: "any"    }
+    ],
+    outputs: [
+      { name: "exec_out", pin_type: "exec" }
+    ],
+    default_props: { config_path: "studio_config.json" },
+    ui_schema: [
+      { label: "Config File Path", prop_key: "config_path", type: "input" }
+    ]
+  },
+
+  "cfg_get_value": {
+    title: "Get Config Value",
+    profile: "Pipeline - Config",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec"   },
+      { name: "config_data", pin_type: "any"    }
+    ],
+    outputs: [
+      { name: "exec_out", pin_type: "exec"   },
+      { name: "value",    pin_type: "string" }
+    ],
+    default_props: { key: "folder_path", default_value: "" },
+    ui_schema: [
+      { label: "Key",           prop_key: "key",           type: "input" },
+      { label: "Default Value", prop_key: "default_value", type: "input" }
+    ]
+  },
+
+  "cfg_show_dialog": {
+    title: "Show Config Dialog",
+    profile: "Pipeline - Config",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec" },
+      { name: "config_data", pin_type: "any"  }
+    ],
+    outputs: [
+      { name: "exec_out",        pin_type: "exec"    },
+      { name: "folder_path",     pin_type: "string"  },
+      { name: "extension",       pin_type: "string"  },
+      { name: "start_frame",     pin_type: "int"     },
+      { name: "end_frame",       pin_type: "int"     },
+      { name: "naming_pattern",  pin_type: "string"  },
+      { name: "colourspace",     pin_type: "string"  },
+      { name: "frame_padding",   pin_type: "int"     },
+      { name: "save_config",     pin_type: "boolean" },
+      { name: "cancelled",       pin_type: "boolean" }
+    ],
+    default_props: {
+      title:           "FlowPins — Tool Settings",
+      show_folder:     true,
+      show_extension:  true,
+      show_frames:     false,
+      show_naming:     false,
+      show_colourspace:false,
+      show_padding:    false
+    },
+    ui_schema: [
+      { label: "Dialog Title",        prop_key: "title",            type: "input"    },
+      { label: "Show Folder Path",    prop_key: "show_folder",      type: "checkbox" },
+      { label: "Show Extension",      prop_key: "show_extension",   type: "checkbox" },
+      { label: "Show Frame Range",    prop_key: "show_frames",      type: "checkbox" },
+      { label: "Show Naming Pattern", prop_key: "show_naming",      type: "checkbox" },
+      { label: "Show Colourspace",    prop_key: "show_colourspace", type: "checkbox" },
+      { label: "Show Frame Padding",  prop_key: "show_padding",     type: "checkbox" }
+    ]
+  },
+
+  "cfg_load_or_show": {
+    title: "Load Config or Show Dialog",
+    profile: "Pipeline - Config",
+    inputs: [
+      { name: "exec_in",    pin_type: "exec" }
+    ],
+    outputs: [
+      { name: "exec_out",       pin_type: "exec"    },
+      { name: "folder_path",    pin_type: "string"  },
+      { name: "extension",      pin_type: "string"  },
+      { name: "start_frame",    pin_type: "int"     },
+      { name: "end_frame",      pin_type: "int"     },
+      { name: "naming_pattern", pin_type: "string"  },
+      { name: "colourspace",    pin_type: "string"  },
+      { name: "frame_padding",  pin_type: "int"     },
+      { name: "prefix",         pin_type: "string"  },
+      { name: "cancelled",      pin_type: "boolean" }
+    ],
+    default_props: {
+      config_path:      "studio_config.json",
+      title:            "FlowPins — Tool Settings",
+      show_folder:      true,
+      show_extension:   true,
+      show_frames:      true,
+      show_naming:      true,
+      show_colourspace: true,
+      show_padding:     true,
+      force_dialog:     false
+    },
+    ui_schema: [
+      { label: "Config File Path",    prop_key: "config_path",      type: "input"    },
+      { label: "Dialog Title",        prop_key: "title",            type: "input"    },
+      { label: "Always Show Dialog",  prop_key: "force_dialog",     type: "checkbox" },
+      { label: "Show Folder Path",    prop_key: "show_folder",      type: "checkbox" },
+      { label: "Show Extension",      prop_key: "show_extension",   type: "checkbox" },
+      { label: "Show Frame Range",    prop_key: "show_frames",      type: "checkbox" },
+      { label: "Show Naming Pattern", prop_key: "show_naming",      type: "checkbox" },
+      { label: "Show Colourspace",    prop_key: "show_colourspace", type: "checkbox" },
+      { label: "Show Frame Padding",  prop_key: "show_padding",     type: "checkbox" }
+    ]
+  },
+
+  // ==========================================================================
+  // PIPELINE SUITE — MULTI-SHOT CSV VALIDATOR
+  // ==========================================================================
+
+  "csv_read_shot_list": {
+    title: "Read Shot List CSV",
+    profile: "Pipeline - File System",
+    inputs: [
+      { name: "exec_in",   pin_type: "exec"   },
+      { name: "csv_path",  pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",   pin_type: "exec" },
+      { name: "shot_list",  pin_type: "list" },
+      { name: "shot_count", pin_type: "int"  }
+    ],
+    default_props: { csv_path: "shot_list.csv" },
+    ui_schema: [
+      { label: "CSV File Path", prop_key: "csv_path", type: "input" }
+    ]
+  },
+
+  "csv_multi_shot_validate": {
+    title: "Multi-Shot Validator",
+    profile: "Pipeline - Reporting",
+    inputs: [
+      { name: "exec_in",   pin_type: "exec" },
+      { name: "shot_list", pin_type: "list" }
+    ],
+    outputs: [
+      { name: "exec_out",      pin_type: "exec"    },
+      { name: "total_shots",   pin_type: "int"     },
+      { name: "passed_shots",  pin_type: "int"     },
+      { name: "failed_shots",  pin_type: "int"     },
+      { name: "report_path",   pin_type: "string"  },
+      { name: "all_passed",    pin_type: "boolean" }
+    ],
+    default_props: {
+      report_path:    "validation_report.csv",
+      check_sequence: true,
+      check_naming:   true,
+      check_dims:     true,
+      check_cs:       true
+    },
+    ui_schema: [
+      { label: "Report Output Path", prop_key: "report_path",    type: "input"    },
+      { label: "Check Sequence",     prop_key: "check_sequence", type: "checkbox" },
+      { label: "Check Naming",       prop_key: "check_naming",   type: "checkbox" },
+      { label: "Check Dimensions",   prop_key: "check_dims",     type: "checkbox" },
+      { label: "Check Colourspace",  prop_key: "check_cs",       type: "checkbox" }
+    ]
+  },
+
 };

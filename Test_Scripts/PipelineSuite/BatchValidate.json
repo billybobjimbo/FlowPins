@@ -1,0 +1,334 @@
+{
+  "nodes": [
+    {
+      "id": "node_1777139948531",
+      "type": "fp",
+      "position": {
+        "x": -555,
+        "y": 360
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Core - Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -555,
+        "y": 360
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1777139955585",
+      "type": "fp",
+      "position": {
+        "x": -555,
+        "y": 510
+      },
+      "data": {
+        "label": "Folder Path",
+        "nodeKind": "fs_input_path",
+        "profile": "Pipeline - File System",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "path",
+            "pin_type": "string"
+          }
+        ],
+        "props": {
+          "path": "C:\\Users\\Alistair Murphy\\Desktop\\Leisl_short\\190_comp_frames"
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -555,
+        "y": 510
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1777139960961",
+      "type": "fp",
+      "position": {
+        "x": -210,
+        "y": 360
+      },
+      "data": {
+        "label": "Full Image Batch Validate",
+        "nodeKind": "img_batch_validate",
+        "profile": "Pipeline - Image",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "folder_path",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "pass_list",
+            "pin_type": "list"
+          },
+          {
+            "name": "fail_list",
+            "pin_type": "list"
+          },
+          {
+            "name": "pass_count",
+            "pin_type": "int"
+          },
+          {
+            "name": "fail_count",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "expected_width": 1920,
+          "expected_height": 1080,
+          "expected_bit_depth": 8,
+          "expected_cs": "sRGB",
+          "extension": ".png"
+        }
+      },
+      "width": 232,
+      "height": 237,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -210,
+        "y": 360
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1777139976426",
+      "type": "fp",
+      "position": {
+        "x": 360,
+        "y": 420
+      },
+      "data": {
+        "label": "Save Results to CSV",
+        "nodeKind": "rp_save_csv",
+        "profile": "Pipeline - Reporting",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "pass_list",
+            "pin_type": "list"
+          },
+          {
+            "name": "fail_list",
+            "pin_type": "list"
+          },
+          {
+            "name": "folder_path",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {
+          "filename": "Validate_report.csv"
+        }
+      },
+      "width": 200,
+      "height": 207,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 360,
+        "y": 420
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1777140035476",
+      "type": "fp",
+      "position": {
+        "x": 705,
+        "y": 645
+      },
+      "data": {
+        "label": "Print Summary",
+        "nodeKind": "rp_print_summary",
+        "profile": "Pipeline - Reporting",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "title",
+            "pin_type": "string"
+          },
+          {
+            "name": "pass_count",
+            "pin_type": "int"
+          },
+          {
+            "name": "fail_count",
+            "pin_type": "int"
+          },
+          {
+            "name": "notes",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {
+          "title": "FlowPins Report"
+        }
+      },
+      "width": 200,
+      "height": 237,
+      "selected": true,
+      "positionAbsolute": {
+        "x": 705,
+        "y": 645
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1777139948531",
+      "sourceHandle": "exec_out",
+      "target": "node_1777139960961",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777139948531exec_out-node_1777139960961exec_in",
+      "animated": false
+    },
+    {
+      "source": "node_1777139955585",
+      "sourceHandle": "path",
+      "target": "node_1777139960961",
+      "targetHandle": "folder_path",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777139955585path-node_1777139960961folder_path",
+      "animated": false
+    },
+    {
+      "source": "node_1777139960961",
+      "sourceHandle": "exec_out",
+      "target": "node_1777139976426",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777139960961exec_out-node_1777139976426exec_in",
+      "animated": false
+    },
+    {
+      "source": "node_1777139960961",
+      "sourceHandle": "pass_list",
+      "target": "node_1777139976426",
+      "targetHandle": "pass_list",
+      "style": {
+        "stroke": "#00d8ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777139960961pass_list-node_1777139976426pass_list",
+      "animated": false
+    },
+    {
+      "source": "node_1777139960961",
+      "sourceHandle": "fail_list",
+      "target": "node_1777139976426",
+      "targetHandle": "fail_list",
+      "style": {
+        "stroke": "#00d8ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777139960961fail_list-node_1777139976426fail_list",
+      "animated": false
+    },
+    {
+      "source": "node_1777139955585",
+      "sourceHandle": "path",
+      "target": "node_1777139976426",
+      "targetHandle": "folder_path",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777139955585path-node_1777139976426folder_path",
+      "animated": false
+    },
+    {
+      "source": "node_1777139976426",
+      "sourceHandle": "exec_out",
+      "target": "node_1777140035476",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777139976426exec_out-node_1777140035476exec_in",
+      "animated": true
+    },
+    {
+      "source": "node_1777139960961",
+      "sourceHandle": "pass_list",
+      "target": "node_1777140035476",
+      "targetHandle": "pass_count",
+      "style": {
+        "stroke": "#00d8ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777139960961pass_list-node_1777140035476pass_count",
+      "animated": true
+    },
+    {
+      "source": "node_1777139960961",
+      "sourceHandle": "fail_list",
+      "target": "node_1777140035476",
+      "targetHandle": "fail_count",
+      "style": {
+        "stroke": "#00d8ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777139960961fail_list-node_1777140035476fail_count",
+      "animated": true
+    }
+  ]
+}
