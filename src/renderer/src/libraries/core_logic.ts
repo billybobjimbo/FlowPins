@@ -629,18 +629,23 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     title: "Batch Validate PNG Folder",
     profile: "Pipeline - Colourspace",
     inputs: [
-      { name: "exec_in",     pin_type: "exec" },
-      { name: "folder_path", pin_type: "string" }
+      { name: "exec_in",      pin_type: "exec"   },
+      { name: "folder_path",  pin_type: "string" },
+      { name: "extension",    pin_type: "string" },
+      { name: "expected_cs",  pin_type: "string" }
     ],
     outputs: [
       { name: "exec_out",    pin_type: "exec" },
       { name: "pass_list",   pin_type: "list" },
       { name: "fail_list",   pin_type: "list" },
-      { name: "pass_count",  pin_type: "int" },
-      { name: "fail_count",  pin_type: "int" }
+      { name: "pass_count",  pin_type: "int"  },
+      { name: "fail_count",  pin_type: "int"  }
     ],
-    default_props: { expected: "sRGB" },
-    ui_schema: [{ label: "Expected Colourspace", prop_key: "expected", type: "input" }]
+    default_props: { expected: "sRGB", extension: ".png" },
+    ui_schema: [
+      { label: "Expected Colourspace", prop_key: "expected",  type: "input" },
+      { label: "File Extension",       prop_key: "extension", type: "input" }
+    ]
   },
 
   "cs_print_report": {

@@ -169,40 +169,103 @@ result_message   = f"PASS [{colourspace}]" if is_correct else f"FAIL: expected {
 
   "cs_batch_validate": `from PIL import Image, ImageCms
 import os as _os_{node_id}, io as _io_{node_id}
+# Guard — stop if cancelled or no folder
+if cancelled or not {folder_path}:
+    import sys
+    if cancelled: print("FlowPins: Cancelled — skipping colourspace check.")
+    else: print("FlowPins ERROR: No folder path provided.")
+    sys.exit(0)
 _folder_{node_id}   = {folder_path}
-_expected_{node_id} = "{expected}"
+_expected_{node_id} = {expected_cs} if {expected_cs} else "{expected}"
+_ext_{node_id}      = {extension} if {extension} else "{extension}"
+
+# Supported formats and their detection methods
+_SUPPORTED_{node_id} = [".png", ".tif", ".tiff", ".tga", ".jpg", ".jpeg", ".exr", ".dpx"]
+
+def _get_cs_{node_id}(fp):
+    _fext_{node_id} = _os_{node_id}.path.splitext(fp)[1].lower()
+    try:
+        # EXR — use metadata attributes
+        if _fext_{node_id} == ".exr":
+            try:
+                import OpenEXR, Imath
+                _exr_{node_id} = OpenEXR.InputFile(fp)
+                _hdr_{node_id} = _exr_{node_id}.header()
+                _chr_{node_id} = str(_hdr_{node_id}.get("chromaticities", "")).lower()
+                if "aces" in _chr_{node_id}: return "ACES"
+                if "709" in _chr_{node_id}: return "Rec.709"
+                if "2020" in _chr_{node_id}: return "Rec.2020"
+                return "Linear EXR"
+            except ImportError:
+                # OpenEXR not installed — use PIL fallback
+                pass
+        # PNG, TIFF, TGA, JPG — use ICC profile
+        with Image.open(fp) as _img_{node_id}:
+            _info_{node_id} = _img_{node_id}.info
+            # Check ICC profile
+            if "icc_profile" in _info_{node_id}:
+                try:
+                    _desc_{node_id} = ImageCms.getProfileDescription(
+                        ImageCms.ImageCmsProfile(
+                            _io_{node_id}.BytesIO(_info_{node_id}["icc_profile"])
+                        )
+                    ).strip().lower()
+                    if "srgb" in _desc_{node_id} or "sRGB" in _desc_{node_id}:     return "sRGB"
+                    if "rec. 709" in _desc_{node_id} or "709" in _desc_{node_id}:  return "Rec.709"
+                    if "rec. 2020" in _desc_{node_id} or "2020" in _desc_{node_id}:return "Rec.2020"
+                    if "p3" in _desc_{node_id}:                                     return "DCI-P3"
+                    if "aces" in _desc_{node_id}:                                   return "ACES"
+                    if "linear" in _desc_{node_id}:                                 return "Linear"
+                    return "ICC: " + _desc_{node_id}[:30]
+                except:
+                    return "ICC Embedded (unreadable)"
+            # PNG sRGB chunk
+            if "srgb" in _info_{node_id}:
+                return "sRGB"
+            # Gamma tag
+            if "gamma" in _info_{node_id}:
+                _g_{node_id} = _info_{node_id}["gamma"]
+                if abs(_g_{node_id} - 1.0) < 0.01:  return "Linear"
+                if abs(_g_{node_id} - 0.4545) < 0.01: return "sRGB (gamma)"
+                return "Gamma " + str(round(_g_{node_id}, 3))
+            # No colourspace metadata found
+            return "Untagged"
+    except Exception as _e_{node_id}:
+        return "ERROR: " + str(_e_{node_id})
+
 pass_list = []
 fail_list = []
-def _get_cs_{node_id}(fp):
-    try:
-        with Image.open(fp) as img:
-            info = img.info
-            if "icc_profile" in info:
-                try:
-                    d = ImageCms.getProfileDescription(ImageCms.ImageCmsProfile(_io_{node_id}.BytesIO(info["icc_profile"]))).strip().lower()
-                    return "sRGB" if "srgb" in d else "Linear" if "linear" in d else "ACES" if "aces" in d else d
-                except: return "ICC Embedded"
-            elif "srgb" in info: return "sRGB"
-            elif "gamma" in info:
-                g = info["gamma"]
-                return "Linear" if abs(g-1.0)<0.01 else f"Gamma {g:.2f}"
-            else: return "Untagged"
-    except Exception as e: return f"ERROR: {e}"
-print(f"\\nFlowPins Colourspace Validator — {_folder_{node_id}}")
-print(f"Expected: {_expected_{node_id}}\\n" + "-"*50)
-for _r_{node_id}, _d_{node_id}, _f_{node_id} in _os_{node_id}.walk(_folder_{node_id}):
-    for _fn_{node_id} in sorted(_f_{node_id}):
-        if _fn_{node_id}.lower().endswith(".png"):
-            _fp_{node_id} = _os_{node_id}.path.join(_r_{node_id}, _fn_{node_id})
-            _cs_{node_id} = _get_cs_{node_id}(_fp_{node_id})
-            if _cs_{node_id}.lower() == _expected_{node_id}.lower():
-                pass_list.append(_fp_{node_id})
-                print(f"  PASS: {_fn_{node_id}} [{_cs_{node_id}}]")
-            else:
-                fail_list.append(f"{_fp_{node_id}} [{_cs_{node_id}}]")
-                print(f"  FAIL: {_fn_{node_id}} — got [{_cs_{node_id}}]")
+print("")
+print("FlowPins Colourspace Validator — " + _folder_{node_id})
+print("Expected : " + _expected_{node_id})
+print("Extension: " + _ext_{node_id})
+print("-" * 55)
+
+if not _os_{node_id}.path.isdir(_folder_{node_id}):
+    print("ERROR: Folder not found — " + _folder_{node_id})
+else:
+    for _r_{node_id}, _d_{node_id}, _f_{node_id} in _os_{node_id}.walk(_folder_{node_id}):
+        for _fn_{node_id} in sorted(_f_{node_id}):
+            _fext2_{node_id} = _os_{node_id}.path.splitext(_fn_{node_id})[1].lower()
+            # Match requested extension OR scan all supported formats if extension is blank
+            _match_{node_id} = (
+                _fn_{node_id}.lower().endswith(_ext_{node_id}.lower()) if _ext_{node_id}
+                else _fext2_{node_id} in _SUPPORTED_{node_id}
+            )
+            if _match_{node_id}:
+                _fp_{node_id} = _os_{node_id}.path.join(_r_{node_id}, _fn_{node_id})
+                _cs_{node_id} = _get_cs_{node_id}(_fp_{node_id})
+                if _cs_{node_id}.lower() == _expected_{node_id}.lower():
+                    pass_list.append(_fp_{node_id})
+                    print("  PASS: " + _fn_{node_id} + " [" + _cs_{node_id} + "]")
+                else:
+                    fail_list.append(_fp_{node_id} + " [" + _cs_{node_id} + "]")
+                    print("  FAIL: " + _fn_{node_id} + " — got [" + _cs_{node_id} + "]")
+
 pass_count = len(pass_list)
 fail_count = len(fail_list)
+print("")
+print("Result: " + str(pass_count) + " passed, " + str(fail_count) + " failed.")
 {exec_out}`,
 
   "cs_print_report": `import os as _os_{node_id}
@@ -657,8 +720,8 @@ folder          = {folder_path}
 expected_width  = {expected_width}
 expected_height = {expected_height}
 expected_depth  = {expected_bit_depth}
-expected_cs     = "{expected_cs}"
-extension       = {extension}
+expected_cs     = {expected_cs} if str({expected_cs}) not in ["expected_cs",""] else "sRGB"
+extension       = {extension} if str({extension}) not in ["extension",""] else ".png"
 DEPTH_MAP       = {"1":1,"L":8,"P":8,"RGB":8,"RGBA":8,"I":32,"F":32,"I;16":16,"I;16B":16}
 pass_list       = []
 fail_list       = []
@@ -1134,7 +1197,7 @@ for _shot_{node_id} in _shots_{node_id}:
             _cs_fails_{node_id}  = []
             if os.path.isdir(_folder_{node_id}):
                 for _fn_{node_id} in sorted(os.listdir(_folder_{node_id})):
-                    if _fn_{node_id}.lower().endswith(".png"):
+                    if _fn_{node_id}.lower().endswith(_ext_{node_id}.lower()):
                         _fp_{node_id} = os.path.join(_folder_{node_id}, _fn_{node_id})
                         try:
                             with Image.open(_fp_{node_id}) as _img_{node_id}:
