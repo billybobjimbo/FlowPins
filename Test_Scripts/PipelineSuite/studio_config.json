@@ -1,0 +1,10 @@
+{
+  "folder_path": "D:/MMSM/EP01/Renders_TK_01/sc0220",
+  "extension": ".png",
+  "start_frame": 1,
+  "end_frame": 116,
+  "frame_padding": 4,
+  "naming_pattern": "@@##_@@####-####",
+  "colourspace": "sRGB",
+  "prefix": ""
+}

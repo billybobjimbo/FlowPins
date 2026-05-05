@@ -1,0 +1,327 @@
+{
+  "nodes": [
+    {
+      "id": "node_1777908915718",
+      "type": "fp",
+      "position": {
+        "x": -480,
+        "y": -30
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Core - Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": true,
+      "positionAbsolute": {
+        "x": -480,
+        "y": -30
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1777917116100",
+      "type": "fp",
+      "position": {
+        "x": 0,
+        "y": -30
+      },
+      "data": {
+        "label": "Load Config or Show Dialog",
+        "nodeKind": "cfg_load_or_show",
+        "profile": "Pipeline - Config",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "folder_path",
+            "pin_type": "string"
+          },
+          {
+            "name": "extension",
+            "pin_type": "string"
+          },
+          {
+            "name": "start_frame",
+            "pin_type": "int"
+          },
+          {
+            "name": "end_frame",
+            "pin_type": "int"
+          },
+          {
+            "name": "naming_pattern",
+            "pin_type": "string"
+          },
+          {
+            "name": "colourspace",
+            "pin_type": "string"
+          },
+          {
+            "name": "frame_padding",
+            "pin_type": "int"
+          },
+          {
+            "name": "prefix",
+            "pin_type": "string"
+          },
+          {
+            "name": "cancelled",
+            "pin_type": "boolean"
+          }
+        ],
+        "props": {
+          "config_path": "studio_config.json",
+          "title": "FlowPins — Tool Settings",
+          "show_folder": true,
+          "show_extension": true,
+          "show_frames": true,
+          "show_naming": true,
+          "show_colourspace": true,
+          "show_padding": true,
+          "force_dialog": false
+        }
+      },
+      "width": 251,
+      "height": 387,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 0,
+        "y": -30
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1777917124492",
+      "type": "fp",
+      "position": {
+        "x": 360,
+        "y": -30
+      },
+      "data": {
+        "label": "Batch Check Naming",
+        "nodeKind": "nm_batch_check_folder",
+        "profile": "Pipeline - Naming",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "folder_path",
+            "pin_type": "string"
+          },
+          {
+            "name": "pattern",
+            "pin_type": "string"
+          },
+          {
+            "name": "extension",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "pass_list",
+            "pin_type": "list"
+          },
+          {
+            "name": "fail_list",
+            "pin_type": "list"
+          },
+          {
+            "name": "pass_count",
+            "pin_type": "int"
+          },
+          {
+            "name": "fail_count",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "pattern": "shot_###_layer_v##",
+          "extension": ".png"
+        }
+      },
+      "width": 200,
+      "height": 237,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 360,
+        "y": -30
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1777917128234",
+      "type": "fp",
+      "position": {
+        "x": 690,
+        "y": -30
+      },
+      "data": {
+        "label": "Save Results to CSV",
+        "nodeKind": "rp_save_csv",
+        "profile": "Pipeline - Reporting",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "pass_list",
+            "pin_type": "list"
+          },
+          {
+            "name": "fail_list",
+            "pin_type": "list"
+          },
+          {
+            "name": "folder_path",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {
+          "filename": "report.csv"
+        }
+      },
+      "width": 200,
+      "height": 207,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 690,
+        "y": -30
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1777908915718",
+      "sourceHandle": "exec_out",
+      "target": "node_1777917116100",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777908915718exec_out-node_1777917116100exec_in"
+    },
+    {
+      "source": "node_1777917116100",
+      "sourceHandle": "exec_out",
+      "target": "node_1777917124492",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777917116100exec_out-node_1777917124492exec_in"
+    },
+    {
+      "source": "node_1777917116100",
+      "sourceHandle": "folder_path",
+      "target": "node_1777917124492",
+      "targetHandle": "folder_path",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777917116100folder_path-node_1777917124492folder_path"
+    },
+    {
+      "source": "node_1777917116100",
+      "sourceHandle": "extension",
+      "target": "node_1777917124492",
+      "targetHandle": "extension",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777917116100extension-node_1777917124492extension"
+    },
+    {
+      "source": "node_1777917116100",
+      "sourceHandle": "naming_pattern",
+      "target": "node_1777917124492",
+      "targetHandle": "pattern",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777917116100naming_pattern-node_1777917124492pattern"
+    },
+    {
+      "source": "node_1777917124492",
+      "sourceHandle": "exec_out",
+      "target": "node_1777917128234",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777917124492exec_out-node_1777917128234exec_in"
+    },
+    {
+      "source": "node_1777917124492",
+      "sourceHandle": "pass_list",
+      "target": "node_1777917128234",
+      "targetHandle": "pass_list",
+      "style": {
+        "stroke": "#00d8ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777917124492pass_list-node_1777917128234pass_list"
+    },
+    {
+      "source": "node_1777917124492",
+      "sourceHandle": "fail_list",
+      "target": "node_1777917128234",
+      "targetHandle": "fail_list",
+      "style": {
+        "stroke": "#00d8ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777917124492fail_list-node_1777917128234fail_list"
+    },
+    {
+      "source": "node_1777917116100",
+      "sourceHandle": "folder_path",
+      "target": "node_1777917128234",
+      "targetHandle": "folder_path",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1777917116100folder_path-node_1777917128234folder_path"
+    }
+  ]
+}

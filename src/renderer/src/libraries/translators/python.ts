@@ -207,14 +207,14 @@ fail_count = len(fail_list)
 
   "cs_print_report": `import os as _os_{node_id}
 from datetime import datetime as _dt_{node_id}
-_pl_{node_id}   = {pass_list}
-_fl_{node_id}   = {fail_list}
+_pl_{node_id}   = {pass_list} if {pass_list} else []
+_fl_{node_id}   = {fail_list} if {fail_list} else []
 _fld_{node_id}  = {folder_path}
 _save_{node_id} = "{save_report}" == "true"
 _ts_{node_id}   = _dt_{node_id}.now().strftime("%Y-%m-%d %H:%M:%S")
 _lines_{node_id} = [
     "=" * 60,
-    "FLOWPINS COLOURSPACE VALIDATION REPORT",
+    "FLOWPINS " + "{report_title}".upper(),
     f"Generated : {_ts_{node_id}}",
     f"Folder    : {_fld_{node_id}}",
     f"PASSED    : {len(_pl_{node_id})}",
@@ -231,7 +231,7 @@ _lines_{node_id}.append("=" * 60)
 _report_{node_id} = "\\n".join(_lines_{node_id})
 print(_report_{node_id})
 if _save_{node_id} and _os_{node_id}.path.isdir(_fld_{node_id}):
-    _rname_{node_id} = f"colourspace_report_{_dt_{node_id}.now().strftime('%Y%m%d_%H%M%S')}.txt"
+    _rname_{node_id} = f"validation_report_{_dt_{node_id}.now().strftime('%Y%m%d_%H%M%S')}.txt"
     _rpath_{node_id} = _os_{node_id}.path.join(_fld_{node_id}, _rname_{node_id})
     with open(_rpath_{node_id}, "w", encoding="utf-8") as _rf_{node_id}: _rf_{node_id}.write(_report_{node_id})
     print(f"Report saved: {_rpath_{node_id}}")
@@ -423,12 +423,15 @@ print("Frame padding complete: " + str(renamed) + " files renamed.")
 
   "nm_batch_check_folder": `import os, re
 folder    = {folder_path}
-extension = "{extension}"
-pattern   = "{pattern}"
+extension = {extension}
+pattern   = {pattern}
 pass_list = []
 fail_list = []
-regex = pattern.replace(".", "\\.").replace("*", ".*")
-regex = re.sub("#+", lambda m: "\\d{" + str(len(m.group())) + "}", regex)
+_dot_nm = chr(92) + "."
+regex = pattern.replace(".", _dot_nm).replace("*", ".*")
+_digit_nm = chr(92) + "d"
+regex = re.sub("#+", lambda m: _digit_nm + "{" + str(len(m.group())) + "}", regex)
+regex = re.sub("@+", lambda m: "[a-zA-Z]{" + str(len(m.group())) + "}", regex)
 regex = "^" + regex + "$"
 print()
 print("FlowPins Naming Convention Check")
@@ -580,10 +583,16 @@ except Exception as e:
 
   "img_batch_check_dimensions": `from PIL import Image
 import os
+# Guard — stop if cancelled or no folder
+if cancelled or not {folder_path}:
+    import sys
+    if cancelled: print("FlowPins: Cancelled — skipping dimension check.")
+    else: print("FlowPins ERROR: No folder path provided.")
+    sys.exit(0)
 folder          = {folder_path}
-expected_width  = {expected_width}
-expected_height = {expected_height}
-extension       = "{extension}"
+expected_width  = int({expected_width})
+expected_height = int({expected_height})
+extension       = {extension}
 pass_list       = []
 fail_list       = []
 print()
@@ -649,7 +658,7 @@ expected_width  = {expected_width}
 expected_height = {expected_height}
 expected_depth  = {expected_bit_depth}
 expected_cs     = "{expected_cs}"
-extension       = "{extension}"
+extension       = {extension}
 DEPTH_MAP       = {"1":1,"L":8,"P":8,"RGB":8,"RGBA":8,"I":32,"F":32,"I;16":16,"I;16B":16}
 pass_list       = []
 fail_list       = []
@@ -773,7 +782,7 @@ folder_path    = ""
 extension      = ".png"
 start_frame    = 1001
 end_frame      = 1100
-naming_pattern = "shot_###_v##"
+naming_pattern = "@@##_@@####-####"
 colourspace    = "sRGB"
 frame_padding  = 4
 prefix         = ""
@@ -791,7 +800,9 @@ if os.path.isfile(_cfg_path_{node_id}):
         pass
 
 # Use config values if loaded and not forcing dialog
-if _has_config_{node_id} and not _force_{node_id}:
+# Also force dialog if folder_path is empty even with a valid config
+_cfg_folder_{node_id} = _cfg_{node_id}.get('folder_path', '') if _has_config_{node_id} else ''
+if _has_config_{node_id} and not _force_{node_id} and _cfg_folder_{node_id}:
     folder_path    = _cfg_{node_id}.get('folder_path',    folder_path)
     extension      = _cfg_{node_id}.get('extension',      extension)
     start_frame    = int(_cfg_{node_id}.get('start_frame',    start_frame))

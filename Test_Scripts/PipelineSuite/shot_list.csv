@@ -1,4 +1,2 @@
 shot_name,folder_path,start_frame,end_frame,frame_padding,prefix,naming_pattern,colourspace,extension,width,height
-sc_230,C:/Users/Alistair Murphy/Desktop/Leisl_short/230_comp_frames,1,229,4,230_comp-,###_comp-####,sRGB,.png,1920,1080
-sc_190,C:/Users/Alistair Murphy/Desktop/Leisl_short/190_comp_frames,1,42,4,,,sRGB,.png,1920,1080
-sc_160,C:/Users/Alistair Murphy/Desktop/Leisl_short/160_comp_frames,1,50,4,,,sRGB,.png,1920,1080
+sc_230,C:/path/230_comp_frames,1,229,4,,@@##_@@####-####,sRGB,.png,1920,1080

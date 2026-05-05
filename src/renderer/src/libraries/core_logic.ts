@@ -647,19 +647,20 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     title: "Print Validation Report",
     profile: "Pipeline - Colourspace",
     inputs: [
-      { name: "exec_in",     pin_type: "exec" },
-      { name: "pass_list",   pin_type: "list" },
-      { name: "fail_list",   pin_type: "list" },
+      { name: "exec_in",     pin_type: "exec"   },
+      { name: "pass_list",   pin_type: "list"   },
+      { name: "fail_list",   pin_type: "list"   },
       { name: "folder_path", pin_type: "string" }
     ],
     outputs: [{ name: "exec_out", pin_type: "exec" }],
-    default_props: { save_report: "true" },
-    ui_schema: [{
-      label: "Save Report to Folder",
-      prop_key: "save_report",
-      type: "dropdown",
-      options: ["true", "false"]
-    }]
+    default_props: {
+      save_report:   "true",
+      report_title:  "DIMENSION CHECK REPORT"
+    },
+    ui_schema: [
+      { label: "Report Title",          prop_key: "report_title", type: "input" },
+      { label: "Save Report to Folder", prop_key: "save_report",  type: "dropdown", options: ["true", "false"] }
+    ]
   },
 
 
@@ -742,20 +743,22 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     title: "Batch Check Naming",
     profile: "Pipeline - Naming",
     inputs: [
-      { name: "exec_in",     pin_type: "exec" },
-      { name: "folder_path", pin_type: "string" }
+      { name: "exec_in",     pin_type: "exec"   },
+      { name: "folder_path", pin_type: "string" },
+      { name: "pattern",     pin_type: "string" },
+      { name: "extension",   pin_type: "string" }
     ],
     outputs: [
       { name: "exec_out",   pin_type: "exec" },
       { name: "pass_list",  pin_type: "list" },
       { name: "fail_list",  pin_type: "list" },
-      { name: "pass_count", pin_type: "int" },
-      { name: "fail_count", pin_type: "int" }
+      { name: "pass_count", pin_type: "int"  },
+      { name: "fail_count", pin_type: "int"  }
     ],
-    default_props: { pattern: "shot_###_layer_v##", extension: ".png" },
+    default_props: { pattern: "@@##_@@####-####", extension: ".png" },
     ui_schema: [
-      { label: "Expected Pattern",  prop_key: "pattern",   type: "input" },
-      { label: "File Extension",    prop_key: "extension", type: "input" }
+      { label: "Expected Pattern", prop_key: "pattern",   type: "input" },
+      { label: "File Extension",   prop_key: "extension", type: "input" }
     ]
   },
 
@@ -887,8 +890,11 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     title: "Batch Check Dimensions",
     profile: "Pipeline - Image",
     inputs: [
-      { name: "exec_in",     pin_type: "exec" },
-      { name: "folder_path", pin_type: "string" }
+      { name: "exec_in",        pin_type: "exec"   },
+      { name: "folder_path",    pin_type: "string" },
+      { name: "extension",      pin_type: "string" },
+      { name: "expected_width", pin_type: "int"    },
+      { name: "expected_height",pin_type: "int"    }
     ],
     outputs: [
       { name: "exec_out",   pin_type: "exec" },
