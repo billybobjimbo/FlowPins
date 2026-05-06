@@ -1139,6 +1139,8 @@ export const CORE_NODES: Record<string, NodeSpec> = {
       { name: "colourspace",    pin_type: "string"  },
       { name: "frame_padding",  pin_type: "int"     },
       { name: "prefix",         pin_type: "string"  },
+      { name: "source_folder",  pin_type: "string"  },
+      { name: "target_folder",  pin_type: "string"  },
       { name: "cancelled",      pin_type: "boolean" }
     ],
     default_props: {
@@ -1324,6 +1326,34 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ui_schema: [
       { label: "File Extension",  prop_key: "extension", type: "input"  },
       { label: "Frame Padding",   prop_key: "padding",   type: "number" }
+    ]
+  },
+
+  "fs_folder_diff": {
+    title: "Folder Diff",
+    profile: "Pipeline - File System",
+    inputs: [
+      { name: "exec_in",       pin_type: "exec"   },
+      { name: "source_folder", pin_type: "string" },
+      { name: "target_folder", pin_type: "string" },
+      { name: "extension",     pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",      pin_type: "exec"    },
+      { name: "missing_files", pin_type: "list"    },
+      { name: "extra_files",   pin_type: "list"    },
+      { name: "matched_count", pin_type: "int"     },
+      { name: "missing_count", pin_type: "int"     },
+      { name: "extra_count",   pin_type: "int"     },
+      { name: "is_match",      pin_type: "boolean" }
+    ],
+    default_props: {
+      extension:     ".png",
+      show_matched:  false
+    },
+    ui_schema: [
+      { label: "File Extension",  prop_key: "extension",    type: "input"    },
+      { label: "Show Matched Files", prop_key: "show_matched", type: "checkbox" }
     ]
   },
 

@@ -849,6 +849,8 @@ naming_pattern = "@@##_@@####-####"
 colourspace    = "sRGB"
 frame_padding  = 4
 prefix         = ""
+source_folder  = ""
+target_folder  = ""
 cancelled      = False
 
 # Try loading existing config
@@ -874,6 +876,8 @@ if _has_config_{node_id} and not _force_{node_id} and _cfg_folder_{node_id}:
     colourspace    = _cfg_{node_id}.get('colourspace',    colourspace)
     frame_padding  = int(_cfg_{node_id}.get('frame_padding',  frame_padding))
     prefix         = _cfg_{node_id}.get('prefix',         prefix)
+    source_folder  = _cfg_{node_id}.get('source_folder',  source_folder)
+    target_folder  = _cfg_{node_id}.get('target_folder',  target_folder)
     print("FlowPins: Config loaded from " + _cfg_path_{node_id})
 else:
     # Show the configuration dialog
@@ -985,6 +989,10 @@ else:
             _cfg_{node_id}.get('frame_padding', 4))
     _add_field_{node_id}("Filename Prefix (e.g. shot_010_comp-)", "prefix",
         _cfg_{node_id}.get('prefix', ''))
+    _add_field_{node_id}("Source Folder (for Folder Diff)", "source_folder",
+        _cfg_{node_id}.get('source_folder', ''), browse=True)
+    _add_field_{node_id}("Target Folder (for Folder Diff)", "target_folder",
+        _cfg_{node_id}.get('target_folder', ''), browse=True)
     if _show_naming_{node_id}:
         _add_field_{node_id}("Naming Pattern  (# = digit, @ = letter)",
             "naming_pattern",
@@ -1054,6 +1062,8 @@ else:
         if 'naming_pattern' in _vars_{node_id}: naming_pattern = _vars_{node_id}['naming_pattern'].get()
         if 'colourspace'    in _vars_{node_id}: colourspace    = _vars_{node_id}['colourspace'].get()
         if 'prefix'         in _vars_{node_id}: prefix         = _vars_{node_id}['prefix'].get()
+        if 'source_folder'  in _vars_{node_id}: source_folder  = _vars_{node_id}['source_folder'].get()
+        if 'target_folder'  in _vars_{node_id}: target_folder  = _vars_{node_id}['target_folder'].get()
 
         # Save config if requested
         if _save_var_{node_id}.get():
@@ -1065,7 +1075,9 @@ else:
                 'frame_padding':  frame_padding,
                 'naming_pattern': naming_pattern,
                 'colourspace':    colourspace,
-                'prefix':         prefix
+                'prefix':         prefix,
+                'source_folder':  source_folder,
+                'target_folder':  target_folder
             }
             try:
                 with open(_cfg_path_{node_id}, 'w') as _sf_{node_id}:
@@ -1809,6 +1821,89 @@ else:
                     print("    Missing: " + str(_gs_{node_id}).zfill(_pad_{node_id}) +
                           " — " + str(_ge_{node_id}).zfill(_pad_{node_id}) +
                           " (" + str(_ge_{node_id} - _gs_{node_id} + 1) + " frames)")
+
+{exec_out}`,
+
+
+  "fs_folder_diff": `# Folder Diff
+# Compares two folders — what's missing, extra, or matched
+import os
+
+_src_{node_id}     = {source_folder}
+_tgt_{node_id}     = {target_folder}
+_ext_{node_id}     = {extension}
+_show_{node_id}    = str("{show_matched}").lower() == "true"
+
+missing_files = []
+extra_files   = []
+matched_count = 0
+missing_count = 0
+extra_count   = 0
+is_match      = False
+
+if not os.path.isdir(_src_{node_id}):
+    print("FlowPins ERROR: Source folder not found — " + str(_src_{node_id}))
+elif not os.path.isdir(_tgt_{node_id}):
+    print("FlowPins ERROR: Target folder not found — " + str(_tgt_{node_id}))
+else:
+    # Get file sets for both folders
+    def _get_files_{node_id}(folder):
+        return set(
+            f for f in os.listdir(folder)
+            if f.lower().endswith(_ext_{node_id}.lower())
+        )
+
+    _src_files_{node_id} = _get_files_{node_id}(_src_{node_id})
+    _tgt_files_{node_id} = _get_files_{node_id}(_tgt_{node_id})
+
+    _matched_{node_id}  = _src_files_{node_id} & _tgt_files_{node_id}
+    _missing_{node_id}  = _src_files_{node_id} - _tgt_files_{node_id}
+    _extra_{node_id}    = _tgt_files_{node_id} - _src_files_{node_id}
+
+    missing_files = sorted(_missing_{node_id})
+    extra_files   = sorted(_extra_{node_id})
+    matched_count = len(_matched_{node_id})
+    missing_count = len(missing_files)
+    extra_count   = len(extra_files)
+    is_match      = missing_count == 0 and extra_count == 0
+
+    print("FlowPins Folder Diff")
+    print("  Source : " + _src_{node_id})
+    print("  Target : " + _tgt_{node_id})
+    print("  Extension: " + _ext_{node_id})
+    print("-" * 55)
+    print("  Source files : " + str(len(_src_files_{node_id})))
+    print("  Target files : " + str(len(_tgt_files_{node_id})))
+    print("  Matched      : " + str(matched_count))
+    print("-" * 55)
+
+    if _show_{node_id} and _matched_{node_id}:
+        print("MATCHED (" + str(matched_count) + "):")
+        for _f_{node_id} in sorted(_matched_{node_id}):
+            print("  ✓ " + _f_{node_id})
+
+    if missing_files:
+        print("MISSING FROM TARGET (" + str(missing_count) + "):")
+        for _f_{node_id} in missing_files:
+            print("  ✗ " + _f_{node_id})
+    else:
+        print("MISSING: none")
+
+    if extra_files:
+        print("EXTRA IN TARGET (" + str(extra_count) + "):")
+        for _f_{node_id} in extra_files:
+            print("  + " + _f_{node_id})
+    else:
+        print("EXTRA: none")
+
+    print("-" * 55)
+    if is_match:
+        print("RESULT: ✓ FOLDERS MATCH — " + str(matched_count) + " files identical")
+    else:
+        _issues_{node_id} = []
+        if missing_count: _issues_{node_id}.append(str(missing_count) + " missing")
+        if extra_count:   _issues_{node_id}.append(str(extra_count) + " extra")
+        print("RESULT: ✗ MISMATCH — " + ", ".join(_issues_{node_id}))
 
 {exec_out}`,
 
