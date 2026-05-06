@@ -1281,4 +1281,457 @@ except Exception as _re_{node_id}:
 {exec_out}`,
 
 
+  // ==========================================================================
+  // PIPELINE SUITE — DELIVERY PACKAGE REPORT TRANSLATION
+  // ==========================================================================
+
+  "rpt_delivery_package": `# Delivery Package Report
+# Runs all four checks and produces one consolidated report
+from PIL import Image, ImageCms
+import os, re, io as _io_rpt
+from datetime import datetime
+
+_folder_rpt  = {folder_path}
+_ext_rpt     = {extension}
+_start_rpt   = int({start_frame})
+_end_rpt     = int({end_frame})
+_pad_rpt     = int({frame_padding})
+_pfx_rpt     = prefix if isinstance(prefix, str) else ""
+_pat_rpt     = {naming_pattern}
+_cs_rpt      = {colourspace}
+_width_rpt   = int({width})
+_height_rpt  = int({height})
+_save_rpt    = str("{save_report}").lower() == "true"
+
+# Guard
+if not _folder_rpt or not os.path.isdir(_folder_rpt):
+    print("FlowPins ERROR: Folder not found — " + str(_folder_rpt))
+    all_passed   = False
+    report_path  = ""
+    total_issues = 1
+else:
+    _ts_rpt = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    _issues_rpt = []
+
+    print("=" * 65)
+    print("  FLOWPINS DELIVERY PACKAGE REPORT")
+    print("  " + _ts_rpt)
+    print("  Folder : " + _folder_rpt)
+    print("=" * 65)
+
+    # ── 1. SEQUENCE CHECK ───────────────────────────────────────
+    print("")
+    print("[ 1 ] SEQUENCE CHECK")
+    print("-" * 65)
+    _expected_seq = set()
+    for _f in range(_start_rpt, _end_rpt + 1):
+        _expected_seq.add(_pfx_rpt + str(_f).zfill(_pad_rpt) + _ext_rpt)
+    _found_seq = set()
+    for _fn in os.listdir(_folder_rpt):
+        if _fn.lower().endswith(_ext_rpt.lower()):
+            _found_seq.add(_fn)
+    _missing_seq = sorted(_expected_seq - _found_seq)
+    _seq_pass = len(_missing_seq) == 0
+    if _seq_pass:
+        print("  ✓ PASS — " + str(len(_found_seq)) + " frames present")
+    else:
+        print("  ✗ FAIL — " + str(len(_missing_seq)) + " frames missing")
+        print("  Missing: " + ", ".join(str(m) for m in _missing_seq[:10]) +
+              ("..." if len(_missing_seq) > 10 else ""))
+        _issues_rpt.append("SEQUENCE: " + str(len(_missing_seq)) + " frames missing")
+
+    # ── 2. NAMING CHECK ─────────────────────────────────────────
+    print("")
+    print("[ 2 ] NAMING CONVENTION CHECK")
+    print("-" * 65)
+    _nam_fails = []
+    if _pat_rpt:
+        _dot_nm  = chr(92) + "."
+        _dig_nm  = chr(92) + "d"
+        _rx = _pat_rpt.replace(".", _dot_nm).replace("*", ".*")
+        _rx = re.sub("#+", lambda m: _dig_nm + "{" + str(len(m.group())) + "}", _rx)
+        _rx = re.sub("@+", lambda m: "[a-zA-Z]{" + str(len(m.group())) + "}", _rx)
+        _rx = "^" + _rx + "$"
+        for _fn in sorted(_found_seq):
+            _stem = os.path.splitext(_fn)[0]
+            if not re.match(_rx, _stem):
+                _nam_fails.append(_fn)
+        if not _nam_fails:
+            print("  ✓ PASS — all files match pattern: " + _pat_rpt)
+        else:
+            print("  ✗ FAIL — " + str(len(_nam_fails)) + " files failed")
+            for _nf in _nam_fails[:5]:
+                print("    FAIL: " + _nf)
+            if len(_nam_fails) > 5:
+                print("    ... and " + str(len(_nam_fails) - 5) + " more")
+            _issues_rpt.append("NAMING: " + str(len(_nam_fails)) + " files failed")
+    else:
+        print("  ─ SKIPPED (no pattern set)")
+
+    # ── 3. RESOLUTION CHECK ─────────────────────────────────────
+    print("")
+    print("[ 3 ] RESOLUTION CHECK")
+    print("-" * 65)
+    _dim_fails = []
+    if _width_rpt and _height_rpt:
+        for _fn in sorted(_found_seq):
+            _fp = os.path.join(_folder_rpt, _fn)
+            try:
+                with Image.open(_fp) as _img:
+                    if _img.width != _width_rpt or _img.height != _height_rpt:
+                        _dim_fails.append(_fn + " (" + str(_img.width) + "x" + str(_img.height) + ")")
+            except:
+                pass
+        if not _dim_fails:
+            print("  ✓ PASS — all files are " + str(_width_rpt) + "x" + str(_height_rpt))
+        else:
+            print("  ✗ FAIL — " + str(len(_dim_fails)) + " wrong size")
+            for _df in _dim_fails[:5]:
+                print("    FAIL: " + _df)
+            _issues_rpt.append("RESOLUTION: " + str(len(_dim_fails)) + " wrong size")
+    else:
+        print("  ─ SKIPPED (no dimensions set)")
+
+    # ── 4. COLOURSPACE CHECK ────────────────────────────────────
+    print("")
+    print("[ 4 ] COLOURSPACE CHECK")
+    print("-" * 65)
+    _cs_fails = []
+    if _cs_rpt and _ext_rpt.lower() == ".png":
+        for _fn in sorted(_found_seq):
+            _fp = os.path.join(_folder_rpt, _fn)
+            try:
+                with Image.open(_fp) as _img:
+                    _info = _img.info
+                    if "icc_profile" in _info:
+                        try:
+                            _desc = ImageCms.getProfileDescription(
+                                ImageCms.ImageCmsProfile(
+                                    _io_rpt.BytesIO(_info["icc_profile"])
+                                )
+                            ).strip().lower()
+                            _detected = (
+                                "sRGB"    if "srgb"   in _desc else
+                                "Rec.709" if "709"    in _desc else
+                                "Linear"  if "linear" in _desc else
+                                "ACES"    if "aces"   in _desc else
+                                "ICC: " + _desc[:20]
+                            )
+                        except:
+                            _detected = "ICC Embedded"
+                    elif "srgb" in _info:
+                        _detected = "sRGB"
+                    else:
+                        _detected = "Untagged"
+                    if _detected.lower() != _cs_rpt.lower():
+                        _cs_fails.append(_fn + " [" + _detected + "]")
+            except:
+                pass
+        if not _cs_fails:
+            print("  ✓ PASS — all files match " + _cs_rpt)
+        else:
+            print("  ✗ FAIL — " + str(len(_cs_fails)) + " files wrong colourspace")
+            for _cf in _cs_fails[:5]:
+                print("    FAIL: " + _cf)
+            _issues_rpt.append("COLOURSPACE: " + str(len(_cs_fails)) + " failed")
+    else:
+        print("  ─ SKIPPED")
+
+    # ── SUMMARY ─────────────────────────────────────────────────
+    total_issues = len(_issues_rpt)
+    all_passed   = total_issues == 0
+
+    print("")
+    print("=" * 65)
+    print("  DELIVERY SUMMARY")
+    print("  Folder : " + _folder_rpt)
+    print("  Frames : " + str(len(_found_seq)))
+    print("  Issues : " + str(total_issues))
+    if all_passed:
+        print("  STATUS : ✓ ALL CLEAR — ready for delivery")
+    else:
+        print("  STATUS : ✗ ISSUES FOUND — fix before delivery")
+        for _iss in _issues_rpt:
+            print("    • " + _iss)
+    print("=" * 65)
+
+    # ── SAVE REPORT ─────────────────────────────────────────────
+    report_path = ""
+    if _save_rpt:
+        _lines = [
+            "=" * 65,
+            "FLOWPINS DELIVERY PACKAGE REPORT",
+            "Generated : " + _ts_rpt,
+            "Folder    : " + _folder_rpt,
+            "Extension : " + _ext_rpt,
+            "Frames    : " + str(_start_rpt) + "-" + str(_end_rpt),
+            "Resolution: " + str(_width_rpt) + "x" + str(_height_rpt),
+            "CS        : " + _cs_rpt,
+            "Pattern   : " + _pat_rpt,
+            "=" * 65,
+            "",
+            "CHECKS:",
+            "  Sequence   : " + ("✓ PASS" if _seq_pass      else "✗ FAIL"),
+            "  Naming     : " + ("✓ PASS" if not _nam_fails  else "✗ FAIL — " + str(len(_nam_fails))  + " files"),
+            "  Resolution : " + ("✓ PASS" if not _dim_fails  else "✗ FAIL — " + str(len(_dim_fails))  + " files"),
+            "  Colourspace: " + ("✓ PASS" if not _cs_fails   else "✗ FAIL — " + str(len(_cs_fails))   + " files"),
+            "",
+            "OVERALL: " + ("✓ ALL CLEAR — ready for delivery" if all_passed else "✗ " + str(total_issues) + " issue(s) found"),
+            "=" * 65,
+        ]
+        if _issues_rpt:
+            _lines.append("")
+            _lines.append("ISSUES:")
+            for _iss in _issues_rpt:
+                _lines.append("  • " + _iss)
+
+        _rname = "delivery_report_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".txt"
+        report_path = os.path.join(_folder_rpt, _rname)
+        try:
+            with open(report_path, "w", encoding="utf-8") as _rf:
+                _rf.write("\n".join(_lines))
+            print("  Report : " + report_path)
+        except Exception as _re:
+            print("  Report save failed: " + str(_re))
+
+{exec_out}`,
+
+
+  // ==========================================================================
+  // PIPELINE SUITE — CATEGORY 2: PROJECT FOLDER CREATOR
+  // ==========================================================================
+
+  "fs_create_project_folders": `# Project Folder Creator
+# Creates a complete studio-standard folder structure for a new show
+import os, json, tkinter as tk
+from tkinter import ttk, filedialog
+from datetime import datetime
+
+# ── Configuration Dialog ─────────────────────────────────────
+_root_ui = tk.Tk()
+_root_ui.withdraw()
+
+_dlg = tk.Toplevel(_root_ui)
+_dlg.title("FlowPins — Project Folder Creator")
+_dlg.resizable(False, False)
+_dlg.configure(bg="#1a1a2e")
+_dlg.grab_set()
+
+# Header
+_hdr = tk.Frame(_dlg, bg="#0d1f33", pady=12)
+_hdr.pack(fill='x')
+tk.Label(_hdr, text="⬡  FlowPins — Project Folder Creator",
+    bg="#0d1f33", fg="#00d8ff",
+    font=('Arial', 13, 'bold')).pack(padx=20)
+
+# Form
+_form = tk.Frame(_dlg, bg="#1a1a2e", padx=20, pady=12)
+_form.pack(fill='both', expand=True)
+
+_vars = {}
+_row  = [0]
+
+def _field(label, key, default, browse=False):
+    tk.Label(_form, text=label, bg="#1a1a2e", fg="#00d8ff",
+        font=('Arial', 9, 'bold'), anchor='w').grid(
+        row=_row[0], column=0, sticky='w', pady=(8,2))
+    _v = tk.StringVar(value=str(default))
+    _vars[key] = _v
+    _e = tk.Entry(_form, textvariable=_v,
+        bg="#0d1117", fg="#ffffff", insertbackground="#00d8ff",
+        font=('Arial', 10), width=42, relief='flat',
+        highlightthickness=1, highlightcolor="#00d8ff",
+        highlightbackground="#333344")
+    _e.grid(row=_row[0]+1, column=0,
+        columnspan=1 if browse else 2, sticky='ew', pady=(0,4))
+    if browse:
+        def _br(v=_v):
+            _d = filedialog.askdirectory()
+            if _d: v.set(_d)
+        tk.Button(_form, text="📁", command=_br,
+            bg="#1a3a5c", fg="#00d8ff", font=('Arial',10),
+            relief='flat', padx=6).grid(row=_row[0]+1, column=1,
+            sticky='w', padx=(4,0))
+    _row[0] += 2
+
+_field("Root Drive / Path",            "root",     "{root_path}", browse=True)
+_field("Show Name",                    "show",     "{show_name}")
+_field("Episodes  (comma separated)",  "episodes", "{episodes}")
+
+# Preview label
+_preview = tk.Label(_form, text="", bg="#0a1520", fg="#00d8ff",
+    font=('Arial', 9, 'italic'), anchor='w', justify='left',
+    wraplength=400)
+_preview.grid(row=_row[0], column=0, columnspan=2,
+    sticky='ew', pady=(8,4))
+_row[0] += 1
+
+def _update_preview(*_):
+    r = _vars['root'].get().rstrip('/').rstrip(chr(92))
+    s = _vars['show'].get()
+    eps = [e.strip() for e in _vars['episodes'].get().split(',') if e.strip()]
+    if r and s and eps:
+        lines = [r + "/" + s + "/"]
+        for ep in eps[:2]:
+            lines.append("  " + ep + "/")
+            lines.append("    Renders/")
+            lines.append("    Scenes/")
+            lines.append("    Assets/  ...")
+        if len(eps) > 2:
+            lines.append("  ... (" + str(len(eps)) + " episodes total)")
+        _preview.config(text=chr(10).join(lines))
+
+for _v in _vars.values():
+    _v.trace_add('write', _update_preview)
+_update_preview()
+
+# Save checkbox
+_save_var = tk.BooleanVar(value=True)
+tk.Checkbutton(_form, text="  Create README.txt in each folder",
+    variable=_save_var,
+    bg="#1a1a2e", fg="#888888",
+    selectcolor="#0d1117", activebackground="#1a1a2e",
+    font=('Arial', 9)).grid(
+    row=_row[0], column=0, columnspan=2,
+    sticky='w', pady=(12,4))
+_row[0] += 1
+
+# Buttons
+_btn_frame = tk.Frame(_dlg, bg="#0d1f33", pady=12)
+_btn_frame.pack(fill='x')
+_result = {'ok': False}
+
+def _on_run():
+    _result['ok'] = True
+    _dlg.destroy()
+
+def _on_cancel():
+    _result['ok'] = False
+    _dlg.destroy()
+
+tk.Button(_btn_frame, text="Cancel", command=_on_cancel,
+    bg="#333344", fg="#888888",
+    font=('Arial', 10), relief='flat',
+    padx=20, pady=6).pack(side='left', padx=20)
+
+tk.Button(_btn_frame, text="▶  Create Project", command=_on_run,
+    bg="#00d8ff", fg="#000000",
+    font=('Arial', 11, 'bold'), relief='flat',
+    padx=20, pady=6).pack(side='right', padx=20)
+
+_dlg.update_idletasks()
+_dlg_w = _dlg.winfo_reqwidth()
+_dlg_h = _dlg.winfo_reqheight()
+_dlg_x = (_dlg.winfo_screenwidth()  - _dlg_w) // 2
+_dlg_y = (_dlg.winfo_screenheight() - _dlg_h) // 2
+_dlg.geometry(str(_dlg_w) + "x" + str(_dlg_h) + "+" + str(_dlg_x) + "+" + str(_dlg_y))
+
+_root_ui.wait_window(_dlg)
+_root_ui.destroy()
+
+if not _result['ok']:
+    print("FlowPins: Project Folder Creator cancelled.")
+    project_root   = ""
+    folders_created = 0
+    success        = False
+else:
+    # ── Build folder structure ───────────────────────────────
+    _root_path = _vars['root'].get().rstrip('/').rstrip(chr(92))
+    _show_name = _vars['show'].get().strip()
+    _episodes  = [e.strip() for e in _vars['episodes'].get().split(',') if e.strip()]
+    _readme    = _save_var.get()
+    _ts        = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    project_root    = _root_path + "/" + _show_name
+    folders_created = 0
+    success         = True
+
+    # Standard subfolder structure per episode
+    _SUBFOLDERS = [
+        "Renders",
+        "Scenes",
+        "Assets/Characters",
+        "Assets/Backgrounds",
+        "Assets/Props",
+        "Assets/Effects",
+        "Audio",
+        "Reference",
+        "Delivery",
+        "Documents",
+    ]
+
+    # README content per folder
+    _README = {
+        "Renders":              "Render output folders. Organised by Take (TK_01, TK_02 etc). SetWriteNode will create scene subfolders automatically.",
+        "Scenes":               "Scene files. Create a subfolder per scene (sc0220, sc0230 etc). Organise by your DCC file format.",
+        "Assets/Characters":    "Character assets — rigs, designs, palettes.",
+        "Assets/Backgrounds":   "Background layouts and painted backgrounds.",
+        "Assets/Props":         "Prop assets.",
+        "Assets/Effects":       "Effects elements and overlays.",
+        "Audio":                "Audio files — dialogue, music, SFX.",
+        "Reference":            "Reference material, storyboards, animatics.",
+        "Delivery":             "Final delivery packages. Do not place renders here directly.",
+        "Documents":            "Production documents, schedules, shot lists.",
+    }
+
+    print("=" * 65)
+    print("  FLOWPINS PROJECT FOLDER CREATOR")
+    print("  " + _ts)
+    print("  Show   : " + _show_name)
+    print("  Root   : " + project_root)
+    print("  Episodes: " + ", ".join(_episodes))
+    print("=" * 65)
+
+    # Create root show folder
+    try:
+        os.makedirs(project_root, exist_ok=True)
+        folders_created += 1
+        print(chr(10) + '✓ ' + project_root)
+
+        # Create README at show root
+        if _readme:
+            _rme = os.path.join(project_root, "README.txt")
+            with open(_rme, 'w') as _f:
+                _f.write(_show_name + " — Production Folder" + chr(10))
+                _f.write("Created by FlowPins Pipeline Suite" + chr(10))
+                _f.write("Date: " + _ts + chr(10))
+                _f.write("Episodes: " + ", ".join(_episodes) + chr(10))
+
+        # Create episode folders
+        for _ep in _episodes:
+            _ep_path = os.path.join(project_root, _ep)
+            os.makedirs(_ep_path, exist_ok=True)
+            folders_created += 1
+            print(chr(10) + '  ✓ ' + _ep)
+
+            # Create subfolders
+            for _sub in _SUBFOLDERS:
+                _sub_path = os.path.join(_ep_path, _sub)
+                os.makedirs(_sub_path, exist_ok=True)
+                folders_created += 1
+                print("    ✓ " + _sub)
+
+                # Create README in subfolder
+                if _readme and _sub in _README:
+                    _rme = os.path.join(_sub_path, "README.txt")
+                    with open(_rme, 'w') as _f:
+                        _f.write(_show_name + " / " + _ep + " / " + _sub + chr(10))
+                        _f.write("=" * 50 + chr(10))
+                        _f.write(_README[_sub] + chr(10))
+                        _f.write("Created by FlowPins Pipeline Suite" + chr(10))
+                        _f.write("Date: " + _ts + chr(10))
+
+        print("")
+        print("=" * 65)
+        print("  ✓ DONE — " + str(folders_created) + " folders created")
+        print("  Root: " + project_root)
+        print("=" * 65)
+
+    except Exception as _e:
+        print("FlowPins ERROR: " + str(_e))
+        success = False
+
+{exec_out}`,
+
+
 };

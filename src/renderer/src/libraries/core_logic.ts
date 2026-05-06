@@ -1218,4 +1218,86 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  // ==========================================================================
+  // PIPELINE SUITE — DELIVERY PACKAGE REPORT
+  // ==========================================================================
+
+  "rpt_delivery_package": {
+    title: "Delivery Package Report",
+    profile: "Pipeline - Reporting",
+    inputs: [
+      { name: "exec_in",        pin_type: "exec"   },
+      { name: "folder_path",    pin_type: "string" },
+      { name: "extension",      pin_type: "string" },
+      { name: "start_frame",    pin_type: "int"    },
+      { name: "end_frame",      pin_type: "int"    },
+      { name: "frame_padding",  pin_type: "int"    },
+      { name: "prefix",         pin_type: "string" },
+      { name: "naming_pattern", pin_type: "string" },
+      { name: "colourspace",    pin_type: "string" },
+      { name: "width",          pin_type: "int"    },
+      { name: "height",         pin_type: "int"    }
+    ],
+    outputs: [
+      { name: "exec_out",       pin_type: "exec"    },
+      { name: "all_passed",     pin_type: "boolean" },
+      { name: "report_path",    pin_type: "string"  },
+      { name: "total_issues",   pin_type: "int"     }
+    ],
+    default_props: {
+      extension:      ".png",
+      start_frame:    1,
+      end_frame:      100,
+      frame_padding:  4,
+      prefix:         "",
+      naming_pattern: "@@##_@@####-####",
+      colourspace:    "sRGB",
+      width:          1920,
+      height:         1080,
+      save_report:    true
+    },
+    ui_schema: [
+      { label: "File Extension",     prop_key: "extension",      type: "input"    },
+      { label: "Start Frame",        prop_key: "start_frame",    type: "number"   },
+      { label: "End Frame",          prop_key: "end_frame",      type: "number"   },
+      { label: "Frame Padding",      prop_key: "frame_padding",  type: "number"   },
+      { label: "Filename Prefix",    prop_key: "prefix",         type: "input"    },
+      { label: "Naming Pattern",     prop_key: "naming_pattern", type: "input"    },
+      { label: "Expected CS",        prop_key: "colourspace",    type: "input"    },
+      { label: "Expected Width",     prop_key: "width",          type: "number"   },
+      { label: "Expected Height",    prop_key: "height",         type: "number"   },
+      { label: "Save Report",        prop_key: "save_report",    type: "checkbox" }
+    ]
+  },
+
+  // ==========================================================================
+  // PIPELINE SUITE — CATEGORY 2: FILE SYSTEM & ORGANISATION
+  // ==========================================================================
+
+  "fs_create_project_folders": {
+    title: "Create Project Folders",
+    profile: "Pipeline - File System",
+    inputs: [
+      { name: "exec_in", pin_type: "exec" }
+    ],
+    outputs: [
+      { name: "exec_out",      pin_type: "exec"    },
+      { name: "project_root",  pin_type: "string"  },
+      { name: "folders_created", pin_type: "int"   },
+      { name: "success",       pin_type: "boolean" }
+    ],
+    default_props: {
+      root_path:   "D:/",
+      show_name:   "SHOW_NAME",
+      episodes:    "EP01",
+      create_readme: true
+    },
+    ui_schema: [
+      { label: "Root Drive / Path",       prop_key: "root_path",     type: "input"    },
+      { label: "Show Name",               prop_key: "show_name",     type: "input"    },
+      { label: "Episodes (comma separated)", prop_key: "episodes",   type: "input"    },
+      { label: "Create README files",     prop_key: "create_readme", type: "checkbox" }
+    ]
+  },
+
 };
