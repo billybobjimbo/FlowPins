@@ -1734,4 +1734,83 @@ else:
 {exec_out}`,
 
 
+  "fs_find_missing_frames": `# Missing Frame Finder
+# Scans a folder and auto-detects gaps in the frame sequence
+# No expected range needed — figures it out from what's there
+import os, re
+
+_folder_{node_id}  = {folder_path}
+_ext_{node_id}     = {extension}
+_pad_{node_id}     = int({padding})
+
+missing_frames = []
+found_count    = 0
+missing_count  = 0
+first_frame    = 0
+last_frame     = 0
+is_complete    = True
+
+if not _folder_{node_id} or not os.path.isdir(_folder_{node_id}):
+    print("FlowPins ERROR: Folder not found — " + str(_folder_{node_id}))
+else:
+    # Scan folder and extract frame numbers from filenames
+    _frames_{node_id} = []
+    _digit_{node_id} = chr(92) + "d"
+    _pattern_{node_id} = re.compile("(" + _digit_{node_id} + "+)" + re.escape(_ext_{node_id}) + "$", re.IGNORECASE)
+
+    for _fn_{node_id} in os.listdir(_folder_{node_id}):
+        _m_{node_id} = _pattern_{node_id}.search(_fn_{node_id})
+        if _m_{node_id}:
+            _frames_{node_id}.append(int(_m_{node_id}.group(1)))
+
+    if not _frames_{node_id}:
+        print("FlowPins: No " + _ext_{node_id} + " files found in " + _folder_{node_id})
+    else:
+        _frames_{node_id}.sort()
+        first_frame  = _frames_{node_id}[0]
+        last_frame   = _frames_{node_id}[-1]
+        found_count  = len(_frames_{node_id})
+        _frame_set_{node_id} = set(_frames_{node_id})
+
+        # Find every gap between first and last
+        for _f_{node_id} in range(first_frame, last_frame + 1):
+            if _f_{node_id} not in _frame_set_{node_id}:
+                missing_frames.append(_f_{node_id})
+
+        missing_count = len(missing_frames)
+        is_complete   = missing_count == 0
+
+        print("FlowPins Missing Frame Finder")
+        print("  Folder : " + _folder_{node_id})
+        print("  Range  : " + str(first_frame) + " — " + str(last_frame))
+        print("  Found  : " + str(found_count) + " frames")
+        print("  Expected: " + str(last_frame - first_frame + 1) + " frames")
+        print("-" * 50)
+
+        if is_complete:
+            print("  ✓ PASS — sequence is complete, no gaps found")
+        else:
+            print("  ✗ FAIL — " + str(missing_count) + " frames missing:")
+            # Group consecutive missing frames for cleaner output
+            _groups_{node_id} = []
+            _start_{node_id}  = missing_frames[0]
+            _prev_{node_id}   = missing_frames[0]
+            for _mf_{node_id} in missing_frames[1:]:
+                if _mf_{node_id} != _prev_{node_id} + 1:
+                    _groups_{node_id}.append((_start_{node_id}, _prev_{node_id}))
+                    _start_{node_id} = _mf_{node_id}
+                _prev_{node_id} = _mf_{node_id}
+            _groups_{node_id}.append((_start_{node_id}, _prev_{node_id}))
+
+            for _gs_{node_id}, _ge_{node_id} in _groups_{node_id}:
+                if _gs_{node_id} == _ge_{node_id}:
+                    print("    Missing: " + str(_gs_{node_id}).zfill(_pad_{node_id}))
+                else:
+                    print("    Missing: " + str(_gs_{node_id}).zfill(_pad_{node_id}) +
+                          " — " + str(_ge_{node_id}).zfill(_pad_{node_id}) +
+                          " (" + str(_ge_{node_id} - _gs_{node_id} + 1) + " frames)")
+
+{exec_out}`,
+
+
 };

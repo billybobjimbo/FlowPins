@@ -1,8 +1,5 @@
-// src/renderer/src/libraries/types.ts
-// ============================================================================
-// FLOWPINS: SHARED TYPE DEFINITIONS
-// NodeSpec, PinSpec, UIItem — the master rulebook for every node.
-// ============================================================================
+// src/libraries/types.ts
+
 // 1. Define the colors for your node pins
 export const PIN_COLORS: Record<string, string> = {
   exec: "#ffffff",
@@ -21,7 +18,7 @@ export type PinSpec = {
 export type UIItem = {
   label: string;
   prop_key: string;
-  type: "dropdown" | "slider" | "input" | "number"; 
+  type: "dropdown" | "slider" | "input" | "number" | "checkbox" | "color";
   options?: string[]; // Only used for dropdowns
 };
 

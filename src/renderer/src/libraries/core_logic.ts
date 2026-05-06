@@ -1300,4 +1300,31 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  "fs_find_missing_frames": {
+    title: "Missing Frame Finder",
+    profile: "Pipeline - File System",
+    inputs: [
+      { name: "exec_in",      pin_type: "exec"   },
+      { name: "folder_path",  pin_type: "string" },
+      { name: "extension",    pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",      pin_type: "exec"    },
+      { name: "missing_frames",pin_type: "list"    },
+      { name: "found_count",   pin_type: "int"     },
+      { name: "missing_count", pin_type: "int"     },
+      { name: "first_frame",   pin_type: "int"     },
+      { name: "last_frame",    pin_type: "int"     },
+      { name: "is_complete",   pin_type: "boolean" }
+    ],
+    default_props: {
+      extension: ".png",
+      padding:   4
+    },
+    ui_schema: [
+      { label: "File Extension",  prop_key: "extension", type: "input"  },
+      { label: "Frame Padding",   prop_key: "padding",   type: "number" }
+    ]
+  },
+
 };
