@@ -1357,4 +1357,39 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  "fs_batch_rename": {
+    title: "Batch File Renamer",
+    profile: "Pipeline - File System",
+    inputs: [
+      { name: "exec_in",      pin_type: "exec"   },
+      { name: "folder_path",  pin_type: "string" },
+      { name: "extension",    pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",      pin_type: "exec"    },
+      { name: "renamed_count", pin_type: "int"     },
+      { name: "skipped_count", pin_type: "int"     },
+      { name: "success",       pin_type: "boolean" }
+    ],
+    default_props: {
+      extension:    ".png",
+      mode:         "add_prefix",
+      add_prefix:   "",
+      add_suffix:   "",
+      find_text:    "",
+      replace_text: "",
+      dry_run:      true
+    },
+    ui_schema: [
+      { label: "Extension",       prop_key: "extension",    type: "input"    },
+      { label: "Mode",            prop_key: "mode",         type: "dropdown",
+        options: ["add_prefix", "add_suffix", "find_replace", "resequence"]  },
+      { label: "Add Prefix",      prop_key: "add_prefix",   type: "input"    },
+      { label: "Add Suffix",      prop_key: "add_suffix",   type: "input"    },
+      { label: "Find Text",       prop_key: "find_text",    type: "input"    },
+      { label: "Replace Text",    prop_key: "replace_text", type: "input"    },
+      { label: "Dry Run (preview only)", prop_key: "dry_run", type: "checkbox" }
+    ]
+  },
+
 };

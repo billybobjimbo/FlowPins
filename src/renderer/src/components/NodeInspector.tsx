@@ -1,10 +1,3 @@
-// src/renderer/src/components/NodeInspector.tsx
-// ============================================================================
-// FLOWPINS: NODE INSPECTOR PANEL
-// Renders editable properties for the selected node (right-hand panel).
-// Driven by the node's ui_schema definition in core_logic.ts.
-// ============================================================================
-
 import React from "react";
 import { type Node } from "reactflow";
 import { NODE_LIBRARY } from "../libraries"; 
@@ -90,6 +83,21 @@ export const NodeInspector = ({ node, onChangeLabel, onChangeProp }: Props) => {
                 <option key={opt} value={opt}>{opt}</option>
               ))}
             </select>
+          )}
+
+          {/* CHECKBOX */}
+          {uiItem.type === "checkbox" && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <input
+                type="checkbox"
+                checked={node.data.props?.[uiItem.prop_key] === true || node.data.props?.[uiItem.prop_key] === "true"}
+                onChange={(e) => onChangeProp(uiItem.prop_key, e.target.checked)}
+                style={{ width: 16, height: 16, accentColor: "#00d8ff", cursor: "pointer" }}
+              />
+              <span style={{ fontSize: 12, color: "#cccccc" }}>
+                {node.data.props?.[uiItem.prop_key] === true || node.data.props?.[uiItem.prop_key] === "true" ? "true" : "false"}
+              </span>
+            </div>
           )}
         </div>
       ))}

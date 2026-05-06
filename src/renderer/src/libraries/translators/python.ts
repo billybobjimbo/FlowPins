@@ -111,21 +111,6 @@ with open(_log_path_{node_id}, "a", encoding="utf-8") as _lf_{node_id}:
     _lf_{node_id}.write(str({message}) + "\\n")
 {exec_out}`,
 
-  "fs_batch_rename": `import os as _os_{node_id}
-_folder_{node_id}  = {folder_path}
-_find_{node_id}    = "{find}"
-_replace_{node_id} = "{replace}"
-_ext_{node_id}     = "{extension}"
-_renamed_{node_id} = 0
-for _fname_{node_id} in sorted(_os_{node_id}.listdir(_folder_{node_id})):
-    if _fname_{node_id}.lower().endswith(_ext_{node_id}.lower()) and _find_{node_id} in _fname_{node_id}:
-        _old_{node_id} = _os_{node_id}.path.join(_folder_{node_id}, _fname_{node_id})
-        _new_{node_id} = _os_{node_id}.path.join(_folder_{node_id}, _fname_{node_id}.replace(_find_{node_id}, _replace_{node_id}))
-        _os_{node_id}.rename(_old_{node_id}, _new_{node_id})
-        print(f"  Renamed: {_fname_{node_id}} -> {_os_{node_id}.path.basename(_new_{node_id})}")
-        _renamed_{node_id} += 1
-print(f"Batch Rename complete: {_renamed_{node_id}} files renamed.")
-{exec_out}`,
 
   // ==========================================================================
   // PIPELINE TRANSLATIONS - Colourspace
@@ -1904,6 +1889,103 @@ else:
         if missing_count: _issues_{node_id}.append(str(missing_count) + " missing")
         if extra_count:   _issues_{node_id}.append(str(extra_count) + " extra")
         print("RESULT: ✗ MISMATCH — " + ", ".join(_issues_{node_id}))
+
+{exec_out}`,
+
+
+  "fs_batch_rename": `# Batch File Renamer
+# Renames files in bulk — add prefix/suffix, find/replace, or resequence
+import os
+
+_folder_{node_id}   = str({folder_path}).replace(chr(92), "/")
+_ext_{node_id}      = "{extension}"
+_mode_{node_id}     = "{mode}"
+_prefix_{node_id}   = "{add_prefix}"
+_suffix_{node_id}   = "{add_suffix}"
+_find_{node_id}     = "{find_text}"
+_replace_{node_id}  = "{replace_text}"
+_dry_{node_id}      = str("{dry_run}").lower() == "true"
+
+renamed_count = 0
+skipped_count = 0
+success       = False
+
+if not _folder_{node_id} or not os.path.isdir(_folder_{node_id}):
+    print("FlowPins ERROR: Folder not found — " + str(_folder_{node_id}))
+else:
+    _files_{node_id} = sorted([
+        f for f in os.listdir(_folder_{node_id})
+        if f.lower().endswith(_ext_{node_id}.lower())
+    ])
+
+    if not _files_{node_id}:
+        print("FlowPins: No " + _ext_{node_id} + " files found in " + _folder_{node_id})
+    else:
+        print("FlowPins Batch File Renamer")
+        print("  Folder : " + _folder_{node_id})
+        print("  Mode   : " + _mode_{node_id})
+        print("  Files  : " + str(len(_files_{node_id})))
+        if _dry_{node_id}:
+            print("  DRY RUN — no files will be renamed")
+        print("-" * 55)
+
+        _rename_pairs_{node_id} = []
+
+        for _fn_{node_id} in _files_{node_id}:
+            _stem_{node_id} = os.path.splitext(_fn_{node_id})[0]
+            _new_stem_{node_id} = _stem_{node_id}
+
+            if _mode_{node_id} == "add_prefix" and _prefix_{node_id}:
+                _new_stem_{node_id} = _prefix_{node_id} + _stem_{node_id}
+            elif _mode_{node_id} == "add_suffix" and _suffix_{node_id}:
+                _new_stem_{node_id} = _stem_{node_id} + _suffix_{node_id}
+            elif _mode_{node_id} == "find_replace" and _find_{node_id}:
+                _new_stem_{node_id} = _stem_{node_id}.replace(_find_{node_id}, _replace_{node_id})
+
+            _new_name_{node_id} = _new_stem_{node_id} + _ext_{node_id}
+
+            if _new_name_{node_id} != _fn_{node_id}:
+                _rename_pairs_{node_id}.append((_fn_{node_id}, _new_name_{node_id}))
+            else:
+                skipped_count += 1
+
+        # Resequence mode — renumber all files from 0001
+        if _mode_{node_id} == "resequence":
+            _rename_pairs_{node_id} = []
+            skipped_count = 0
+            for _i_{node_id}, _fn_{node_id} in enumerate(_files_{node_id}, start=1):
+                _new_name_{node_id} = str(_i_{node_id}).zfill(4) + _ext_{node_id}
+                if _new_name_{node_id} != _fn_{node_id}:
+                    _rename_pairs_{node_id}.append((_fn_{node_id}, _new_name_{node_id}))
+                else:
+                    skipped_count += 1
+
+        # Preview or execute
+        for _old_{node_id}, _new_{node_id} in _rename_pairs_{node_id}:
+            if _dry_{node_id}:
+                print("  PREVIEW: " + _old_{node_id} + " → " + _new_{node_id})
+            else:
+                _src_path_{node_id} = os.path.join(_folder_{node_id}, _old_{node_id})
+                _dst_path_{node_id} = os.path.join(_folder_{node_id}, _new_{node_id})
+                try:
+                    os.rename(_src_path_{node_id}, _dst_path_{node_id})
+                    print("  RENAMED: " + _old_{node_id} + " → " + _new_{node_id})
+                    renamed_count += 1
+                except Exception as _e_{node_id}:
+                    print("  ERROR: " + _old_{node_id} + " — " + str(_e_{node_id}))
+                    skipped_count += 1
+
+        if _dry_{node_id}:
+            renamed_count = len(_rename_pairs_{node_id})
+
+        print("-" * 55)
+        if _dry_{node_id}:
+            print("DRY RUN COMPLETE — " + str(renamed_count) + " files would be renamed")
+            print("Set Dry Run to false to apply changes")
+        else:
+            print("DONE — " + str(renamed_count) + " files renamed, " + str(skipped_count) + " skipped")
+
+        success = True
 
 {exec_out}`,
 
