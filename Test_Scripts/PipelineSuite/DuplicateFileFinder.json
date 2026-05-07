@@ -1,0 +1,152 @@
+{
+  "nodes": [
+    {
+      "id": "node_1778114657151",
+      "type": "fp",
+      "position": {
+        "x": 60,
+        "y": 405
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Core - Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 60,
+        "y": 405
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1778115822446",
+      "type": "fp",
+      "position": {
+        "x": 420,
+        "y": 405
+      },
+      "data": {
+        "label": "Duplicate File Finder",
+        "nodeKind": "fs_find_duplicates",
+        "profile": "Pipeline - File System",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "folder_path",
+            "pin_type": "string"
+          },
+          {
+            "name": "extension",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "duplicate_groups",
+            "pin_type": "list"
+          },
+          {
+            "name": "duplicate_count",
+            "pin_type": "int"
+          },
+          {
+            "name": "wasted_mb",
+            "pin_type": "int"
+          },
+          {
+            "name": "has_duplicates",
+            "pin_type": "boolean"
+          }
+        ],
+        "props": {
+          "extension": ".png",
+          "mode": "content",
+          "recursive": false
+        }
+      },
+      "width": 202,
+      "height": 237,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 420,
+        "y": 405
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1778115942642",
+      "type": "fp",
+      "position": {
+        "x": 60,
+        "y": 540
+      },
+      "data": {
+        "label": "File Path",
+        "nodeKind": "fs_file_path",
+        "profile": "Pipeline - File System",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "path",
+            "pin_type": "string"
+          }
+        ],
+        "props": {
+          "path": "C:/images"
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 60,
+        "y": 540
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1778114657151",
+      "sourceHandle": "exec_out",
+      "target": "node_1778115822446",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1778114657151exec_out-node_1778115822446exec_in",
+      "animated": false
+    },
+    {
+      "source": "node_1778115942642",
+      "sourceHandle": "path",
+      "target": "node_1778115822446",
+      "targetHandle": "folder_path",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1778115942642path-node_1778115822446folder_path",
+      "animated": true
+    }
+  ]
+}

@@ -1990,4 +1990,196 @@ else:
 {exec_out}`,
 
 
+  "fs_file_size_report": `# File Size Reporter
+# Scans a folder and reports file sizes, largest files, and threshold violations
+import os
+
+_folder_{node_id}    = {folder_path}
+_ext_{node_id}       = "{extension}"
+_threshold_{node_id} = int({threshold_mb})
+_show_all_{node_id}  = str("{show_all}").lower() == "true"
+_top_{node_id}       = int({top_count})
+
+total_size_mb  = 0
+file_count     = 0
+largest_file   = ""
+over_threshold = []
+
+if not _folder_{node_id} or not os.path.isdir(_folder_{node_id}):
+    print("FlowPins ERROR: Folder not found — " + str(_folder_{node_id}))
+else:
+    # Collect all files with sizes
+    _file_sizes_{node_id} = []
+    for _fn_{node_id} in os.listdir(_folder_{node_id}):
+        if _fn_{node_id}.lower().endswith(_ext_{node_id}.lower()):
+            _fp_{node_id} = os.path.join(_folder_{node_id}, _fn_{node_id})
+            try:
+                _size_{node_id} = os.path.getsize(_fp_{node_id})
+                _file_sizes_{node_id}.append((_fn_{node_id}, _size_{node_id}))
+            except:
+                pass
+
+    if not _file_sizes_{node_id}:
+        print("FlowPins: No " + _ext_{node_id} + " files found in " + _folder_{node_id})
+    else:
+        # Sort by size descending
+        _file_sizes_{node_id}.sort(key=lambda x: x[1], reverse=True)
+
+        _total_bytes_{node_id} = sum(s for _, s in _file_sizes_{node_id})
+        file_count    = len(_file_sizes_{node_id})
+        total_size_mb = round(_total_bytes_{node_id} / (1024 * 1024), 2)
+        largest_file  = _file_sizes_{node_id}[0][0]
+        _avg_mb_{node_id} = round(total_size_mb / file_count, 3)
+
+        # Find files over threshold
+        _thresh_bytes_{node_id} = _threshold_{node_id} * 1024 * 1024
+        over_threshold = [
+            _fn_{node_id} + " (" + str(round(_sz_{node_id} / (1024*1024), 2)) + " MB)"
+            for _fn_{node_id}, _sz_{node_id} in _file_sizes_{node_id}
+            if _sz_{node_id} > _thresh_bytes_{node_id}
+        ]
+
+        print("FlowPins File Size Reporter")
+        print("  Folder    : " + _folder_{node_id})
+        print("  Extension : " + _ext_{node_id})
+        print("  Files     : " + str(file_count))
+        print("  Total     : " + str(total_size_mb) + " MB")
+        print("  Average   : " + str(_avg_mb_{node_id}) + " MB per file")
+        print("  Largest   : " + largest_file + " (" + str(round(_file_sizes_{node_id}[0][1] / (1024*1024), 2)) + " MB)")
+        print("  Threshold : " + str(_threshold_{node_id}) + " MB")
+        print("-" * 55)
+
+        # Top N largest files
+        print("TOP " + str(_top_{node_id}) + " LARGEST FILES:")
+        for _fn_{node_id}, _sz_{node_id} in _file_sizes_{node_id}[:_top_{node_id}]:
+            _mb_{node_id} = round(_sz_{node_id} / (1024 * 1024), 2)
+            _bar_{node_id} = "█" * min(int(_mb_{node_id} * 2), 20)
+            print("  " + _bar_{node_id} + " " + str(_mb_{node_id}) + " MB  " + _fn_{node_id})
+
+        # Show all files if requested
+        if _show_all_{node_id} and len(_file_sizes_{node_id}) > _top_{node_id}:
+            print("")
+            print("ALL FILES:")
+            for _fn_{node_id}, _sz_{node_id} in _file_sizes_{node_id}:
+                _mb_{node_id} = round(_sz_{node_id} / (1024 * 1024), 2)
+                print("  " + str(_mb_{node_id}) + " MB  " + _fn_{node_id})
+
+        # Threshold violations
+        print("")
+        if over_threshold:
+            print("OVER THRESHOLD (" + str(_threshold_{node_id}) + " MB) — " + str(len(over_threshold)) + " files:")
+            for _of_{node_id} in over_threshold:
+                print("  ⚠ " + _of_{node_id})
+        else:
+            print("THRESHOLD: ✓ All files under " + str(_threshold_{node_id}) + " MB")
+
+        print("-" * 55)
+        print("SUMMARY: " + str(file_count) + " files, " + str(total_size_mb) + " MB total, " + str(_avg_mb_{node_id}) + " MB avg")
+
+{exec_out}`,
+
+
+  "fs_find_duplicates": `# Duplicate File Finder
+# Finds identical files by content (MD5) or by name
+import os, hashlib
+
+_folder_{node_id}    = {folder_path}
+_ext_{node_id}       = "{extension}"
+_mode_{node_id}      = "{mode}"
+_recursive_{node_id} = str("{recursive}").lower() == "true"
+
+duplicate_groups = []
+duplicate_count  = 0
+wasted_mb        = 0
+has_duplicates   = False
+
+if not _folder_{node_id} or not os.path.isdir(_folder_{node_id}):
+    print("FlowPins ERROR: Folder not found — " + str(_folder_{node_id}))
+else:
+    # Collect files
+    _all_files_{node_id} = []
+    if _recursive_{node_id}:
+        for _r_{node_id}, _d_{node_id}, _f_{node_id} in os.walk(_folder_{node_id}):
+            for _fn_{node_id} in _f_{node_id}:
+                if _fn_{node_id}.lower().endswith(_ext_{node_id}.lower()):
+                    _all_files_{node_id}.append(os.path.join(_r_{node_id}, _fn_{node_id}))
+    else:
+        for _fn_{node_id} in os.listdir(_folder_{node_id}):
+            if _fn_{node_id}.lower().endswith(_ext_{node_id}.lower()):
+                _all_files_{node_id}.append(os.path.join(_folder_{node_id}, _fn_{node_id}))
+
+    print("FlowPins Duplicate File Finder")
+    print("  Folder : " + _folder_{node_id})
+    print("  Mode   : " + _mode_{node_id})
+    print("  Files  : " + str(len(_all_files_{node_id})))
+    print("-" * 55)
+
+    if _mode_{node_id} == "content":
+        # MD5 hash each file and group by hash
+        _hash_map_{node_id} = {}
+        for _fp_{node_id} in _all_files_{node_id}:
+            try:
+                _md5_{node_id} = hashlib.md5()
+                with open(_fp_{node_id}, "rb") as _f_{node_id}:
+                    for _chunk_{node_id} in iter(lambda: _f_{node_id}.read(8192), b""):
+                        _md5_{node_id}.update(_chunk_{node_id})
+                _h_{node_id} = _md5_{node_id}.hexdigest()
+                if _h_{node_id} not in _hash_map_{node_id}:
+                    _hash_map_{node_id}[_h_{node_id}] = []
+                _hash_map_{node_id}[_h_{node_id}].append(_fp_{node_id})
+            except Exception as _e_{node_id}:
+                print("  ERROR: " + _fp_{node_id} + " — " + str(_e_{node_id}))
+
+        # Find groups with more than one file
+        for _h_{node_id}, _files_{node_id} in _hash_map_{node_id}.items():
+            if len(_files_{node_id}) > 1:
+                duplicate_groups.append(_files_{node_id})
+
+    else:
+        # Name-based deduplication
+        _name_map_{node_id} = {}
+        for _fp_{node_id} in _all_files_{node_id}:
+            _name_{node_id} = os.path.basename(_fp_{node_id})
+            if _name_{node_id} not in _name_map_{node_id}:
+                _name_map_{node_id}[_name_{node_id}] = []
+            _name_map_{node_id}[_name_{node_id}].append(_fp_{node_id})
+
+        for _name_{node_id}, _files_{node_id} in _name_map_{node_id}.items():
+            if len(_files_{node_id}) > 1:
+                duplicate_groups.append(_files_{node_id})
+
+    # Calculate wasted space
+    _wasted_bytes_{node_id} = 0
+    for _group_{node_id} in duplicate_groups:
+        # All but one are wasted
+        _sizes_{node_id} = []
+        for _fp_{node_id} in _group_{node_id}:
+            try:
+                _sizes_{node_id}.append(os.path.getsize(_fp_{node_id}))
+            except:
+                _sizes_{node_id}.append(0)
+        if _sizes_{node_id}:
+            _wasted_bytes_{node_id} += sum(_sizes_{node_id}) - max(_sizes_{node_id})
+
+    duplicate_count = sum(len(g) - 1 for g in duplicate_groups)
+    wasted_mb       = round(_wasted_bytes_{node_id} / (1024 * 1024), 2)
+    has_duplicates  = len(duplicate_groups) > 0
+
+    if not has_duplicates:
+        print("  ✓ No duplicates found!")
+    else:
+        print("  ✗ Found " + str(len(duplicate_groups)) + " duplicate groups (" + str(duplicate_count) + " extra files)")
+        print("  Wasted space: " + str(wasted_mb) + " MB")
+        print("")
+        for _i_{node_id}, _group_{node_id} in enumerate(duplicate_groups, 1):
+            print("  GROUP " + str(_i_{node_id}) + ":")
+            for _fp_{node_id} in _group_{node_id}:
+                print("    " + _fp_{node_id})
+
+    print("-" * 55)
+    print("SUMMARY: " + str(len(duplicate_groups)) + " groups, " + str(duplicate_count) + " duplicates, " + str(wasted_mb) + " MB wasted")
+
+{exec_out}`,
+
+
 };

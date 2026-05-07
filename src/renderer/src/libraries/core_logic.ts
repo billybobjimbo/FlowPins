@@ -1392,4 +1392,61 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  "fs_file_size_report": {
+    title: "File Size Reporter",
+    profile: "Pipeline - File System",
+    inputs: [
+      { name: "exec_in",      pin_type: "exec"   },
+      { name: "folder_path",  pin_type: "string" },
+      { name: "extension",    pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",       pin_type: "exec"   },
+      { name: "total_size_mb",  pin_type: "int"    },
+      { name: "file_count",     pin_type: "int"    },
+      { name: "largest_file",   pin_type: "string" },
+      { name: "over_threshold", pin_type: "list"   }
+    ],
+    default_props: {
+      extension:    ".png",
+      threshold_mb: 50,
+      show_all:     false,
+      top_count:    10
+    },
+    ui_schema: [
+      { label: "File Extension",          prop_key: "extension",    type: "input"    },
+      { label: "Flag Files Over (MB)",    prop_key: "threshold_mb", type: "number"   },
+      { label: "Show All Files",          prop_key: "show_all",     type: "checkbox" },
+      { label: "Top Largest Files Count", prop_key: "top_count",    type: "number"   }
+    ]
+  },
+
+  "fs_find_duplicates": {
+    title: "Duplicate File Finder",
+    profile: "Pipeline - File System",
+    inputs: [
+      { name: "exec_in",      pin_type: "exec"   },
+      { name: "folder_path",  pin_type: "string" },
+      { name: "extension",    pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",        pin_type: "exec"    },
+      { name: "duplicate_groups",pin_type: "list"    },
+      { name: "duplicate_count", pin_type: "int"     },
+      { name: "wasted_mb",       pin_type: "int"     },
+      { name: "has_duplicates",  pin_type: "boolean" }
+    ],
+    default_props: {
+      extension:  ".png",
+      mode:       "content",
+      recursive:  false
+    },
+    ui_schema: [
+      { label: "File Extension", prop_key: "extension", type: "input"    },
+      { label: "Mode",           prop_key: "mode",      type: "dropdown",
+        options: ["content", "name"]                                       },
+      { label: "Scan Subfolders",prop_key: "recursive", type: "checkbox" }
+    ]
+  },
+
 };
