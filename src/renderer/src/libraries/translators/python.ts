@@ -2182,4 +2182,78 @@ else:
 {exec_out}`,
 
 
+  "fs_stale_file_report": `# Stale File Reporter
+# Finds files not modified in X days
+import os, time
+
+_folder_{node_id}   = {folder_path}
+_ext_{node_id}      = "{extension}"
+_days_{node_id}     = int({days_old})
+_recursive_{node_id}= str("{recursive}").lower() == "true"
+_now_{node_id}      = time.time()
+_cutoff_{node_id}   = _now_{node_id} - (_days_{node_id} * 86400)
+
+stale_files  = []
+stale_count  = 0
+stale_mb     = 0
+has_stale    = False
+
+if not _folder_{node_id} or not os.path.isdir(_folder_{node_id}):
+    print("FlowPins ERROR: Folder not found — " + str(_folder_{node_id}))
+else:
+    # Collect files
+    _all_files_{node_id} = []
+    if _recursive_{node_id}:
+        for _r_{node_id}, _d_{node_id}, _f_{node_id} in os.walk(_folder_{node_id}):
+            for _fn_{node_id} in _f_{node_id}:
+                if _fn_{node_id}.lower().endswith(_ext_{node_id}.lower()):
+                    _all_files_{node_id}.append(os.path.join(_r_{node_id}, _fn_{node_id}))
+    else:
+        for _fn_{node_id} in os.listdir(_folder_{node_id}):
+            if _fn_{node_id}.lower().endswith(_ext_{node_id}.lower()):
+                _all_files_{node_id}.append(os.path.join(_folder_{node_id}, _fn_{node_id}))
+
+    print("FlowPins Stale File Reporter")
+    print("  Folder    : " + _folder_{node_id})
+    print("  Extension : " + _ext_{node_id})
+    print("  Stale if  : not modified in " + str(_days_{node_id}) + " days")
+    print("  Files     : " + str(len(_all_files_{node_id})))
+    print("-" * 55)
+
+    _stale_data_{node_id} = []
+    _total_bytes_{node_id} = 0
+
+    for _fp_{node_id} in sorted(_all_files_{node_id}):
+        try:
+            _mtime_{node_id} = os.path.getmtime(_fp_{node_id})
+            _size_{node_id}  = os.path.getsize(_fp_{node_id})
+            if _mtime_{node_id} < _cutoff_{node_id}:
+                _age_days_{node_id} = int((_now_{node_id} - _mtime_{node_id}) / 86400)
+                _stale_data_{node_id}.append((_fp_{node_id}, _age_days_{node_id}, _size_{node_id}))
+                _total_bytes_{node_id} += _size_{node_id}
+                stale_files.append(os.path.basename(_fp_{node_id}) + " (" + str(_age_days_{node_id}) + " days old)")
+        except Exception as _e_{node_id}:
+            print("  ERROR: " + _fp_{node_id} + " — " + str(_e_{node_id}))
+
+    stale_count = len(_stale_data_{node_id})
+    stale_mb    = round(_total_bytes_{node_id} / (1024 * 1024), 2)
+    has_stale   = stale_count > 0
+
+    if not has_stale:
+        print("  ✓ No stale files found — all files modified within " + str(_days_{node_id}) + " days")
+    else:
+        print("  ✗ Found " + str(stale_count) + " stale files (" + str(stale_mb) + " MB)")
+        print("")
+        # Sort by age descending — oldest first
+        _stale_data_{node_id}.sort(key=lambda x: x[1], reverse=True)
+        for _fp_{node_id}, _age_{node_id}, _sz_{node_id} in _stale_data_{node_id}:
+            _mb_{node_id} = round(_sz_{node_id} / (1024 * 1024), 2)
+            print("  " + str(_age_{node_id}).rjust(4) + " days  " + str(_mb_{node_id}) + " MB  " + os.path.basename(_fp_{node_id}))
+
+    print("-" * 55)
+    print("SUMMARY: " + str(stale_count) + " stale files, " + str(stale_mb) + " MB recoverable")
+
+{exec_out}`,
+
+
 };

@@ -1449,4 +1449,31 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  "fs_stale_file_report": {
+    title: "Stale File Reporter",
+    profile: "Pipeline - File System",
+    inputs: [
+      { name: "exec_in",      pin_type: "exec"   },
+      { name: "folder_path",  pin_type: "string" },
+      { name: "extension",    pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",     pin_type: "exec"    },
+      { name: "stale_files",  pin_type: "list"    },
+      { name: "stale_count",  pin_type: "int"     },
+      { name: "stale_mb",     pin_type: "int"     },
+      { name: "has_stale",    pin_type: "boolean" }
+    ],
+    default_props: {
+      extension:  ".png",
+      days_old:   30,
+      recursive:  false
+    },
+    ui_schema: [
+      { label: "File Extension",       prop_key: "extension", type: "input"    },
+      { label: "Flag Files Older Than (days)", prop_key: "days_old",  type: "number"   },
+      { label: "Scan Subfolders",      prop_key: "recursive", type: "checkbox" }
+    ]
+  },
+
 };
