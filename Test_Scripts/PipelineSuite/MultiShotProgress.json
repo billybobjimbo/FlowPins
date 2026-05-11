@@ -1,0 +1,108 @@
+{
+  "nodes": [
+    {
+      "id": "node_1778537193784",
+      "type": "fp",
+      "position": {
+        "x": -435,
+        "y": 165
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Core - Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -435,
+        "y": 165
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1778537226580",
+      "type": "fp",
+      "position": {
+        "x": -120,
+        "y": 165
+      },
+      "data": {
+        "label": "Multi-Shot Progress Board",
+        "nodeKind": "rnd_multi_shot_progress",
+        "profile": "Pipeline - Render",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "csv_path",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "total_shots",
+            "pin_type": "int"
+          },
+          {
+            "name": "complete_shots",
+            "pin_type": "int"
+          },
+          {
+            "name": "in_progress",
+            "pin_type": "int"
+          },
+          {
+            "name": "not_started",
+            "pin_type": "int"
+          },
+          {
+            "name": "all_complete",
+            "pin_type": "boolean"
+          }
+        ],
+        "props": {
+          "csv_path": "D:\\Pipeline_suite\\shot_list.csv",
+          "save_report": true
+        }
+      },
+      "width": 241,
+      "height": 267,
+      "selected": true,
+      "positionAbsolute": {
+        "x": -120,
+        "y": 165
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1778537193784",
+      "sourceHandle": "exec_out",
+      "target": "node_1778537226580",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1778537193784exec_out-node_1778537226580exec_in",
+      "animated": true
+    }
+  ]
+}

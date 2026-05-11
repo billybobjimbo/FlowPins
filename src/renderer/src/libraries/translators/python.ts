@@ -2424,4 +2424,135 @@ else:
 {exec_out}`,
 
 
+  "rnd_multi_shot_progress": `# Multi-Shot Progress Board
+# Reads a CSV shot list and reports render progress across all shots
+import os, re, csv
+from datetime import datetime
+
+_csv_{node_id}    = r"{csv_path}".replace(chr(92), "/")
+_save_{node_id}   = str("{save_report}").lower() == "true"
+
+total_shots    = 0
+complete_shots = 0
+in_progress    = 0
+not_started    = 0
+all_complete   = False
+
+if not os.path.isfile(_csv_{node_id}):
+    print("FlowPins ERROR: Shot list not found — " + _csv_{node_id})
+else:
+    _shots_{node_id} = []
+    try:
+        with open(_csv_{node_id}, newline="", encoding="utf-8-sig") as _f_{node_id}:
+            _reader_{node_id} = csv.DictReader(_f_{node_id})
+            for _row_{node_id} in _reader_{node_id}:
+                _shots_{node_id}.append({k.strip(): v.strip() for k, v in _row_{node_id}.items()})
+    except Exception as _e_{node_id}:
+        print("FlowPins ERROR reading CSV: " + str(_e_{node_id}))
+
+    total_shots = len(_shots_{node_id})
+    _ts_{node_id} = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    _results_{node_id} = []
+
+    print("=" * 65)
+    print("  FLOWPINS MULTI-SHOT PROGRESS BOARD")
+    print("  " + _ts_{node_id})
+    print("  Shots: " + str(total_shots))
+    print("=" * 65)
+    print("")
+    print("  {:<20} {:>8} {:>8} {:>8} {:>6}  {}".format(
+        "SHOT", "EXPECTED", "FOUND", "MISSING", "%", "STATUS"))
+    print("  " + "-" * 63)
+
+    _digit_{node_id} = chr(92) + "d"
+
+    for _shot_{node_id} in _shots_{node_id}:
+        _name_{node_id}   = _shot_{node_id}.get("shot_name",    "unknown")
+        _folder_{node_id} = _shot_{node_id}.get("folder_path",  "").replace(chr(92), "/")
+        _start_{node_id}  = int(_shot_{node_id}.get("start_frame", "1") or 1)
+        _end_{node_id}    = int(_shot_{node_id}.get("end_frame",   "1") or 1)
+        _ext_{node_id}    = _shot_{node_id}.get("extension",    ".png")
+
+        _expected_count_{node_id} = _end_{node_id} - _start_{node_id} + 1
+        _found_{node_id} = set()
+
+        if os.path.isdir(_folder_{node_id}):
+            _pat_{node_id} = re.compile(
+                "(" + _digit_{node_id} + "+)" + re.escape(_ext_{node_id}) + "$",
+                re.IGNORECASE
+            )
+            for _fn_{node_id} in os.listdir(_folder_{node_id}):
+                _m_{node_id} = _pat_{node_id}.search(_fn_{node_id})
+                if _m_{node_id}:
+                    _fnum_{node_id} = int(_m_{node_id}.group(1))
+                    if _start_{node_id} <= _fnum_{node_id} <= _end_{node_id}:
+                        _found_{node_id}.add(_fnum_{node_id})
+
+        _found_count_{node_id}   = len(_found_{node_id})
+        _missing_count_{node_id} = _expected_count_{node_id} - _found_count_{node_id}
+        _pct_{node_id}           = round((_found_count_{node_id} / _expected_count_{node_id}) * 100) if _expected_count_{node_id} > 0 else 0
+
+        if not os.path.isdir(_folder_{node_id}):
+            _status_{node_id} = "NOT FOUND"
+            not_started += 1
+        elif _found_count_{node_id} == 0:
+            _status_{node_id} = "NOT STARTED"
+            not_started += 1
+        elif _missing_count_{node_id} == 0:
+            _status_{node_id} = "COMPLETE"
+            complete_shots += 1
+        else:
+            _bar_fill_{node_id} = int(_pct_{node_id} / 10)
+            _bar_{node_id} = chr(9608) * _bar_fill_{node_id} + chr(9617) * (10 - _bar_fill_{node_id})
+            _status_{node_id} = "[" + _bar_{node_id} + "] IN PROGRESS"
+            in_progress += 1
+
+        print("  {:<20} {:>8} {:>8} {:>8} {:>5}%  {}".format(
+            _name_{node_id}[:20],
+            _expected_count_{node_id},
+            _found_count_{node_id},
+            _missing_count_{node_id},
+            _pct_{node_id},
+            _status_{node_id}
+        ))
+
+        _results_{node_id}.append({
+            "shot": _name_{node_id}, "folder": _folder_{node_id},
+            "expected": _expected_count_{node_id}, "found": _found_count_{node_id},
+            "missing": _missing_count_{node_id}, "percent": _pct_{node_id},
+            "status": _status_{node_id}
+        })
+
+    all_complete = complete_shots == total_shots
+
+    print("")
+    print("=" * 65)
+    print("  SUMMARY")
+    print("  Complete    : " + str(complete_shots) + "/" + str(total_shots) + " shots")
+    print("  In Progress : " + str(in_progress) + " shots")
+    print("  Not Started : " + str(not_started) + " shots")
+    if all_complete:
+        print("  STATUS      : ALL SHOTS COMPLETE")
+    else:
+        print("  STATUS      : " + str(total_shots - complete_shots) + " shots still rendering")
+    print("=" * 65)
+
+    if _save_{node_id}:
+        _rname_{node_id} = "progress_report_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".csv"
+        _rpath_{node_id} = os.path.join(os.path.dirname(_csv_{node_id}), _rname_{node_id})
+        try:
+            with open(_rpath_{node_id}, "w", newline="", encoding="utf-8") as _rf_{node_id}:
+                _w_{node_id} = csv.writer(_rf_{node_id})
+                _w_{node_id}.writerow(["Shot","Expected","Found","Missing","Percent","Status","Folder"])
+                for _r_{node_id} in _results_{node_id}:
+                    _w_{node_id}.writerow([_r_{node_id}["shot"],_r_{node_id}["expected"],
+                        _r_{node_id}["found"],_r_{node_id}["missing"],
+                        str(_r_{node_id}["percent"])+"%",_r_{node_id}["status"],_r_{node_id}["folder"]])
+            print("  Report: " + _rpath_{node_id})
+        except Exception as _re_{node_id}:
+            print("  Report save failed: " + str(_re_{node_id}))
+
+{exec_out}`,
+
+
 };

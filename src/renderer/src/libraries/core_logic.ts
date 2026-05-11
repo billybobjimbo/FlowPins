@@ -1540,4 +1540,29 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  "rnd_multi_shot_progress": {
+    title: "Multi-Shot Progress Board",
+    profile: "Pipeline - Render",
+    inputs: [
+      { name: "exec_in",   pin_type: "exec"   },
+      { name: "csv_path",  pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",       pin_type: "exec"    },
+      { name: "total_shots",    pin_type: "int"     },
+      { name: "complete_shots", pin_type: "int"     },
+      { name: "in_progress",    pin_type: "int"     },
+      { name: "not_started",    pin_type: "int"     },
+      { name: "all_complete",   pin_type: "boolean" }
+    ],
+    default_props: {
+      csv_path:    "shot_list.csv",
+      save_report: true
+    },
+    ui_schema: [
+      { label: "Shot List CSV", prop_key: "csv_path",    type: "input"    },
+      { label: "Save Report",   prop_key: "save_report", type: "checkbox" }
+    ]
+  },
+
 };
