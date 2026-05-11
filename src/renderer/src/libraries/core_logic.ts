@@ -1476,4 +1476,68 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  // ==========================================================================
+  // PIPELINE SUITE — CATEGORY 3: RENDER MANAGEMENT
+  // ==========================================================================
+
+  "rnd_progress_checker": {
+    title: "Render Progress Checker",
+    profile: "Pipeline - Render",
+    inputs: [
+      { name: "exec_in",      pin_type: "exec"   },
+      { name: "folder_path",  pin_type: "string" },
+      { name: "extension",    pin_type: "string" },
+      { name: "start_frame",  pin_type: "int"    },
+      { name: "end_frame",    pin_type: "int"    }
+    ],
+    outputs: [
+      { name: "exec_out",       pin_type: "exec"    },
+      { name: "frames_done",    pin_type: "int"     },
+      { name: "frames_total",   pin_type: "int"     },
+      { name: "percent_done",   pin_type: "int"     },
+      { name: "frames_missing", pin_type: "int"     },
+      { name: "is_complete",    pin_type: "boolean" }
+    ],
+    default_props: {
+      extension:   ".png",
+      start_frame: 1,
+      end_frame:   100
+    },
+    ui_schema: [
+      { label: "File Extension", prop_key: "extension",   type: "input"  },
+      { label: "Start Frame",    prop_key: "start_frame", type: "number" },
+      { label: "End Frame",      prop_key: "end_frame",   type: "number" }
+    ]
+  },
+
+  "rnd_frame_range_validator": {
+    title: "Frame Range Validator",
+    profile: "Pipeline - Render",
+    inputs: [
+      { name: "exec_in",      pin_type: "exec"   },
+      { name: "folder_path",  pin_type: "string" },
+      { name: "extension",    pin_type: "string" },
+      { name: "start_frame",  pin_type: "int"    },
+      { name: "end_frame",    pin_type: "int"    }
+    ],
+    outputs: [
+      { name: "exec_out",        pin_type: "exec"    },
+      { name: "is_valid",        pin_type: "boolean" },
+      { name: "frames_found",    pin_type: "int"     },
+      { name: "frames_expected", pin_type: "int"     },
+      { name: "missing_frames",  pin_type: "list"    },
+      { name: "extra_frames",    pin_type: "list"    }
+    ],
+    default_props: {
+      extension:   ".png",
+      start_frame: 1,
+      end_frame:   100
+    },
+    ui_schema: [
+      { label: "File Extension", prop_key: "extension",   type: "input"  },
+      { label: "Start Frame",    prop_key: "start_frame", type: "number" },
+      { label: "End Frame",      prop_key: "end_frame",   type: "number" }
+    ]
+  },
+
 };

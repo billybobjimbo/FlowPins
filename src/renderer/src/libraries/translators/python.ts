@@ -2256,4 +2256,172 @@ else:
 {exec_out}`,
 
 
+  // ==========================================================================
+  // PIPELINE SUITE — CATEGORY 3: RENDER MANAGEMENT
+  // ==========================================================================
+
+  "rnd_progress_checker": `# Render Progress Checker
+# Counts rendered frames vs expected and shows % complete
+import os, re
+
+_folder_{node_id}  = {folder_path}
+_ext_{node_id}     = extension if isinstance(extension, str) and extension.startswith(".") else "{extension}"
+_start_{node_id}   = int({start_frame})
+_end_{node_id}     = int({end_frame})
+
+frames_done    = 0
+frames_total   = 0
+percent_done   = 0
+frames_missing = 0
+is_complete    = False
+
+if not _folder_{node_id} or not os.path.isdir(_folder_{node_id}):
+    print("FlowPins ERROR: Folder not found — " + str(_folder_{node_id}))
+else:
+    frames_total = _end_{node_id} - _start_{node_id} + 1
+
+    # Build expected set
+    _expected_{node_id} = set(range(_start_{node_id}, _end_{node_id} + 1))
+
+    # Scan for rendered frames using regex to extract frame number
+    _digit_{node_id}   = chr(92) + "d"
+    _pattern_{node_id} = re.compile("(" + _digit_{node_id} + "+)" + re.escape(_ext_{node_id}) + "$", re.IGNORECASE)
+    _found_{node_id}   = set()
+
+    for _fn_{node_id} in os.listdir(_folder_{node_id}):
+        _m_{node_id} = _pattern_{node_id}.search(_fn_{node_id})
+        if _m_{node_id}:
+            _fnum_{node_id} = int(_m_{node_id}.group(1))
+            if _start_{node_id} <= _fnum_{node_id} <= _end_{node_id}:
+                _found_{node_id}.add(_fnum_{node_id})
+
+    _missing_{node_id} = sorted(_expected_{node_id} - _found_{node_id})
+
+    frames_done    = len(_found_{node_id})
+    frames_missing = len(_missing_{node_id})
+    percent_done   = round((frames_done / frames_total) * 100) if frames_total > 0 else 0
+    is_complete    = frames_missing == 0
+
+    # Progress bar
+    _bar_fill_{node_id}  = int(percent_done / 5)
+    _bar_{node_id}       = "█" * _bar_fill_{node_id} + "░" * (20 - _bar_fill_{node_id})
+
+    print("FlowPins Render Progress Checker")
+    print("  Folder  : " + _folder_{node_id})
+    print("  Range   : " + str(_start_{node_id}) + " — " + str(_end_{node_id}))
+    print("  Expected: " + str(frames_total) + " frames")
+    print("-" * 55)
+    print("  [" + _bar_{node_id} + "] " + str(percent_done) + "%")
+    print("  Done    : " + str(frames_done) + " / " + str(frames_total) + " frames")
+    print("  Missing : " + str(frames_missing) + " frames")
+    print("-" * 55)
+
+    if is_complete:
+        print("  ✓ RENDER COMPLETE — all " + str(frames_total) + " frames present")
+    else:
+        print("  ⟳ IN PROGRESS — " + str(frames_missing) + " frames remaining")
+        # Group consecutive missing frames
+        if _missing_{node_id}:
+            _groups_{node_id} = []
+            _gs_{node_id} = _missing_{node_id}[0]
+            _gp_{node_id} = _missing_{node_id}[0]
+            for _mf_{node_id} in _missing_{node_id}[1:]:
+                if _mf_{node_id} != _gp_{node_id} + 1:
+                    _groups_{node_id}.append((_gs_{node_id}, _gp_{node_id}))
+                    _gs_{node_id} = _mf_{node_id}
+                _gp_{node_id} = _mf_{node_id}
+            _groups_{node_id}.append((_gs_{node_id}, _gp_{node_id}))
+            for _ga_{node_id}, _gb_{node_id} in _groups_{node_id}:
+                if _ga_{node_id} == _gb_{node_id}:
+                    print("    Still needed: " + str(_ga_{node_id}).zfill(4))
+                else:
+                    print("    Still needed: " + str(_ga_{node_id}).zfill(4) + " — " + str(_gb_{node_id}).zfill(4) + " (" + str(_gb_{node_id} - _ga_{node_id} + 1) + " frames)")
+
+{exec_out}`,
+
+
+  "rnd_frame_range_validator": `# Frame Range Validator
+# Strict pass/fail — confirms folder covers expected range exactly
+# No gaps allowed, no extra frames outside the range
+import os, re
+
+_folder_{node_id}  = {folder_path}
+_ext_{node_id}     = extension if isinstance(extension, str) and extension.startswith(".") else "{extension}"
+_start_{node_id}   = int({start_frame})
+_end_{node_id}     = int({end_frame})
+
+is_valid        = False
+frames_found    = 0
+frames_expected = 0
+missing_frames  = []
+extra_frames    = []
+
+if not _folder_{node_id} or not os.path.isdir(_folder_{node_id}):
+    print("FlowPins ERROR: Folder not found — " + str(_folder_{node_id}))
+else:
+    frames_expected = _end_{node_id} - _start_{node_id} + 1
+    _expected_{node_id} = set(range(_start_{node_id}, _end_{node_id} + 1))
+
+    # Scan folder and extract frame numbers
+    _digit_{node_id}   = chr(92) + "d"
+    _pattern_{node_id} = re.compile("(" + _digit_{node_id} + "+)" + re.escape(_ext_{node_id}) + "$", re.IGNORECASE)
+    _found_nums_{node_id} = set()
+
+    for _fn_{node_id} in os.listdir(_folder_{node_id}):
+        _m_{node_id} = _pattern_{node_id}.search(_fn_{node_id})
+        if _m_{node_id}:
+            _found_nums_{node_id}.add(int(_m_{node_id}.group(1)))
+
+    frames_found   = len(_found_nums_{node_id})
+    missing_frames = sorted(_expected_{node_id} - _found_nums_{node_id})
+    extra_frames   = sorted(_found_nums_{node_id} - _expected_{node_id})
+    is_valid       = len(missing_frames) == 0 and len(extra_frames) == 0
+
+    print("FlowPins Frame Range Validator")
+    print("  Folder   : " + _folder_{node_id})
+    print("  Expected : frames " + str(_start_{node_id}) + " — " + str(_end_{node_id}) + " (" + str(frames_expected) + " frames)")
+    print("  Found    : " + str(frames_found) + " frames")
+    print("-" * 55)
+
+    if missing_frames:
+        print("  MISSING (" + str(len(missing_frames)) + "):")
+        # Group consecutive
+        _groups_{node_id} = []
+        _gs_{node_id} = missing_frames[0]
+        _gp_{node_id} = missing_frames[0]
+        for _mf_{node_id} in missing_frames[1:]:
+            if _mf_{node_id} != _gp_{node_id} + 1:
+                _groups_{node_id}.append((_gs_{node_id}, _gp_{node_id}))
+                _gs_{node_id} = _mf_{node_id}
+            _gp_{node_id} = _mf_{node_id}
+        _groups_{node_id}.append((_gs_{node_id}, _gp_{node_id}))
+        for _ga_{node_id}, _gb_{node_id} in _groups_{node_id}:
+            if _ga_{node_id} == _gb_{node_id}:
+                print("    ✗ " + str(_ga_{node_id}).zfill(4))
+            else:
+                print("    ✗ " + str(_ga_{node_id}).zfill(4) + " — " + str(_gb_{node_id}).zfill(4) + " (" + str(_gb_{node_id} - _ga_{node_id} + 1) + " frames)")
+    else:
+        print("  MISSING  : none")
+
+    if extra_frames:
+        print("  EXTRA (" + str(len(extra_frames)) + ") — frames outside expected range:")
+        for _ef_{node_id} in extra_frames[:10]:
+            print("    + " + str(_ef_{node_id}).zfill(4))
+        if len(extra_frames) > 10:
+            print("    ... and " + str(len(extra_frames) - 10) + " more")
+    else:
+        print("  EXTRA    : none")
+
+    print("-" * 55)
+    if is_valid:
+        print("  ✓ PASS — frame range is valid and complete")
+    else:
+        _issues_{node_id} = []
+        if missing_frames: _issues_{node_id}.append(str(len(missing_frames)) + " missing")
+        if extra_frames:   _issues_{node_id}.append(str(len(extra_frames)) + " extra")
+        print("  ✗ FAIL — " + ", ".join(_issues_{node_id}))
+
+{exec_out}`,
+
+
 };
