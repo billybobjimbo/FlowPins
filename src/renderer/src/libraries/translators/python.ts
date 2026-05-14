@@ -3016,4 +3016,119 @@ else:
 {exec_out}`,
 
 
+  "ast_texture_audit": `# Texture Audit
+# Scans texture files and reports resolution, colourspace, flags non-standard
+import os, io
+from PIL import Image, ImageCms
+
+_folder_{node_id}    = "{folder_path}".replace(chr(92), "/").rstrip("/")
+_exts_{node_id}      = [e.strip().lower() for e in "{extensions}".split(",") if e.strip()]
+_expected_cs_{node_id} = "{expected_cs}"
+_max_w_{node_id}     = int({max_width})
+_max_h_{node_id}     = int({max_height})
+_recursive_{node_id} = str("{recursive}").lower() == "true"
+_pow2_{node_id}      = str("{power_of_two}").lower() == "true"
+
+total_textures = 0
+issues_count   = 0
+issues_list    = []
+all_valid      = False
+
+def _is_pow2_{node_id}(n):
+    return n > 0 and (n & (n - 1)) == 0
+
+def _get_cs_{node_id}(info):
+    if "icc_profile" in info:
+        try:
+            _desc = ImageCms.getProfileDescription(
+                ImageCms.ImageCmsProfile(io.BytesIO(info["icc_profile"]))
+            ).strip().lower()
+            if "srgb" in _desc:    return "sRGB"
+            if "709" in _desc:     return "Rec.709"
+            if "linear" in _desc:  return "Linear"
+            if "aces" in _desc:    return "ACES"
+            if "p3" in _desc:      return "DCI-P3"
+            return "ICC: " + _desc[:20]
+        except:
+            return "ICC Embedded"
+    elif "srgb" in info:
+        return "sRGB"
+    return "Untagged"
+
+if not _folder_{node_id} or not os.path.isdir(_folder_{node_id}):
+    print("FlowPins ERROR: Folder not found — " + str(_folder_{node_id}))
+else:
+    # Collect texture files
+    _textures_{node_id} = []
+    if _recursive_{node_id}:
+        for _r_{node_id}, _d_{node_id}, _f_{node_id} in os.walk(_folder_{node_id}):
+            for _fn_{node_id} in _f_{node_id}:
+                if any(_fn_{node_id}.lower().endswith(e) for e in _exts_{node_id}):
+                    _textures_{node_id}.append(os.path.join(_r_{node_id}, _fn_{node_id}))
+    else:
+        for _fn_{node_id} in os.listdir(_folder_{node_id}):
+            if any(_fn_{node_id}.lower().endswith(e) for e in _exts_{node_id}):
+                _textures_{node_id}.append(os.path.join(_folder_{node_id}, _fn_{node_id}))
+
+    total_textures = len(_textures_{node_id})
+
+    print("FlowPins Texture Audit")
+    print("  Folder     : " + _folder_{node_id})
+    print("  Textures   : " + str(total_textures))
+    print("  Expected CS: " + _expected_cs_{node_id})
+    print("  Max Size   : " + str(_max_w_{node_id}) + "x" + str(_max_h_{node_id}))
+    print("-" * 60)
+
+    for _fp_{node_id} in sorted(_textures_{node_id}):
+        _fn_{node_id} = os.path.basename(_fp_{node_id})
+        _file_issues_{node_id} = []
+        try:
+            with Image.open(_fp_{node_id}) as _img_{node_id}:
+                _w_{node_id}    = _img_{node_id}.width
+                _h_{node_id}    = _img_{node_id}.height
+                _mode_{node_id} = _img_{node_id}.mode
+                _info_{node_id} = _img_{node_id}.info
+                _cs_{node_id}   = _get_cs_{node_id}(_info_{node_id})
+
+                # Check colourspace
+                if _expected_cs_{node_id} and _cs_{node_id}.lower() != _expected_cs_{node_id}.lower():
+                    _file_issues_{node_id}.append("CS: " + _cs_{node_id} + " (expected " + _expected_cs_{node_id} + ")")
+
+                # Check dimensions
+                if _w_{node_id} > _max_w_{node_id} or _h_{node_id} > _max_h_{node_id}:
+                    _file_issues_{node_id}.append("Size: " + str(_w_{node_id}) + "x" + str(_h_{node_id}) + " exceeds max")
+
+                # Check power of two
+                if _pow2_{node_id}:
+                    if not _is_pow2_{node_id}(_w_{node_id}) or not _is_pow2_{node_id}(_h_{node_id}):
+                        _file_issues_{node_id}.append("Not power of two: " + str(_w_{node_id}) + "x" + str(_h_{node_id}))
+
+                _size_kb_{node_id} = round(os.path.getsize(_fp_{node_id}) / 1024, 1)
+
+                if _file_issues_{node_id}:
+                    print("  ✗ " + _fn_{node_id})
+                    print("    " + str(_w_{node_id}) + "x" + str(_h_{node_id}) + " | " + _mode_{node_id} + " | " + _cs_{node_id} + " | " + str(_size_kb_{node_id}) + " KB")
+                    for _iss_{node_id} in _file_issues_{node_id}:
+                        print("    ⚠ " + _iss_{node_id})
+                    issues_list.append(_fn_{node_id} + " — " + ", ".join(_file_issues_{node_id}))
+                    issues_count += 1
+                else:
+                    print("  ✓ " + _fn_{node_id} + " [" + str(_w_{node_id}) + "x" + str(_h_{node_id}) + " | " + _cs_{node_id} + " | " + str(_size_kb_{node_id}) + " KB]")
+
+        except Exception as _e_{node_id}:
+            print("  ✗ " + _fn_{node_id} + " — ERROR: " + str(_e_{node_id}))
+            issues_list.append(_fn_{node_id} + " — ERROR: " + str(_e_{node_id}))
+            issues_count += 1
+
+    all_valid = issues_count == 0
+
+    print("-" * 60)
+    if all_valid:
+        print("  ✓ ALL VALID — " + str(total_textures) + " textures passed")
+    else:
+        print("  ✗ " + str(issues_count) + "/" + str(total_textures) + " textures have issues")
+
+{exec_out}`,
+
+
 };

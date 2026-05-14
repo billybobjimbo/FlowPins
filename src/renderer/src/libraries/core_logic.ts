@@ -1711,4 +1711,38 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  "ast_texture_audit": {
+    title: "Texture Audit",
+    profile: "Pipeline - Assets",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec"   },
+      { name: "folder_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",      pin_type: "exec"    },
+      { name: "total_textures",pin_type: "int"     },
+      { name: "issues_count",  pin_type: "int"     },
+      { name: "issues_list",   pin_type: "list"    },
+      { name: "all_valid",     pin_type: "boolean" }
+    ],
+    default_props: {
+      folder_path:   "",
+      extensions:    ".png,.tga,.tiff,.exr,.jpg",
+      expected_cs:   "sRGB",
+      max_width:     4096,
+      max_height:    4096,
+      recursive:     true,
+      power_of_two:  false
+    },
+    ui_schema: [
+      { label: "Folder Path",          prop_key: "folder_path",  type: "input"    },
+      { label: "Texture Extensions",   prop_key: "extensions",   type: "input"    },
+      { label: "Expected Colourspace", prop_key: "expected_cs",  type: "input"    },
+      { label: "Max Width (px)",       prop_key: "max_width",    type: "number"   },
+      { label: "Max Height (px)",      prop_key: "max_height",   type: "number"   },
+      { label: "Scan Subfolders",      prop_key: "recursive",    type: "checkbox" },
+      { label: "Require Power of Two", prop_key: "power_of_two", type: "checkbox" }
+    ]
+  },
+
 };
