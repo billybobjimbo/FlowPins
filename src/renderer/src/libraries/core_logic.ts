@@ -1565,4 +1565,34 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  "rnd_error_scanner": {
+    title: "Render Error Scanner",
+    profile: "Pipeline - Render",
+    inputs: [
+      { name: "exec_in",    pin_type: "exec"   },
+      { name: "log_folder", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",     pin_type: "exec"    },
+      { name: "error_count",  pin_type: "int"     },
+      { name: "warning_count",pin_type: "int"     },
+      { name: "error_lines",  pin_type: "list"    },
+      { name: "has_errors",   pin_type: "boolean" }
+    ],
+    default_props: {
+      log_folder:     "",
+      log_extension:  ".log",
+      custom_errors:  "",
+      show_warnings:  true,
+      max_errors:     50
+    },
+    ui_schema: [
+      { label: "Log Folder Path",       prop_key: "log_folder",     type: "input"    },
+      { label: "Log File Extension",    prop_key: "log_extension",  type: "input"    },
+      { label: "Custom Error Strings (comma separated)", prop_key: "custom_errors", type: "input" },
+      { label: "Show Warnings",         prop_key: "show_warnings",  type: "checkbox" },
+      { label: "Max Errors to Show",    prop_key: "max_errors",     type: "number"   }
+    ]
+  },
+
 };

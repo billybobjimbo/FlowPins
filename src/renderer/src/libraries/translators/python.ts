@@ -2555,4 +2555,123 @@ else:
 {exec_out}`,
 
 
+  "rnd_error_scanner": `# Render Error Scanner
+# Scans render log files for common error strings
+import os, re
+from datetime import datetime
+
+_log_folder_{node_id}  = "{log_folder}".replace(chr(92), "/")
+_log_ext_{node_id}     = "{log_extension}" if "{log_extension}".startswith(".") else "." + "{log_extension}"
+_custom_{node_id}      = "{custom_errors}"
+_show_warn_{node_id}   = str("{show_warnings}").lower() == "true"
+_max_{node_id}         = int({max_errors})
+
+# Normalise path
+if isinstance(_log_folder_{node_id}, str):
+    _log_folder_{node_id} = _log_folder_{node_id}.replace(chr(92), "/")
+
+error_count   = 0
+warning_count = 0
+error_lines   = []
+has_errors    = False
+
+# Common error patterns across DCCs
+_ERROR_PATTERNS_{node_id} = [
+    "error", "failed", "failure", "fatal", "exception",
+    "traceback", "cannot open", "file not found",
+    "out of memory", "crash", "aborted", "killed",
+    "permission denied", "access denied", "disk full",
+    "rendering aborted", "frame failed", "job failed"
+]
+
+# Common warning patterns
+_WARN_PATTERNS_{node_id} = [
+    "warning", "warn:", "deprecated", "missing texture",
+    "missing file", "not found", "skipping"
+]
+
+# Add custom error strings
+if _custom_{node_id}:
+    for _ce_{node_id} in _custom_{node_id}.split(","):
+        _ce_{node_id} = _ce_{node_id}.strip().lower()
+        if _ce_{node_id}:
+            _ERROR_PATTERNS_{node_id}.append(_ce_{node_id})
+
+if not _log_folder_{node_id} or not os.path.isdir(_log_folder_{node_id}):
+    print("FlowPins ERROR: Log folder not found — " + str(_log_folder_{node_id}))
+else:
+    # Find all log files
+    _log_files_{node_id} = []
+    for _fn_{node_id} in sorted(os.listdir(_log_folder_{node_id})):
+        if _fn_{node_id}.lower().endswith(_log_ext_{node_id}.lower()):
+            _log_files_{node_id}.append(os.path.join(_log_folder_{node_id}, _fn_{node_id}))
+
+    print("FlowPins Render Error Scanner")
+    print("  Log Folder : " + _log_folder_{node_id})
+    print("  Log Files  : " + str(len(_log_files_{node_id})))
+    print("  Extension  : " + _log_ext_{node_id})
+    print("-" * 55)
+
+    if not _log_files_{node_id}:
+        print("  No " + _log_ext_{node_id} + " files found in folder")
+    else:
+        for _lf_{node_id} in _log_files_{node_id}:
+            _fname_{node_id} = os.path.basename(_lf_{node_id})
+            _file_errors_{node_id}   = []
+            _file_warnings_{node_id} = []
+
+            try:
+                with open(_lf_{node_id}, "r", encoding="utf-8", errors="ignore") as _f_{node_id}:
+                    for _lnum_{node_id}, _line_{node_id} in enumerate(_f_{node_id}, 1):
+                        _lower_{node_id} = _line_{node_id}.lower().strip()
+                        if not _lower_{node_id}:
+                            continue
+
+                        # Check for errors
+                        _is_err_{node_id} = any(p in _lower_{node_id} for p in _ERROR_PATTERNS_{node_id})
+                        _is_warn_{node_id} = any(p in _lower_{node_id} for p in _WARN_PATTERNS_{node_id})
+
+                        if _is_err_{node_id}:
+                            _file_errors_{node_id}.append("  Line " + str(_lnum_{node_id}) + ": " + _line_{node_id}.strip()[:120])
+                        elif _is_warn_{node_id} and _show_warn_{node_id}:
+                            _file_warnings_{node_id}.append("  Line " + str(_lnum_{node_id}) + ": " + _line_{node_id}.strip()[:120])
+
+            except Exception as _e_{node_id}:
+                _file_errors_{node_id}.append("  Could not read file: " + str(_e_{node_id}))
+
+            # Report per file
+            if _file_errors_{node_id} or _file_warnings_{node_id}:
+                print("")
+                print("FILE: " + _fname_{node_id})
+                if _file_errors_{node_id}:
+                    print("  ERRORS (" + str(len(_file_errors_{node_id})) + "):")
+                    for _el_{node_id} in _file_errors_{node_id}[:_max_{node_id}]:
+                        print("  ✗ " + _el_{node_id})
+                        error_lines.append(_fname_{node_id} + " — " + _el_{node_id}.strip())
+                    if len(_file_errors_{node_id}) > _max_{node_id}:
+                        print("  ... and " + str(len(_file_errors_{node_id}) - _max_{node_id}) + " more errors")
+                if _file_warnings_{node_id} and _show_warn_{node_id}:
+                    print("  WARNINGS (" + str(len(_file_warnings_{node_id})) + "):")
+                    for _wl_{node_id} in _file_warnings_{node_id}[:10]:
+                        print("  ⚠ " + _wl_{node_id})
+            else:
+                print("  ✓ " + _fname_{node_id} + " — clean")
+
+            error_count   += len(_file_errors_{node_id})
+            warning_count += len(_file_warnings_{node_id})
+
+        has_errors = error_count > 0
+
+        print("")
+        print("-" * 55)
+        if has_errors:
+            print("RESULT: ✗ " + str(error_count) + " errors found across " + str(len(_log_files_{node_id})) + " log files")
+        else:
+            print("RESULT: ✓ No errors found — all logs clean")
+        if warning_count > 0:
+            print("        ⚠ " + str(warning_count) + " warnings")
+
+{exec_out}`,
+
+
 };
