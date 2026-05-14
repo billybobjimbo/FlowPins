@@ -1745,4 +1745,32 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  "ast_orphan_finder": {
+    title: "Orphan File Finder",
+    profile: "Pipeline - Assets",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec"   },
+      { name: "folder_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",      pin_type: "exec"    },
+      { name: "orphan_count",  pin_type: "int"     },
+      { name: "orphan_files",  pin_type: "list"    },
+      { name: "orphan_mb",     pin_type: "int"     },
+      { name: "has_orphans",   pin_type: "boolean" }
+    ],
+    default_props: {
+      folder_path:    "",
+      known_patterns: "@@##_@@####-####, @@##_@@####_####, ep##_*_v##",
+      extensions:     ".png,.exr,.tga,.tiff,.jpg",
+      recursive:      true
+    },
+    ui_schema: [
+      { label: "Folder Path",                           prop_key: "folder_path",    type: "input"    },
+      { label: "Known Patterns (comma separated)",      prop_key: "known_patterns", type: "input"    },
+      { label: "File Extensions",                       prop_key: "extensions",     type: "input"    },
+      { label: "Scan Subfolders",                       prop_key: "recursive",      type: "checkbox" }
+    ]
+  },
+
 };

@@ -3131,4 +3131,89 @@ else:
 {exec_out}`,
 
 
+  "ast_orphan_finder": `# Orphan File Finder
+# Finds files that don't match any known naming pattern
+import os, re
+
+_folder_{node_id}    = "{folder_path}".replace(chr(92), "/").rstrip("/")
+_patterns_{node_id}  = [p.strip() for p in "{known_patterns}".split(",") if p.strip()]
+_exts_{node_id}      = [e.strip().lower() for e in "{extensions}".split(",") if e.strip()]
+_recursive_{node_id} = str("{recursive}").lower() == "true"
+
+orphan_count = 0
+orphan_files = []
+orphan_mb    = 0
+has_orphans  = False
+
+def _pattern_to_regex_{node_id}(pattern):
+    _dot_{node_id}   = chr(92) + "."
+    _dig_{node_id}   = chr(92) + "d"
+    _rx_{node_id} = pattern.strip()
+    _rx_{node_id} = _rx_{node_id}.replace(".", _dot_{node_id})
+    _rx_{node_id} = re.sub("#+", lambda m: _dig_{node_id} + "{" + str(len(m.group())) + "}", _rx_{node_id})
+    _rx_{node_id} = re.sub("@+", lambda m: "[a-zA-Z]{" + str(len(m.group())) + "}", _rx_{node_id})
+    _rx_{node_id} = _rx_{node_id}.replace("*", ".*")
+    return "^" + _rx_{node_id} + "$"
+
+if not _folder_{node_id} or not os.path.isdir(_folder_{node_id}):
+    print("FlowPins ERROR: Folder not found — " + str(_folder_{node_id}))
+else:
+    # Compile patterns
+    _compiled_{node_id} = []
+    for _pat_{node_id} in _patterns_{node_id}:
+        try:
+            _compiled_{node_id}.append(re.compile(_pattern_to_regex_{node_id}(_pat_{node_id}), re.IGNORECASE))
+        except:
+            print("  Warning: could not compile pattern — " + _pat_{node_id})
+
+    # Collect files
+    _all_files_{node_id} = []
+    if _recursive_{node_id}:
+        for _r_{node_id}, _d_{node_id}, _f_{node_id} in os.walk(_folder_{node_id}):
+            for _fn_{node_id} in _f_{node_id}:
+                if not _exts_{node_id} or any(_fn_{node_id}.lower().endswith(e) for e in _exts_{node_id}):
+                    _all_files_{node_id}.append((_r_{node_id}, _fn_{node_id}))
+    else:
+        for _fn_{node_id} in os.listdir(_folder_{node_id}):
+            if os.path.isfile(os.path.join(_folder_{node_id}, _fn_{node_id})):
+                if not _exts_{node_id} or any(_fn_{node_id}.lower().endswith(e) for e in _exts_{node_id}):
+                    _all_files_{node_id}.append((_folder_{node_id}, _fn_{node_id}))
+
+    print("FlowPins Orphan File Finder")
+    print("  Folder   : " + _folder_{node_id})
+    print("  Files    : " + str(len(_all_files_{node_id})))
+    print("  Patterns : " + str(len(_compiled_{node_id})))
+    print("-" * 55)
+
+    _orphan_bytes_{node_id} = 0
+
+    for _dir_{node_id}, _fn_{node_id} in sorted(_all_files_{node_id}):
+        _stem_{node_id} = os.path.splitext(_fn_{node_id})[0]
+        _matched_{node_id} = any(p.match(_stem_{node_id}) for p in _compiled_{node_id})
+
+        if not _matched_{node_id}:
+            _fp_{node_id} = os.path.join(_dir_{node_id}, _fn_{node_id})
+            try:
+                _sz_{node_id} = os.path.getsize(_fp_{node_id})
+            except:
+                _sz_{node_id} = 0
+            _orphan_bytes_{node_id} += _sz_{node_id}
+            _mb_{node_id} = round(_sz_{node_id} / (1024*1024), 2)
+            _rel_{node_id} = os.path.relpath(_fp_{node_id}, _folder_{node_id}).replace(chr(92), "/")
+            orphan_files.append(_rel_{node_id})
+            print("  ✗ ORPHAN: " + _rel_{node_id} + " (" + str(_mb_{node_id}) + " MB)")
+
+    orphan_count = len(orphan_files)
+    orphan_mb    = round(_orphan_bytes_{node_id} / (1024*1024), 2)
+    has_orphans  = orphan_count > 0
+
+    print("-" * 55)
+    if not has_orphans:
+        print("  ✓ No orphan files found — all files match known patterns")
+    else:
+        print("  ✗ " + str(orphan_count) + " orphan files found (" + str(orphan_mb) + " MB)")
+
+{exec_out}`,
+
+
 };

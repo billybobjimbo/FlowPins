@@ -1,0 +1,106 @@
+{
+  "nodes": [
+    {
+      "id": "node_1778724755495",
+      "type": "fp",
+      "position": {
+        "x": 195,
+        "y": 450
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Core - Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 195,
+        "y": 450
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1778724766535",
+      "type": "fp",
+      "position": {
+        "x": 675,
+        "y": 450
+      },
+      "data": {
+        "label": "Orphan File Finder",
+        "nodeKind": "ast_orphan_finder",
+        "profile": "Pipeline - Assets",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "folder_path",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "orphan_count",
+            "pin_type": "int"
+          },
+          {
+            "name": "orphan_files",
+            "pin_type": "list"
+          },
+          {
+            "name": "orphan_mb",
+            "pin_type": "int"
+          },
+          {
+            "name": "has_orphans",
+            "pin_type": "boolean"
+          }
+        ],
+        "props": {
+          "folder_path": "E:/videos/SHOW_NAME/EP01/Assets",
+          "known_patterns": "@@##_@@####-####, @@##_@@####_####, ep##_*_v##",
+          "extensions": ".png,.exr,.tga,.tiff,.jpg",
+          "recursive": true
+        }
+      },
+      "width": 200,
+      "height": 237,
+      "selected": true,
+      "positionAbsolute": {
+        "x": 675,
+        "y": 450
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1778724755495",
+      "sourceHandle": "exec_out",
+      "target": "node_1778724766535",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1778724755495exec_out-node_1778724766535exec_in",
+      "animated": true
+    }
+  ]
+}
