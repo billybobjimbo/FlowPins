@@ -1805,4 +1805,31 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  "cs_lut_validator": {
+    title: "LUT Validator",
+    profile: "Pipeline - Colourspace",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec"   },
+      { name: "folder_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",     pin_type: "exec"    },
+      { name: "total_luts",   pin_type: "int"     },
+      { name: "valid_count",  pin_type: "int"     },
+      { name: "invalid_count",pin_type: "int"     },
+      { name: "invalid_list", pin_type: "list"    },
+      { name: "all_valid",    pin_type: "boolean" }
+    ],
+    default_props: {
+      folder_path: "",
+      extensions:  ".cube,.lut,.3dl,.csp,.cc,.ccc",
+      recursive:   true
+    },
+    ui_schema: [
+      { label: "Folder Path",       prop_key: "folder_path", type: "input"    },
+      { label: "LUT Extensions",    prop_key: "extensions",  type: "input"    },
+      { label: "Scan Subfolders",   prop_key: "recursive",   type: "checkbox" }
+    ]
+  },
+
 };

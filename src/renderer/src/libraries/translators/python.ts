@@ -3354,4 +3354,151 @@ else:
 {exec_out}`,
 
 
+  "cs_lut_validator": `# LUT Validator
+# Checks LUT files are present, readable and correctly formatted
+import os, re
+
+_folder_{node_id}    = "{folder_path}".replace(chr(92), "/").rstrip("/")
+_exts_{node_id}      = [e.strip().lower() for e in "{extensions}".split(",") if e.strip()]
+_recursive_{node_id} = str("{recursive}").lower() == "true"
+
+total_luts    = 0
+valid_count   = 0
+invalid_count = 0
+invalid_list  = []
+all_valid     = False
+
+# LUT format validators
+def _validate_cube_{node_id}(fp):
+    # .cube — Adobe/Resolve format
+    # Must have: LUT_3D_SIZE or LUT_1D_SIZE, data lines of 3 floats
+    _has_size_{node_id}  = False
+    _data_lines_{node_id} = 0
+    _expected_{node_id}  = 0
+    try:
+        with open(fp, "r", encoding="utf-8", errors="ignore") as _f_{node_id}:
+            for _line_{node_id} in _f_{node_id}:
+                _l_{node_id} = _line_{node_id}.strip()
+                if not _l_{node_id} or _l_{node_id}.startswith("#"): continue
+                if _l_{node_id}.upper().startswith("LUT_3D_SIZE"):
+                    _sz_{node_id} = int(_l_{node_id}.split()[-1])
+                    _expected_{node_id} = _sz_{node_id} ** 3
+                    _has_size_{node_id} = True
+                elif _l_{node_id}.upper().startswith("LUT_1D_SIZE"):
+                    _expected_{node_id} = int(_l_{node_id}.split()[-1])
+                    _has_size_{node_id} = True
+                elif _l_{node_id}.upper().startswith("LUT_"):
+                    continue  # other metadata
+                elif _l_{node_id}.upper().startswith("TITLE") or _l_{node_id}.upper().startswith("DOMAIN"):
+                    continue
+                else:
+                    _parts_{node_id} = _l_{node_id}.split()
+                    if len(_parts_{node_id}) == 3:
+                        try:
+                            float(_parts_{node_id}[0]); float(_parts_{node_id}[1]); float(_parts_{node_id}[2])
+                            _data_lines_{node_id} += 1
+                        except: pass
+        if not _has_size_{node_id}:
+            return False, "Missing LUT_3D_SIZE or LUT_1D_SIZE declaration"
+        if _expected_{node_id} > 0 and _data_lines_{node_id} == 0:
+            return False, "No data lines found"
+        if _expected_{node_id} > 0 and abs(_data_lines_{node_id} - _expected_{node_id}) > 10:
+            return False, "Expected " + str(_expected_{node_id}) + " data lines, found " + str(_data_lines_{node_id})
+        return True, "OK — " + str(_data_lines_{node_id}) + " data lines"
+    except Exception as _e_{node_id}:
+        return False, "Read error: " + str(_e_{node_id})[:50]
+
+def _validate_3dl_{node_id}(fp):
+    # .3dl — Lustre/Flame format
+    _data_lines_{node_id} = 0
+    try:
+        with open(fp, "r", encoding="utf-8", errors="ignore") as _f_{node_id}:
+            for _line_{node_id} in _f_{node_id}:
+                _l_{node_id} = _line_{node_id}.strip()
+                if not _l_{node_id} or _l_{node_id}.startswith("#"): continue
+                _parts_{node_id} = _l_{node_id}.split()
+                if len(_parts_{node_id}) >= 3:
+                    try:
+                        int(_parts_{node_id}[0]); int(_parts_{node_id}[1]); int(_parts_{node_id}[2])
+                        _data_lines_{node_id} += 1
+                    except: pass
+        if _data_lines_{node_id} == 0:
+            return False, "No integer data lines found"
+        return True, "OK — " + str(_data_lines_{node_id}) + " data lines"
+    except Exception as _e_{node_id}:
+        return False, "Read error: " + str(_e_{node_id})[:50]
+
+def _validate_generic_{node_id}(fp):
+    # .csp, .lut, .cc, .ccc — check it's readable and non-empty
+    try:
+        _sz_{node_id} = os.path.getsize(fp)
+        if _sz_{node_id} == 0:
+            return False, "File is empty"
+        with open(fp, "r", encoding="utf-8", errors="ignore") as _f_{node_id}:
+            _content_{node_id} = _f_{node_id}.read(1024)
+        if not _content_{node_id}.strip():
+            return False, "File appears empty or unreadable"
+        return True, "OK — " + str(round(_sz_{node_id}/1024, 1)) + " KB"
+    except Exception as _e_{node_id}:
+        return False, "Read error: " + str(_e_{node_id})[:50]
+
+if not _folder_{node_id} or not os.path.isdir(_folder_{node_id}):
+    print("FlowPins ERROR: Folder not found — " + str(_folder_{node_id}))
+else:
+    # Collect LUT files
+    _luts_{node_id} = []
+    if _recursive_{node_id}:
+        for _r_{node_id}, _d_{node_id}, _f_{node_id} in os.walk(_folder_{node_id}):
+            for _fn_{node_id} in _f_{node_id}:
+                if any(_fn_{node_id}.lower().endswith(e) for e in _exts_{node_id}):
+                    _luts_{node_id}.append(os.path.join(_r_{node_id}, _fn_{node_id}))
+    else:
+        for _fn_{node_id} in os.listdir(_folder_{node_id}):
+            if any(_fn_{node_id}.lower().endswith(e) for e in _exts_{node_id}):
+                _luts_{node_id}.append(os.path.join(_folder_{node_id}, _fn_{node_id}))
+
+    total_luts = len(_luts_{node_id})
+
+    print("FlowPins LUT Validator")
+    print("  Folder : " + _folder_{node_id})
+    print("  LUTs   : " + str(total_luts))
+    print("-" * 55)
+
+    if total_luts == 0:
+        print("  No LUT files found — check folder path and extensions")
+    else:
+        for _fp_{node_id} in sorted(_luts_{node_id}):
+            _fn_{node_id}  = os.path.basename(_fp_{node_id})
+            _ext_{node_id} = os.path.splitext(_fn_{node_id})[1].lower()
+            _sz_{node_id}  = round(os.path.getsize(_fp_{node_id}) / 1024, 1)
+
+            # Validate by format
+            if _ext_{node_id} == ".cube":
+                _ok_{node_id}, _msg_{node_id} = _validate_cube_{node_id}(_fp_{node_id})
+            elif _ext_{node_id} == ".3dl":
+                _ok_{node_id}, _msg_{node_id} = _validate_3dl_{node_id}(_fp_{node_id})
+            else:
+                _ok_{node_id}, _msg_{node_id} = _validate_generic_{node_id}(_fp_{node_id})
+
+            if _ok_{node_id}:
+                valid_count += 1
+                print("  ✓ " + _fn_{node_id} + " [" + str(_sz_{node_id}) + " KB] — " + _msg_{node_id})
+            else:
+                invalid_count += 1
+                invalid_list.append(_fn_{node_id} + " — " + _msg_{node_id})
+                print("  ✗ " + _fn_{node_id} + " [" + str(_sz_{node_id}) + " KB] — " + _msg_{node_id})
+
+    all_valid = invalid_count == 0 and total_luts > 0
+
+    print("-" * 55)
+    if total_luts == 0:
+        print("RESULT: No LUT files to validate")
+    elif all_valid:
+        print("RESULT: ✓ ALL VALID — " + str(valid_count) + "/" + str(total_luts) + " LUTs passed")
+    else:
+        print("RESULT: ✗ " + str(invalid_count) + " invalid, " + str(valid_count) + " valid")
+
+{exec_out}`,
+
+
 };
