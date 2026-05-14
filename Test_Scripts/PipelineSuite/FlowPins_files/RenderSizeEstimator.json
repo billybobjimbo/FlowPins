@@ -1,0 +1,104 @@
+{
+  "nodes": [
+    {
+      "id": "node_1778717155295",
+      "type": "fp",
+      "position": {
+        "x": 135,
+        "y": 270
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Core - Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 135,
+        "y": 270
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1778717163443",
+      "type": "fp",
+      "position": {
+        "x": 450,
+        "y": 270
+      },
+      "data": {
+        "label": "Render Size Estimator",
+        "nodeKind": "rnd_size_estimator",
+        "profile": "Pipeline - Render",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "size_mb",
+            "pin_type": "int"
+          },
+          {
+            "name": "size_gb",
+            "pin_type": "int"
+          },
+          {
+            "name": "size_per_frame",
+            "pin_type": "int"
+          },
+          {
+            "name": "size_summary",
+            "pin_type": "string"
+          }
+        ],
+        "props": {
+          "width": 1920,
+          "height": 1080,
+          "frame_count": 100,
+          "bit_depth": 8,
+          "format": "PNG",
+          "channels": 4
+        }
+      },
+      "width": 204,
+      "height": 237,
+      "selected": true,
+      "positionAbsolute": {
+        "x": 450,
+        "y": 270
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1778717155295",
+      "sourceHandle": "exec_out",
+      "target": "node_1778717163443",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1778717155295exec_out-node_1778717163443exec_in",
+      "animated": true
+    }
+  ]
+}

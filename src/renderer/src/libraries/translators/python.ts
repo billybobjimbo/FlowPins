@@ -2768,11 +2768,6 @@ else:
     _total_bytes_{node_id} = 0
 
     # Walk the folder
-    if _recursive_{node_id}:
-        _walker_{node_id} = os.walk(_folder_{node_id})
-    else:
-        _walker_{node_id} = [(_folder_{node_id}, os.listdir(_folder_{node_id}), [])]
-
     for _root_{node_id}, _dirs_{node_id}, _files_{node_id} in (os.walk(_folder_{node_id}) if _recursive_{node_id} else [(_folder_{node_id}, [], os.listdir(_folder_{node_id}))]):
         total_folders += len(_dirs_{node_id}) if _recursive_{node_id} else 0
         _rel_{node_id} = os.path.relpath(_root_{node_id}, _folder_{node_id})
@@ -2855,6 +2850,105 @@ else:
             print("  Report: " + _rpath_{node_id})
         except Exception as _re_{node_id}:
             print("  Report save failed: " + str(_re_{node_id}))
+
+{exec_out}`,
+
+
+  "ast_version_checker": `# Version Checker
+# Finds the highest version of each asset and flags outdated files
+import os, re
+
+_folder_{node_id}    = "{folder_path}".replace(chr(92), "/").rstrip("/")
+_ext_{node_id}       = "{extension}"
+_recursive_{node_id} = str("{recursive}").lower() == "true"
+
+total_assets   = 0
+outdated_count = 0
+outdated_files = []
+all_current    = False
+
+if not _folder_{node_id} or not os.path.isdir(_folder_{node_id}):
+    print("FlowPins ERROR: Folder not found — " + str(_folder_{node_id}))
+else:
+    # Version pattern — matches _v01, _v001, _V3, _v0001 etc
+    _digit_{node_id} = chr(92) + "d"
+    _vpat_{node_id}  = re.compile(
+        r"^(.*?)_[vV](" + _digit_{node_id} + r"+)(.*)" +
+        re.escape(_ext_{node_id}) + "$",
+        re.IGNORECASE
+    )
+
+    # Collect all files
+    _all_files_{node_id} = []
+    if _recursive_{node_id}:
+        for _r_{node_id}, _d_{node_id}, _f_{node_id} in os.walk(_folder_{node_id}):
+            for _fn_{node_id} in _f_{node_id}:
+                if _fn_{node_id}.lower().endswith(_ext_{node_id}.lower()):
+                    _all_files_{node_id}.append((_r_{node_id}, _fn_{node_id}))
+    else:
+        for _fn_{node_id} in os.listdir(_folder_{node_id}):
+            if _fn_{node_id}.lower().endswith(_ext_{node_id}.lower()):
+                _all_files_{node_id}.append((_folder_{node_id}, _fn_{node_id}))
+
+    # Group by base name (strip version number)
+    _groups_{node_id} = {}
+    _no_version_{node_id} = []
+
+    for _dir_{node_id}, _fn_{node_id} in _all_files_{node_id}:
+        _m_{node_id} = _vpat_{node_id}.match(_fn_{node_id})
+        if _m_{node_id}:
+            _base_{node_id}    = _m_{node_id}.group(1) + _m_{node_id}.group(3)
+            _ver_{node_id}     = int(_m_{node_id}.group(2))
+            _key_{node_id}     = _dir_{node_id}.replace(chr(92), "/") + "|" + _base_{node_id}
+            if _key_{node_id} not in _groups_{node_id}:
+                _groups_{node_id}[_key_{node_id}] = []
+            _groups_{node_id}[_key_{node_id}].append((_fn_{node_id}, _ver_{node_id}))
+        else:
+            _no_version_{node_id}.append(_fn_{node_id})
+
+    print("FlowPins Version Checker")
+    print("  Folder    : " + _folder_{node_id})
+    print("  Extension : " + _ext_{node_id})
+    print("  Files     : " + str(len(_all_files_{node_id})))
+    print("-" * 55)
+
+    _versioned_count_{node_id} = 0
+    _asset_groups_{node_id}    = 0
+
+    for _key_{node_id}, _versions_{node_id} in sorted(_groups_{node_id}.items()):
+        if len(_versions_{node_id}) > 1:
+            _asset_groups_{node_id} += 1
+            _max_ver_{node_id} = max(v for _, v in _versions_{node_id})
+            _sorted_{node_id} = sorted(_versions_{node_id}, key=lambda x: x[1])
+
+            print("")
+            print("  ASSET GROUP: " + _key_{node_id}.split("|")[1])
+            print("  Latest version: v" + str(_max_ver_{node_id}).zfill(2))
+
+            for _fn_{node_id}, _ver_{node_id} in _sorted_{node_id}:
+                _versioned_count_{node_id} += 1
+                if _ver_{node_id} < _max_ver_{node_id}:
+                    print("    ✗ OUTDATED: " + _fn_{node_id} + " (v" + str(_ver_{node_id}).zfill(2) + ")")
+                    outdated_files.append(_fn_{node_id})
+                    outdated_count += 1
+                else:
+                    print("    ✓ CURRENT : " + _fn_{node_id} + " (v" + str(_ver_{node_id}).zfill(2) + ")")
+        else:
+            _versioned_count_{node_id} += 1
+
+    total_assets = len(_all_files_{node_id})
+    all_current  = outdated_count == 0
+
+    print("")
+    print("-" * 55)
+    if _asset_groups_{node_id} == 0:
+        print("  No versioned assets found (no _v## pattern detected)")
+        print("  Files scanned: " + str(len(_all_files_{node_id})))
+    elif all_current:
+        print("  ✓ ALL CURRENT — no outdated versions found")
+        print("  " + str(_asset_groups_{node_id}) + " asset groups checked")
+    else:
+        print("  ✗ " + str(outdated_count) + " outdated files found across " + str(_asset_groups_{node_id}) + " asset groups")
 
 {exec_out}`,
 

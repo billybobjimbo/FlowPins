@@ -1659,4 +1659,30 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  "ast_version_checker": {
+    title: "Version Checker",
+    profile: "Pipeline - Assets",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec"   },
+      { name: "folder_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",       pin_type: "exec"    },
+      { name: "total_assets",   pin_type: "int"     },
+      { name: "outdated_count", pin_type: "int"     },
+      { name: "outdated_files", pin_type: "list"    },
+      { name: "all_current",    pin_type: "boolean" }
+    ],
+    default_props: {
+      folder_path: "",
+      extension:   ".png",
+      recursive:   false
+    },
+    ui_schema: [
+      { label: "Folder Path",     prop_key: "folder_path", type: "input"    },
+      { label: "File Extension",  prop_key: "extension",   type: "input"    },
+      { label: "Scan Subfolders", prop_key: "recursive",   type: "checkbox" }
+    ]
+  },
+
 };

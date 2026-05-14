@@ -1,0 +1,12 @@
+{
+  "folder_path": "E:/videos/SHOW_NAME/EP01/Delivery/sc0220",
+  "extension": ".png",
+  "start_frame": 1,
+  "end_frame": 116,
+  "frame_padding": 4,
+  "naming_pattern": "@@##_@@####_####",
+  "colourspace": "sRGB",
+  "prefix": "",
+  "source_folder": "",
+  "target_folder": ""
+}
