@@ -2674,4 +2674,189 @@ else:
 {exec_out}`,
 
 
+  "rnd_size_estimator": `# Render Size Estimator
+# Estimates disk space needed for a render sequence
+_width_{node_id}       = int({width})
+_height_{node_id}      = int({height})
+_frames_{node_id}      = int({frame_count})
+_bit_depth_{node_id}   = int({bit_depth})
+_format_{node_id}      = "{format}"
+_channels_{node_id}    = int({channels})
+
+# Compression ratios per format (approximate)
+_COMPRESSION_{node_id} = {
+    "PNG":  0.5,
+    "EXR":  0.6,
+    "TIFF": 0.9,
+    "TGA":  0.8,
+    "JPG":  0.1,
+    "DPX":  1.0
+}
+
+_bytes_per_pixel_{node_id} = (_bit_depth_{node_id} / 8) * _channels_{node_id}
+_raw_frame_bytes_{node_id} = _width_{node_id} * _height_{node_id} * _bytes_per_pixel_{node_id}
+_compression_{node_id}     = _COMPRESSION_{node_id}.get(_format_{node_id}.upper(), 0.7)
+_frame_bytes_{node_id}     = _raw_frame_bytes_{node_id} * _compression_{node_id}
+_total_bytes_{node_id}     = _frame_bytes_{node_id} * _frames_{node_id}
+
+size_per_frame = round(_frame_bytes_{node_id} / (1024 * 1024), 2)
+size_mb        = round(_total_bytes_{node_id} / (1024 * 1024), 1)
+size_gb        = round(_total_bytes_{node_id} / (1024 * 1024 * 1024), 2)
+
+# Human readable
+if size_gb >= 1:
+    _display_{node_id} = str(size_gb) + " GB"
+else:
+    _display_{node_id} = str(size_mb) + " MB"
+
+size_summary = (str(_width_{node_id}) + "x" + str(_height_{node_id}) + " " +
+    _format_{node_id} + " " + str(_bit_depth_{node_id}) + "-bit x " +
+    str(_frames_{node_id}) + " frames = " + _display_{node_id})
+
+print("FlowPins Render Size Estimator")
+print("=" * 55)
+print("  Format     : " + _format_{node_id} + " " + str(_bit_depth_{node_id}) + "-bit")
+print("  Resolution : " + str(_width_{node_id}) + " x " + str(_height_{node_id}))
+print("  Channels   : " + str(_channels_{node_id}) + " (" + ("RGBA" if _channels_{node_id}==4 else "RGB" if _channels_{node_id}==3 else str(_channels_{node_id}) + "ch") + ")")
+print("  Frames     : " + str(_frames_{node_id}))
+print("  Compression: ~" + str(int(_compression_{node_id} * 100)) + "% of raw")
+print("-" * 55)
+print("  Per frame  : ~" + str(size_per_frame) + " MB")
+print("  Total      : ~" + _display_{node_id})
+print("=" * 55)
+
+# Common render lengths for context
+print("")
+print("REFERENCE ESTIMATES (same settings):")
+for _label_{node_id}, _f_{node_id} in [("30 sec @ 24fps", 720), ("1 min @ 24fps", 1440), ("5 min @ 24fps", 7200), ("22 min @ 24fps", 31680)]:
+    _est_{node_id} = round((_frame_bytes_{node_id} * _f_{node_id}) / (1024*1024*1024), 2)
+    _est_mb_{node_id} = round((_frame_bytes_{node_id} * _f_{node_id}) / (1024*1024), 1)
+    if _est_{node_id} >= 1:
+        print("  " + _label_{node_id} + " : ~" + str(_est_{node_id}) + " GB")
+    else:
+        print("  " + _label_{node_id} + " : ~" + str(_est_mb_{node_id}) + " MB")
+
+{exec_out}`,
+
+
+  // ==========================================================================
+  // PIPELINE SUITE — CATEGORY 4: ASSET MANAGEMENT
+  // ==========================================================================
+
+  "ast_inventory": `# Asset Inventory
+# Scans a folder and generates a complete asset list with counts and sizes
+import os
+from datetime import datetime
+
+_folder_{node_id}     = "{folder_path}".replace(chr(92), "/")
+_exts_{node_id}       = [e.strip().lower() for e in "{extensions}".split(",") if e.strip()]
+_recursive_{node_id}  = str("{recursive}").lower() == "true"
+_save_{node_id}       = str("{save_report}").lower() == "true"
+
+total_files   = 0
+total_folders = 0
+total_size_mb = 0
+asset_list    = []
+
+if not _folder_{node_id} or not os.path.isdir(_folder_{node_id}):
+    print("FlowPins ERROR: Folder not found — " + str(_folder_{node_id}))
+else:
+    _ts_{node_id}      = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    _type_counts_{node_id} = {}
+    _type_sizes_{node_id}  = {}
+    _folder_counts_{node_id} = {}
+    _total_bytes_{node_id} = 0
+
+    # Walk the folder
+    if _recursive_{node_id}:
+        _walker_{node_id} = os.walk(_folder_{node_id})
+    else:
+        _walker_{node_id} = [(_folder_{node_id}, os.listdir(_folder_{node_id}), [])]
+
+    for _root_{node_id}, _dirs_{node_id}, _files_{node_id} in (os.walk(_folder_{node_id}) if _recursive_{node_id} else [(_folder_{node_id}, [], os.listdir(_folder_{node_id}))]):
+        total_folders += len(_dirs_{node_id}) if _recursive_{node_id} else 0
+        _rel_{node_id} = os.path.relpath(_root_{node_id}, _folder_{node_id})
+
+        for _fn_{node_id} in sorted(_files_{node_id}):
+            _ext_{node_id} = os.path.splitext(_fn_{node_id})[1].lower()
+            if not _exts_{node_id} or _ext_{node_id} in _exts_{node_id}:
+                _fp_{node_id} = os.path.join(_root_{node_id}, _fn_{node_id})
+                try:
+                    _sz_{node_id} = os.path.getsize(_fp_{node_id})
+                except:
+                    _sz_{node_id} = 0
+
+                total_files += 1
+                _total_bytes_{node_id} += _sz_{node_id}
+
+                # Count by type
+                _type_counts_{node_id}[_ext_{node_id}] = _type_counts_{node_id}.get(_ext_{node_id}, 0) + 1
+                _type_sizes_{node_id}[_ext_{node_id}]   = _type_sizes_{node_id}.get(_ext_{node_id}, 0) + _sz_{node_id}
+
+                # Count by folder
+                _folder_counts_{node_id}[_rel_{node_id}] = _folder_counts_{node_id}.get(_rel_{node_id}, 0) + 1
+
+                asset_list.append(_rel_{node_id} + "/" + _fn_{node_id})
+
+    total_size_mb = round(_total_bytes_{node_id} / (1024 * 1024), 2)
+
+    print("FlowPins Asset Inventory")
+    print("  Folder : " + _folder_{node_id})
+    print("  Scanned: " + ("recursively" if _recursive_{node_id} else "top level only"))
+    print("=" * 60)
+    print("  Total Files   : " + str(total_files))
+    print("  Total Folders : " + str(total_folders))
+    print("  Total Size    : " + str(total_size_mb) + " MB")
+    print("-" * 60)
+
+    # By file type
+    print("BY FILE TYPE:")
+    for _ext_{node_id} in sorted(_type_counts_{node_id}.keys()):
+        _cnt_{node_id} = _type_counts_{node_id}[_ext_{node_id}]
+        _mb_{node_id}  = round(_type_sizes_{node_id}[_ext_{node_id}] / (1024*1024), 2)
+        print("  {:<12} {:>6} files   {:>10} MB".format(
+            _ext_{node_id} or "(no ext)", _cnt_{node_id}, _mb_{node_id}))
+
+    # By folder
+    if _recursive_{node_id} and len(_folder_counts_{node_id}) > 1:
+        print("-" * 60)
+        print("BY FOLDER:")
+        for _fld_{node_id} in sorted(_folder_counts_{node_id}.keys()):
+            print("  {:>6} files   {}".format(
+                _folder_counts_{node_id}[_fld_{node_id}], _fld_{node_id}))
+
+    print("=" * 60)
+
+    # Save report
+    if _save_{node_id}:
+        _rname_{node_id} = "asset_inventory_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".txt"
+        _rpath_{node_id} = os.path.join(_folder_{node_id}, _rname_{node_id})
+        try:
+            _lines_{node_id} = [
+                "FLOWPINS ASSET INVENTORY",
+                "Generated : " + _ts_{node_id},
+                "Folder    : " + _folder_{node_id},
+                "Files     : " + str(total_files),
+                "Size      : " + str(total_size_mb) + " MB",
+                "=" * 60,
+                "",
+                "BY FILE TYPE:"
+            ]
+            for _ext_{node_id} in sorted(_type_counts_{node_id}.keys()):
+                _lines_{node_id}.append("  " + (_ext_{node_id} or "(no ext)") + " — " +
+                    str(_type_counts_{node_id}[_ext_{node_id}]) + " files, " +
+                    str(round(_type_sizes_{node_id}[_ext_{node_id}] / (1024*1024), 2)) + " MB")
+            _lines_{node_id}.append("")
+            _lines_{node_id}.append("ALL FILES:")
+            for _a_{node_id} in sorted(asset_list):
+                _lines_{node_id}.append("  " + _a_{node_id})
+            with open(_rpath_{node_id}, "w", encoding="utf-8") as _rf_{node_id}:
+                _rf_{node_id}.write(chr(10).join(_lines_{node_id}))
+            print("  Report: " + _rpath_{node_id})
+        except Exception as _re_{node_id}:
+            print("  Report save failed: " + str(_re_{node_id}))
+
+{exec_out}`,
+
+
 };

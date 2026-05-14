@@ -1595,4 +1595,68 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  "rnd_size_estimator": {
+    title: "Render Size Estimator",
+    profile: "Pipeline - Render",
+    inputs: [
+      { name: "exec_in", pin_type: "exec" }
+    ],
+    outputs: [
+      { name: "exec_out",       pin_type: "exec"   },
+      { name: "size_mb",        pin_type: "int"    },
+      { name: "size_gb",        pin_type: "int"    },
+      { name: "size_per_frame", pin_type: "int"    },
+      { name: "size_summary",   pin_type: "string" }
+    ],
+    default_props: {
+      width:       1920,
+      height:      1080,
+      frame_count: 100,
+      bit_depth:   8,
+      format:      "PNG",
+      channels:    4
+    },
+    ui_schema: [
+      { label: "Width (px)",      prop_key: "width",       type: "number"   },
+      { label: "Height (px)",     prop_key: "height",      type: "number"   },
+      { label: "Frame Count",     prop_key: "frame_count", type: "number"   },
+      { label: "Bit Depth",       prop_key: "bit_depth",   type: "number"   },
+      { label: "Format",          prop_key: "format",      type: "dropdown",
+        options: ["PNG", "EXR", "TIFF", "TGA", "JPG", "DPX"]               },
+      { label: "Channels (3=RGB, 4=RGBA)", prop_key: "channels", type: "number" }
+    ]
+  },
+
+  // ==========================================================================
+  // PIPELINE SUITE — CATEGORY 4: ASSET MANAGEMENT
+  // ==========================================================================
+
+  "ast_inventory": {
+    title: "Asset Inventory",
+    profile: "Pipeline - Assets",
+    inputs: [
+      { name: "exec_in",      pin_type: "exec"   },
+      { name: "folder_path",  pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",      pin_type: "exec"   },
+      { name: "total_files",   pin_type: "int"    },
+      { name: "total_folders", pin_type: "int"    },
+      { name: "total_size_mb", pin_type: "int"    },
+      { name: "asset_list",    pin_type: "list"   }
+    ],
+    default_props: {
+      folder_path:  "",
+      extensions:   ".png,.jpg,.tga,.tiff,.exr,.psd,.ai,.svg,.mp3,.wav,.pdf,.docx",
+      recursive:    true,
+      save_report:  true
+    },
+    ui_schema: [
+      { label: "Folder Path",         prop_key: "folder_path",  type: "input"    },
+      { label: "File Extensions",     prop_key: "extensions",   type: "input"    },
+      { label: "Scan Subfolders",     prop_key: "recursive",    type: "checkbox" },
+      { label: "Save Report",         prop_key: "save_report",  type: "checkbox" }
+    ]
+  },
+
 };
