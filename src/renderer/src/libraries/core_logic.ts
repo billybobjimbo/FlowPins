@@ -1773,4 +1773,36 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  // ==========================================================================
+  // PIPELINE SUITE — CATEGORY 5: COLOURSPACE & LUT MANAGEMENT
+  // ==========================================================================
+
+  "cs_project_report": {
+    title: "Colourspace Report",
+    profile: "Pipeline - Colourspace",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec"   },
+      { name: "folder_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",       pin_type: "exec"   },
+      { name: "total_files",    pin_type: "int"    },
+      { name: "unique_spaces",  pin_type: "int"    },
+      { name: "untagged_count", pin_type: "int"    },
+      { name: "summary",        pin_type: "string" }
+    ],
+    default_props: {
+      folder_path: "",
+      extensions:  ".png,.tga,.tiff,.exr,.jpg",
+      recursive:   true,
+      save_report: true
+    },
+    ui_schema: [
+      { label: "Folder Path",        prop_key: "folder_path",  type: "input"    },
+      { label: "File Extensions",    prop_key: "extensions",   type: "input"    },
+      { label: "Scan Subfolders",    prop_key: "recursive",    type: "checkbox" },
+      { label: "Save Report",        prop_key: "save_report",  type: "checkbox" }
+    ]
+  },
+
 };

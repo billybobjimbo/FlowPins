@@ -3216,4 +3216,142 @@ else:
 {exec_out}`,
 
 
+  // ==========================================================================
+  // PIPELINE SUITE — CATEGORY 5: COLOURSPACE & LUT MANAGEMENT
+  // ==========================================================================
+
+  "cs_project_report": `# Colourspace Report
+# Scans all images in a project and reports the colourspace of every file
+import os, io
+from PIL import Image, ImageCms
+from datetime import datetime
+
+_folder_{node_id}    = "{folder_path}".replace(chr(92), "/").rstrip("/")
+_exts_{node_id}      = [e.strip().lower() for e in "{extensions}".split(",") if e.strip()]
+_recursive_{node_id} = str("{recursive}").lower() == "true"
+_save_{node_id}      = str("{save_report}").lower() == "true"
+
+total_files    = 0
+unique_spaces  = 0
+untagged_count = 0
+summary        = ""
+
+def _detect_cs_{node_id}(fp):
+    _ext_{node_id} = os.path.splitext(fp)[1].lower()
+    try:
+        with Image.open(fp) as _img_{node_id}:
+            _info_{node_id} = _img_{node_id}.info
+            if "icc_profile" in _info_{node_id}:
+                try:
+                    _desc_{node_id} = ImageCms.getProfileDescription(
+                        ImageCms.ImageCmsProfile(
+                            io.BytesIO(_info_{node_id}["icc_profile"])
+                        )
+                    ).strip().lower()
+                    if "srgb"   in _desc_{node_id}: return "sRGB"
+                    if "709"    in _desc_{node_id}: return "Rec.709"
+                    if "2020"   in _desc_{node_id}: return "Rec.2020"
+                    if "p3"     in _desc_{node_id}: return "DCI-P3"
+                    if "aces"   in _desc_{node_id}: return "ACES"
+                    if "linear" in _desc_{node_id}: return "Linear"
+                    return "ICC: " + _desc_{node_id}[:25]
+                except:
+                    return "ICC Embedded"
+            elif "srgb" in _info_{node_id}:
+                return "sRGB"
+            elif "gamma" in _info_{node_id}:
+                _g_{node_id} = _info_{node_id}["gamma"]
+                if abs(_g_{node_id} - 1.0) < 0.01:    return "Linear"
+                if abs(_g_{node_id} - 0.4545) < 0.01: return "sRGB (gamma)"
+                return "Gamma " + str(round(_g_{node_id}, 3))
+            return "Untagged"
+    except Exception as _e_{node_id}:
+        return "ERROR: " + str(_e_{node_id})[:40]
+
+if not _folder_{node_id} or not os.path.isdir(_folder_{node_id}):
+    print("FlowPins ERROR: Folder not found — " + str(_folder_{node_id}))
+else:
+    _ts_{node_id}      = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    _cs_map_{node_id}  = {}   # colourspace -> list of files
+    _all_results_{node_id} = []
+
+    # Collect files
+    _files_{node_id} = []
+    if _recursive_{node_id}:
+        for _r_{node_id}, _d_{node_id}, _f_{node_id} in os.walk(_folder_{node_id}):
+            for _fn_{node_id} in _f_{node_id}:
+                if any(_fn_{node_id}.lower().endswith(e) for e in _exts_{node_id}):
+                    _files_{node_id}.append(os.path.join(_r_{node_id}, _fn_{node_id}))
+    else:
+        for _fn_{node_id} in os.listdir(_folder_{node_id}):
+            if any(_fn_{node_id}.lower().endswith(e) for e in _exts_{node_id}):
+                _files_{node_id}.append(os.path.join(_folder_{node_id}, _fn_{node_id}))
+
+    total_files = len(_files_{node_id})
+
+    print("FlowPins Colourspace Report")
+    print("  Folder : " + _folder_{node_id})
+    print("  Files  : " + str(total_files))
+    print("-" * 60)
+
+    for _fp_{node_id} in sorted(_files_{node_id}):
+        _fn_{node_id} = os.path.basename(_fp_{node_id})
+        _cs_{node_id} = _detect_cs_{node_id}(_fp_{node_id})
+        _rel_{node_id} = os.path.relpath(_fp_{node_id}, _folder_{node_id}).replace(chr(92), "/")
+
+        if _cs_{node_id} not in _cs_map_{node_id}:
+            _cs_map_{node_id}[_cs_{node_id}] = []
+        _cs_map_{node_id}[_cs_{node_id}].append(_rel_{node_id})
+        _all_results_{node_id}.append((_rel_{node_id}, _cs_{node_id}))
+        print("  " + _cs_{node_id}.ljust(20) + "  " + _rel_{node_id})
+
+    unique_spaces  = len(_cs_map_{node_id})
+    untagged_count = len(_cs_map_{node_id}.get("Untagged", []))
+
+    print("")
+    print("=" * 60)
+    print("COLOURSPACE SUMMARY")
+    print("-" * 60)
+    for _cs_{node_id} in sorted(_cs_map_{node_id}.keys()):
+        _cnt_{node_id} = len(_cs_map_{node_id}[_cs_{node_id}])
+        _bar_{node_id} = chr(9608) * min(_cnt_{node_id}, 20)
+        print("  {:<22} {:>4} files  {}".format(_cs_{node_id}, _cnt_{node_id}, _bar_{node_id}))
+    print("=" * 60)
+    print("  Total    : " + str(total_files) + " files")
+    print("  CS Types : " + str(unique_spaces))
+    if untagged_count > 0:
+        print("  Untagged : " + str(untagged_count) + " files have no colourspace metadata")
+
+    summary = str(total_files) + " files, " + str(unique_spaces) + " colourspace(s)"
+
+    # Save report
+    if _save_{node_id}:
+        _rname_{node_id} = "colourspace_report_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".txt"
+        _rpath_{node_id} = os.path.join(_folder_{node_id}, _rname_{node_id})
+        try:
+            _lines_{node_id} = [
+                "FLOWPINS COLOURSPACE REPORT",
+                "Generated : " + _ts_{node_id},
+                "Folder    : " + _folder_{node_id},
+                "Files     : " + str(total_files),
+                "=" * 60,
+                "",
+                "FILE LIST:",
+            ]
+            for _rel_{node_id}, _cs_{node_id} in _all_results_{node_id}:
+                _lines_{node_id}.append("  " + _cs_{node_id}.ljust(22) + "  " + _rel_{node_id})
+            _lines_{node_id}.append("")
+            _lines_{node_id}.append("SUMMARY BY COLOURSPACE:")
+            for _cs_{node_id} in sorted(_cs_map_{node_id}.keys()):
+                _lines_{node_id}.append("  " + _cs_{node_id} + " — " + str(len(_cs_map_{node_id}[_cs_{node_id}])) + " files")
+            _lines_{node_id}.append("=" * 60)
+            with open(_rpath_{node_id}, "w", encoding="utf-8") as _rf_{node_id}:
+                _rf_{node_id}.write(chr(10).join(_lines_{node_id}))
+            print("  Report: " + _rpath_{node_id})
+        except Exception as _re_{node_id}:
+            print("  Report save failed: " + str(_re_{node_id}))
+
+{exec_out}`,
+
+
 };
