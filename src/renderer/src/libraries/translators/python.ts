@@ -2953,4 +2953,67 @@ else:
 {exec_out}`,
 
 
+  "ast_cross_reference": `# Asset Cross-Reference
+# Checks which expected assets exist on disk and which are missing
+import os
+
+_folder_{node_id}    = "{folder_path}".replace(chr(92), "/").rstrip("/")
+_asset_list_{node_id} = "{asset_list}"
+_recursive_{node_id} = str("{recursive}").lower() == "true"
+
+found_count   = 0
+missing_count = 0
+missing_files = []
+all_present   = False
+
+if not _folder_{node_id} or not os.path.isdir(_folder_{node_id}):
+    print("FlowPins ERROR: Folder not found — " + str(_folder_{node_id}))
+elif not _asset_list_{node_id}.strip():
+    print("FlowPins ERROR: No asset list provided — add comma-separated filenames in Inspector")
+else:
+    # Parse expected assets
+    _expected_{node_id} = [a.strip() for a in _asset_list_{node_id}.split(",") if a.strip()]
+
+    # Collect all files on disk
+    _on_disk_{node_id} = set()
+    if _recursive_{node_id}:
+        for _r_{node_id}, _d_{node_id}, _f_{node_id} in os.walk(_folder_{node_id}):
+            for _fn_{node_id} in _f_{node_id}:
+                _on_disk_{node_id}.add(_fn_{node_id}.lower())
+    else:
+        for _fn_{node_id} in os.listdir(_folder_{node_id}):
+            if os.path.isfile(os.path.join(_folder_{node_id}, _fn_{node_id})):
+                _on_disk_{node_id}.add(_fn_{node_id}.lower())
+
+    print("FlowPins Asset Cross-Reference")
+    print("  Folder   : " + _folder_{node_id})
+    print("  Expected : " + str(len(_expected_{node_id})) + " assets")
+    print("  On Disk  : " + str(len(_on_disk_{node_id})) + " files found")
+    print("-" * 55)
+
+    _found_{node_id}   = []
+    _missing_{node_id} = []
+
+    for _asset_{node_id} in _expected_{node_id}:
+        if _asset_{node_id}.lower() in _on_disk_{node_id}:
+            _found_{node_id}.append(_asset_{node_id})
+            print("  ✓ FOUND  : " + _asset_{node_id})
+        else:
+            _missing_{node_id}.append(_asset_{node_id})
+            print("  ✗ MISSING: " + _asset_{node_id})
+
+    found_count   = len(_found_{node_id})
+    missing_count = len(_missing_{node_id})
+    missing_files = _missing_{node_id}
+    all_present   = missing_count == 0
+
+    print("-" * 55)
+    if all_present:
+        print("  ✓ ALL PRESENT — " + str(found_count) + "/" + str(len(_expected_{node_id})) + " assets found")
+    else:
+        print("  ✗ " + str(missing_count) + " assets missing, " + str(found_count) + " found")
+
+{exec_out}`,
+
+
 };

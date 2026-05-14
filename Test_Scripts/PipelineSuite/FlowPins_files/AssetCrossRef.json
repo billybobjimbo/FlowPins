@@ -1,0 +1,105 @@
+{
+  "nodes": [
+    {
+      "id": "node_1778722607823",
+      "type": "fp",
+      "position": {
+        "x": 90,
+        "y": 210
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Core - Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 90,
+        "y": 210
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1778722614047",
+      "type": "fp",
+      "position": {
+        "x": 390,
+        "y": 210
+      },
+      "data": {
+        "label": "Asset Cross-Reference",
+        "nodeKind": "ast_cross_reference",
+        "profile": "Pipeline - Assets",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "folder_path",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "found_count",
+            "pin_type": "int"
+          },
+          {
+            "name": "missing_count",
+            "pin_type": "int"
+          },
+          {
+            "name": "missing_files",
+            "pin_type": "list"
+          },
+          {
+            "name": "all_present",
+            "pin_type": "boolean"
+          }
+        ],
+        "props": {
+          "folder_path": "E:/videos/SHOW_NAME",
+          "asset_list": "ep01_BG_0220_v02.png, ep01_Gary_Body_v03.png, ep01_Gary_Sword_v02.png, ep01_missing_asset.png",
+          "recursive": true
+        }
+      },
+      "width": 206,
+      "height": 237,
+      "selected": true,
+      "positionAbsolute": {
+        "x": 390,
+        "y": 210
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1778722607823",
+      "sourceHandle": "exec_out",
+      "target": "node_1778722614047",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1778722607823exec_out-node_1778722614047exec_in",
+      "animated": true
+    }
+  ]
+}

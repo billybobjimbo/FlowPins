@@ -1685,4 +1685,30 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  "ast_cross_reference": {
+    title: "Asset Cross-Reference",
+    profile: "Pipeline - Assets",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec"   },
+      { name: "folder_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",      pin_type: "exec"    },
+      { name: "found_count",   pin_type: "int"     },
+      { name: "missing_count", pin_type: "int"     },
+      { name: "missing_files", pin_type: "list"    },
+      { name: "all_present",   pin_type: "boolean" }
+    ],
+    default_props: {
+      folder_path:  "",
+      asset_list:   "",
+      recursive:    true
+    },
+    ui_schema: [
+      { label: "Folder Path",                          prop_key: "folder_path", type: "input"    },
+      { label: "Expected Assets (comma separated)",    prop_key: "asset_list",  type: "input"    },
+      { label: "Scan Subfolders",                      prop_key: "recursive",   type: "checkbox" }
+    ]
+  },
+
 };
