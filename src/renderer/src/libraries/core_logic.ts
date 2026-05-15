@@ -1832,4 +1832,57 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  // ==========================================================================
+  // PIPELINE SUITE — CATEGORY 6: REPORTING & COMMUNICATION
+  // ==========================================================================
+
+  "rpt_delivery_checklist": {
+    title: "Client Delivery Checklist",
+    profile: "Pipeline - Reporting",
+    inputs: [
+      { name: "exec_in",        pin_type: "exec"   },
+      { name: "folder_path",    pin_type: "string" },
+      { name: "extension",      pin_type: "string" },
+      { name: "start_frame",    pin_type: "int"    },
+      { name: "end_frame",      pin_type: "int"    },
+      { name: "naming_pattern", pin_type: "string" },
+      { name: "colourspace",    pin_type: "string" },
+      { name: "width",          pin_type: "int"    },
+      { name: "height",         pin_type: "int"    }
+    ],
+    outputs: [
+      { name: "exec_out",      pin_type: "exec"    },
+      { name: "all_passed",    pin_type: "boolean" },
+      { name: "checks_passed", pin_type: "int"     },
+      { name: "checks_failed", pin_type: "int"     },
+      { name: "report_path",   pin_type: "string"  }
+    ],
+    default_props: {
+      extension:      ".png",
+      start_frame:    1,
+      end_frame:      100,
+      naming_pattern: "@@##_@@####-####",
+      colourspace:    "sRGB",
+      width:          1920,
+      height:         1080,
+      studio_name:    "Studio Name",
+      show_name:      "Show Name",
+      shot_name:      "sc0001",
+      save_report:    true
+    },
+    ui_schema: [
+      { label: "Studio Name",        prop_key: "studio_name",    type: "input"    },
+      { label: "Show Name",          prop_key: "show_name",      type: "input"    },
+      { label: "Shot Name",          prop_key: "shot_name",      type: "input"    },
+      { label: "File Extension",     prop_key: "extension",      type: "input"    },
+      { label: "Start Frame",        prop_key: "start_frame",    type: "number"   },
+      { label: "End Frame",          prop_key: "end_frame",      type: "number"   },
+      { label: "Naming Pattern",     prop_key: "naming_pattern", type: "input"    },
+      { label: "Expected CS",        prop_key: "colourspace",    type: "input"    },
+      { label: "Expected Width",     prop_key: "width",          type: "number"   },
+      { label: "Expected Height",    prop_key: "height",         type: "number"   },
+      { label: "Save Report",        prop_key: "save_report",    type: "checkbox" }
+    ]
+  },
+
 };

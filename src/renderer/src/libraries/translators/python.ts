@@ -3501,4 +3501,217 @@ else:
 {exec_out}`,
 
 
+  // ==========================================================================
+  // PIPELINE SUITE — CATEGORY 6: REPORTING & COMMUNICATION
+  // ==========================================================================
+
+  "rpt_delivery_checklist": `# Client Delivery Checklist
+# Runs all key checks and outputs a clean formatted checklist
+import os, re, io
+from PIL import Image, ImageCms
+from datetime import datetime
+
+_folder_{node_id}   = {folder_path}
+_ext_{node_id}      = extension if isinstance(extension, str) and extension.startswith(".") else "{extension}"
+_start_{node_id}    = int({start_frame})
+_end_{node_id}      = int({end_frame})
+_pattern_{node_id}  = {naming_pattern}
+_cs_{node_id}       = {colourspace}
+_width_{node_id}    = int({width})
+_height_{node_id}   = int({height})
+_studio_{node_id}   = "{studio_name}"
+_show_{node_id}     = "{show_name}"
+_shot_{node_id}     = "{shot_name}"
+_save_{node_id}     = str("{save_report}").lower() == "true"
+
+# Normalise path
+if isinstance(_folder_{node_id}, str):
+    _folder_{node_id} = _folder_{node_id}.replace(chr(92), "/").rstrip("/")
+
+all_passed    = False
+checks_passed = 0
+checks_failed = 0
+report_path   = ""
+
+_ts_{node_id}  = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+_checks_{node_id} = []
+
+def _add_check_{node_id}(name, passed, detail=""):
+    _checks_{node_id}.append((name, passed, detail))
+
+if not _folder_{node_id} or not os.path.isdir(_folder_{node_id}):
+    print("FlowPins ERROR: Folder not found — " + str(_folder_{node_id}))
+else:
+    # Collect files
+    _files_{node_id} = sorted([
+        f for f in os.listdir(_folder_{node_id})
+        if f.lower().endswith(_ext_{node_id}.lower())
+    ])
+    _found_count_{node_id} = len(_files_{node_id})
+
+    # ── CHECK 1: FRAME COUNT ────────────────────────────────
+    _expected_count_{node_id} = _end_{node_id} - _start_{node_id} + 1
+    _expected_set_{node_id}   = set(range(_start_{node_id}, _end_{node_id} + 1))
+    _digit_{node_id}  = chr(92) + "d"
+    _fpat_{node_id}   = re.compile("(" + _digit_{node_id} + "+)" + re.escape(_ext_{node_id}) + "$", re.IGNORECASE)
+    _found_nums_{node_id} = set()
+    for _fn_{node_id} in _files_{node_id}:
+        _m_{node_id} = _fpat_{node_id}.search(_fn_{node_id})
+        if _m_{node_id}: _found_nums_{node_id}.add(int(_m_{node_id}.group(1)))
+    _missing_{node_id} = sorted(_expected_set_{node_id} - _found_nums_{node_id})
+    if not _missing_{node_id}:
+        _add_check_{node_id}("Frame Count", True, str(_found_count_{node_id}) + " frames present (" + str(_start_{node_id}) + "-" + str(_end_{node_id}) + ")")
+    else:
+        _add_check_{node_id}("Frame Count", False, str(len(_missing_{node_id})) + " frames missing")
+
+    # ── CHECK 2: NAMING CONVENTION ─────────────────────────
+    if _pattern_{node_id}:
+        _dot_nm_{node_id} = chr(92) + "."
+        _dig_nm_{node_id} = chr(92) + "d"
+        _rx_{node_id} = _pattern_{node_id}.replace(".", _dot_nm_{node_id})
+        _rx_{node_id} = re.sub("#+", lambda m: _dig_nm_{node_id} + "{" + str(len(m.group())) + "}", _rx_{node_id})
+        _rx_{node_id} = re.sub("@+", lambda m: "[a-zA-Z]{" + str(len(m.group())) + "}", _rx_{node_id})
+        _rx_{node_id} = "^" + _rx_{node_id} + "$"
+        _nam_fails_{node_id} = [f for f in _files_{node_id} if not re.match(_rx_{node_id}, os.path.splitext(f)[0])]
+        if not _nam_fails_{node_id}:
+            _add_check_{node_id}("Naming Convention", True, "All files match pattern: " + _pattern_{node_id})
+        else:
+            _add_check_{node_id}("Naming Convention", False, str(len(_nam_fails_{node_id})) + " files fail pattern")
+    else:
+        _add_check_{node_id}("Naming Convention", True, "No pattern specified — skipped")
+
+    # ── CHECK 3: RESOLUTION ────────────────────────────────
+    _dim_fails_{node_id} = []
+    for _fn_{node_id} in _files_{node_id}[:20]:  # sample first 20
+        _fp_{node_id} = os.path.join(_folder_{node_id}, _fn_{node_id})
+        try:
+            with Image.open(_fp_{node_id}) as _img_{node_id}:
+                if _img_{node_id}.width != _width_{node_id} or _img_{node_id}.height != _height_{node_id}:
+                    _dim_fails_{node_id}.append(_fn_{node_id})
+        except: pass
+    if not _dim_fails_{node_id}:
+        _add_check_{node_id}("Resolution", True, str(_width_{node_id}) + "x" + str(_height_{node_id}) + " confirmed")
+    else:
+        _add_check_{node_id}("Resolution", False, str(len(_dim_fails_{node_id})) + " files wrong size")
+
+    # ── CHECK 4: COLOURSPACE ───────────────────────────────
+    _cs_fails_{node_id} = []
+    for _fn_{node_id} in _files_{node_id}[:20]:  # sample first 20
+        _fp_{node_id} = os.path.join(_folder_{node_id}, _fn_{node_id})
+        try:
+            with Image.open(_fp_{node_id}) as _img_{node_id}:
+                _info_{node_id} = _img_{node_id}.info
+                if "icc_profile" in _info_{node_id}:
+                    try:
+                        _desc_{node_id} = ImageCms.getProfileDescription(
+                            ImageCms.ImageCmsProfile(io.BytesIO(_info_{node_id}["icc_profile"]))
+                        ).strip().lower()
+                        _detected_{node_id} = "sRGB" if "srgb" in _desc_{node_id} else "Rec.709" if "709" in _desc_{node_id} else _desc_{node_id}[:20]
+                    except: _detected_{node_id} = "ICC Embedded"
+                elif "srgb" in _info_{node_id}: _detected_{node_id} = "sRGB"
+                else: _detected_{node_id} = "Untagged"
+                if _detected_{node_id}.lower() != _cs_{node_id}.lower():
+                    _cs_fails_{node_id}.append(_fn_{node_id})
+        except: pass
+    if not _cs_fails_{node_id}:
+        _add_check_{node_id}("Colourspace", True, _cs_{node_id} + " confirmed")
+    else:
+        _add_check_{node_id}("Colourspace", False, str(len(_cs_fails_{node_id})) + " files wrong colourspace")
+
+    # ── CHECK 5: FILE INTEGRITY ───────────────────────────
+    _corrupt_{node_id} = []
+    _readable_{node_id} = 0
+    for _fn_{node_id} in _files_{node_id}:
+        _fp_{node_id} = os.path.join(_folder_{node_id}, _fn_{node_id})
+        try:
+            with Image.open(_fp_{node_id}) as _img_{node_id}:
+                _ = _img_{node_id}.size  # force load header
+            _readable_{node_id} += 1
+        except:
+            _corrupt_{node_id}.append(_fn_{node_id})
+    if not _corrupt_{node_id}:
+        _add_check_{node_id}("File Integrity", True, str(_readable_{node_id}) + " files verified readable")
+    else:
+        _add_check_{node_id}("File Integrity", False, str(len(_corrupt_{node_id})) + " files corrupt or unreadable")
+
+    # ── TALLY ─────────────────────────────────────────────
+    checks_passed = sum(1 for _, p, _ in _checks_{node_id} if p)
+    checks_failed = sum(1 for _, p, _ in _checks_{node_id} if not p)
+    all_passed    = checks_failed == 0
+
+    # ── PRINT CHECKLIST ───────────────────────────────────
+    _sep_{node_id} = "=" * 62
+    print(_sep_{node_id})
+    print("  FLOWPINS CLIENT DELIVERY CHECKLIST")
+    print("  Generated : " + _ts_{node_id})
+    print("  Studio    : " + _studio_{node_id})
+    print("  Show      : " + _show_{node_id})
+    print("  Shot      : " + _shot_{node_id})
+    print("  Folder    : " + _folder_{node_id})
+    print(_sep_{node_id})
+    print("")
+    print("  DELIVERY SPECIFICATION")
+    print("  Format    : " + _ext_{node_id}.upper().lstrip("."))
+    print("  Range     : " + str(_start_{node_id}) + " - " + str(_end_{node_id}) + " (" + str(_expected_count_{node_id}) + " frames)")
+    print("  Resolution: " + str(_width_{node_id}) + " x " + str(_height_{node_id}))
+    print("  CS        : " + _cs_{node_id})
+    print("  Pattern   : " + str(_pattern_{node_id}))
+    print("")
+    print("  VALIDATION CHECKS")
+    print("  " + "-" * 58)
+    for _name_{node_id}, _passed_{node_id}, _detail_{node_id} in _checks_{node_id}:
+        _tick_{node_id}   = chr(10003) if _passed_{node_id} else chr(10007)
+        _status_{node_id} = "PASS" if _passed_{node_id} else "FAIL"
+        print("  [" + _tick_{node_id} + "] " + _status_{node_id} + "  " + _name_{node_id}.ljust(22) + "  " + _detail_{node_id})
+    print("  " + "-" * 58)
+    print("")
+    print("  RESULT: " + ("ALL CHECKS PASSED - APPROVED FOR DELIVERY" if all_passed else str(checks_failed) + " CHECK(S) FAILED - NOT APPROVED"))
+    print("")
+    print(_sep_{node_id})
+
+    # ── SAVE REPORT ───────────────────────────────────────
+    if _save_{node_id}:
+        _rname_{node_id} = "delivery_checklist_" + _shot_{node_id} + "_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".txt"
+        report_path = os.path.join(_folder_{node_id}, _rname_{node_id})
+        try:
+            _lines_{node_id} = [
+                "=" * 62,
+                "  FLOWPINS CLIENT DELIVERY CHECKLIST",
+                "  Generated : " + _ts_{node_id},
+                "  Studio    : " + _studio_{node_id},
+                "  Show      : " + _show_{node_id},
+                "  Shot      : " + _shot_{node_id},
+                "  Folder    : " + _folder_{node_id},
+                "=" * 62,
+                "",
+                "  DELIVERY SPECIFICATION",
+                "  Format    : " + _ext_{node_id}.upper().lstrip("."),
+                "  Range     : " + str(_start_{node_id}) + " - " + str(_end_{node_id}) + " (" + str(_expected_count_{node_id}) + " frames)",
+                "  Resolution: " + str(_width_{node_id}) + " x " + str(_height_{node_id}),
+                "  CS        : " + _cs_{node_id},
+                "  Pattern   : " + str(_pattern_{node_id}),
+                "",
+                "  VALIDATION CHECKS",
+                "  " + "-" * 58,
+            ]
+            for _name_{node_id}, _passed_{node_id}, _detail_{node_id} in _checks_{node_id}:
+                _tick_{node_id}   = "PASS" if _passed_{node_id} else "FAIL"
+                _lines_{node_id}.append("  [" + _tick_{node_id} + "]  " + _name_{node_id}.ljust(22) + "  " + _detail_{node_id})
+            _lines_{node_id} += [
+                "  " + "-" * 58,
+                "",
+                "  RESULT: " + ("ALL CHECKS PASSED - APPROVED FOR DELIVERY" if all_passed else str(checks_failed) + " CHECK(S) FAILED - NOT APPROVED"),
+                "",
+                "  Verified by FlowPins Pipeline Suite",
+                "=" * 62,
+            ]
+            with open(report_path, "w", encoding="utf-8") as _rf_{node_id}:
+                _rf_{node_id}.write(chr(10).join(_lines_{node_id}))
+            print("  Report: " + report_path)
+        except Exception as _re_{node_id}:
+            print("  Report save failed: " + str(_re_{node_id}))
+
+{exec_out}`,
+
+
 };

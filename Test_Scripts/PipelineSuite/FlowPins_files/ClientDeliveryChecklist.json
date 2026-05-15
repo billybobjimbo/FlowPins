@@ -1,0 +1,319 @@
+{
+  "nodes": [
+    {
+      "id": "node_1778811830401",
+      "type": "fp",
+      "position": {
+        "x": -480,
+        "y": 45
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Core - Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -480,
+        "y": 45
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1778812481152",
+      "type": "fp",
+      "position": {
+        "x": -60,
+        "y": 45
+      },
+      "data": {
+        "label": "Load Config or Show Dialog",
+        "nodeKind": "cfg_load_or_show",
+        "profile": "Pipeline - Config",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "folder_path",
+            "pin_type": "string"
+          },
+          {
+            "name": "extension",
+            "pin_type": "string"
+          },
+          {
+            "name": "start_frame",
+            "pin_type": "int"
+          },
+          {
+            "name": "end_frame",
+            "pin_type": "int"
+          },
+          {
+            "name": "naming_pattern",
+            "pin_type": "string"
+          },
+          {
+            "name": "colourspace",
+            "pin_type": "string"
+          },
+          {
+            "name": "frame_padding",
+            "pin_type": "int"
+          },
+          {
+            "name": "prefix",
+            "pin_type": "string"
+          },
+          {
+            "name": "source_folder",
+            "pin_type": "string"
+          },
+          {
+            "name": "target_folder",
+            "pin_type": "string"
+          },
+          {
+            "name": "cancelled",
+            "pin_type": "boolean"
+          }
+        ],
+        "props": {
+          "config_path": "studio_config.json",
+          "title": "FlowPins — Tool Settings",
+          "show_folder": true,
+          "show_extension": true,
+          "show_frames": true,
+          "show_naming": true,
+          "show_colourspace": true,
+          "show_padding": true,
+          "force_dialog": false
+        }
+      },
+      "width": 251,
+      "height": 447,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -60,
+        "y": 45
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1778812486012",
+      "type": "fp",
+      "position": {
+        "x": 345,
+        "y": 45
+      },
+      "data": {
+        "label": "Client Delivery Checklist",
+        "nodeKind": "rpt_delivery_checklist",
+        "profile": "Pipeline - Reporting",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "folder_path",
+            "pin_type": "string"
+          },
+          {
+            "name": "extension",
+            "pin_type": "string"
+          },
+          {
+            "name": "start_frame",
+            "pin_type": "int"
+          },
+          {
+            "name": "end_frame",
+            "pin_type": "int"
+          },
+          {
+            "name": "naming_pattern",
+            "pin_type": "string"
+          },
+          {
+            "name": "colourspace",
+            "pin_type": "string"
+          },
+          {
+            "name": "width",
+            "pin_type": "int"
+          },
+          {
+            "name": "height",
+            "pin_type": "int"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "all_passed",
+            "pin_type": "boolean"
+          },
+          {
+            "name": "checks_passed",
+            "pin_type": "int"
+          },
+          {
+            "name": "checks_failed",
+            "pin_type": "int"
+          },
+          {
+            "name": "report_path",
+            "pin_type": "string"
+          }
+        ],
+        "props": {
+          "extension": ".png",
+          "start_frame": 1,
+          "end_frame": 89,
+          "naming_pattern": "@@##_@@####-####",
+          "colourspace": "sRGB",
+          "width": 1920,
+          "height": 1080,
+          "studio_name": "OddlyMadeGames",
+          "show_name": "MMSM",
+          "shot_name": "sc0220",
+          "save_report": true
+        }
+      },
+      "width": 222,
+      "height": 357,
+      "selected": true,
+      "positionAbsolute": {
+        "x": 345,
+        "y": 45
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1778811830401",
+      "sourceHandle": "exec_out",
+      "target": "node_1778812481152",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1778811830401exec_out-node_1778812481152exec_in",
+      "selected": false,
+      "animated": false
+    },
+    {
+      "source": "node_1778812481152",
+      "sourceHandle": "exec_out",
+      "target": "node_1778812486012",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1778812481152exec_out-node_1778812486012exec_in",
+      "selected": false,
+      "animated": true
+    },
+    {
+      "source": "node_1778812481152",
+      "sourceHandle": "folder_path",
+      "target": "node_1778812486012",
+      "targetHandle": "folder_path",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1778812481152folder_path-node_1778812486012folder_path",
+      "selected": false,
+      "animated": true
+    },
+    {
+      "source": "node_1778812481152",
+      "sourceHandle": "extension",
+      "target": "node_1778812486012",
+      "targetHandle": "extension",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1778812481152extension-node_1778812486012extension",
+      "selected": false,
+      "animated": true
+    },
+    {
+      "source": "node_1778812481152",
+      "sourceHandle": "start_frame",
+      "target": "node_1778812486012",
+      "targetHandle": "start_frame",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1778812481152start_frame-node_1778812486012start_frame",
+      "selected": false,
+      "animated": true
+    },
+    {
+      "source": "node_1778812481152",
+      "sourceHandle": "end_frame",
+      "target": "node_1778812486012",
+      "targetHandle": "end_frame",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1778812481152end_frame-node_1778812486012end_frame",
+      "selected": false,
+      "animated": true
+    },
+    {
+      "source": "node_1778812481152",
+      "sourceHandle": "naming_pattern",
+      "target": "node_1778812486012",
+      "targetHandle": "naming_pattern",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1778812481152naming_pattern-node_1778812486012naming_pattern",
+      "animated": true
+    },
+    {
+      "source": "node_1778812481152",
+      "sourceHandle": "colourspace",
+      "target": "node_1778812486012",
+      "targetHandle": "colourspace",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1778812481152colourspace-node_1778812486012colourspace",
+      "animated": true
+    }
+  ]
+}
