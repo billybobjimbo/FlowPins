@@ -1962,4 +1962,36 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  "rpt_daily_progress": {
+    title: "Daily Progress Report",
+    profile: "Pipeline - Reporting",
+    inputs: [
+      { name: "exec_in",  pin_type: "exec"   },
+      { name: "csv_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",       pin_type: "exec"   },
+      { name: "report_path",    pin_type: "string" },
+      { name: "total_shots",    pin_type: "int"    },
+      { name: "complete_shots", pin_type: "int"    },
+      { name: "percent_done",   pin_type: "int"    }
+    ],
+    default_props: {
+      csv_path:    "shot_list.csv",
+      show_name:   "Show Name",
+      episode:     "EP01",
+      prepared_by: "",
+      notes:       "",
+      save_report: true
+    },
+    ui_schema: [
+      { label: "Shot List CSV",  prop_key: "csv_path",    type: "input"    },
+      { label: "Show Name",      prop_key: "show_name",   type: "input"    },
+      { label: "Episode",        prop_key: "episode",     type: "input"    },
+      { label: "Prepared By",    prop_key: "prepared_by", type: "input"    },
+      { label: "Notes / Blockers", prop_key: "notes",     type: "input"    },
+      { label: "Save Report",    prop_key: "save_report", type: "checkbox" }
+    ]
+  },
+
 };

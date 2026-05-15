@@ -3984,4 +3984,162 @@ else:
 {exec_out}`,
 
 
+  "rpt_daily_progress": `# Daily Progress Report
+# End-of-day summary — what's done, in progress, and blocked
+import os, re, csv
+from datetime import datetime
+
+_csv_{node_id}   = r"{csv_path}".replace(chr(92), "/")
+_show_{node_id}  = "{show_name}"
+_ep_{node_id}    = "{episode}"
+_prep_{node_id}  = "{prepared_by}"
+_notes_{node_id} = "{notes}"
+_save_{node_id}  = str("{save_report}").lower() == "true"
+
+report_path    = ""
+total_shots    = 0
+complete_shots = 0
+percent_done   = 0
+
+if not os.path.isfile(_csv_{node_id}):
+    print("FlowPins ERROR: Shot list not found — " + _csv_{node_id})
+else:
+    _shots_{node_id} = []
+    try:
+        with open(_csv_{node_id}, newline="", encoding="utf-8-sig") as _f_{node_id}:
+            _reader_{node_id} = csv.DictReader(_f_{node_id})
+            for _row_{node_id} in _reader_{node_id}:
+                _shots_{node_id}.append({k.strip(): v.strip() for k, v in _row_{node_id}.items()})
+    except Exception as _e_{node_id}:
+        print("FlowPins ERROR: " + str(_e_{node_id}))
+
+    total_shots = len(_shots_{node_id})
+    _ts_{node_id}   = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    _date_{node_id} = datetime.now().strftime("%A, %B %d, %Y")
+    _digit_{node_id} = chr(92) + "d"
+
+    _complete_{node_id}    = []
+    _in_progress_{node_id} = []
+    _not_started_{node_id} = []
+    _not_found_{node_id}   = []
+    _total_frames_{node_id}    = 0
+    _rendered_frames_{node_id} = 0
+
+    for _shot_{node_id} in _shots_{node_id}:
+        _name_{node_id}   = _shot_{node_id}.get("shot_name",   "unknown")
+        _folder_{node_id} = _shot_{node_id}.get("folder_path", "").replace(chr(92), "/")
+        _start_{node_id}  = int(_shot_{node_id}.get("start_frame", "1") or 1)
+        _end_{node_id}    = int(_shot_{node_id}.get("end_frame",   "1") or 1)
+        _ext_{node_id}    = _shot_{node_id}.get("extension", ".png")
+        _exp_{node_id}    = _end_{node_id} - _start_{node_id} + 1
+        _total_frames_{node_id} += _exp_{node_id}
+
+        _found_{node_id} = 0
+        if os.path.isdir(_folder_{node_id}):
+            _pat_{node_id} = re.compile("(" + _digit_{node_id} + "+)" + re.escape(_ext_{node_id}) + "$", re.IGNORECASE)
+            _nums_{node_id} = set()
+            for _fn_{node_id} in os.listdir(_folder_{node_id}):
+                _m_{node_id} = _pat_{node_id}.search(_fn_{node_id})
+                if _m_{node_id}:
+                    _fnum_{node_id} = int(_m_{node_id}.group(1))
+                    if _start_{node_id} <= _fnum_{node_id} <= _end_{node_id}:
+                        _nums_{node_id}.add(_fnum_{node_id})
+            _found_{node_id} = len(_nums_{node_id})
+            _missing_{node_id} = _exp_{node_id} - _found_{node_id}
+            _pct_{node_id} = round((_found_{node_id} / _exp_{node_id}) * 100) if _exp_{node_id} > 0 else 0
+            _rendered_frames_{node_id} += _found_{node_id}
+
+            if _found_{node_id} == 0:
+                _not_started_{node_id}.append((_name_{node_id}, _exp_{node_id}, 0))
+            elif _missing_{node_id} == 0:
+                _complete_{node_id}.append((_name_{node_id}, _exp_{node_id}, 100))
+                complete_shots += 1
+            else:
+                _in_progress_{node_id}.append((_name_{node_id}, _exp_{node_id}, _found_{node_id}, _pct_{node_id}))
+        else:
+            _not_found_{node_id}.append(_name_{node_id})
+            _rendered_frames_{node_id} += 0
+
+    percent_done = round((_rendered_frames_{node_id} / _total_frames_{node_id}) * 100) if _total_frames_{node_id} > 0 else 0
+    _overall_bar_{node_id} = chr(9608) * int(percent_done/5) + chr(9617) * (20 - int(percent_done/5))
+
+    _W_{node_id}   = 62
+    _sep_{node_id} = "=" * _W_{node_id}
+    _div_{node_id} = "-" * _W_{node_id}
+
+    _lines_{node_id} = [
+        _sep_{node_id},
+        "  DAILY PROGRESS REPORT",
+        "  " + _date_{node_id},
+        "  Show: " + _show_{node_id} + "  |  Episode: " + _ep_{node_id} + ("  |  " + _prep_{node_id} if _prep_{node_id} else ""),
+        _sep_{node_id},
+        "",
+        "  OVERALL PROGRESS",
+        _div_{node_id},
+        "  [" + _overall_bar_{node_id} + "] " + str(percent_done) + "%",
+        "  " + str(_rendered_frames_{node_id}) + " / " + str(_total_frames_{node_id}) + " frames rendered",
+        "  " + str(complete_shots) + " complete  |  " + str(len(_in_progress_{node_id})) + " in progress  |  " + str(len(_not_started_{node_id})) + " not started",
+        "",
+    ]
+
+    if _complete_{node_id}:
+        _lines_{node_id}.append("  COMPLETE (" + str(len(_complete_{node_id})) + " shots)")
+        _lines_{node_id}.append(_div_{node_id})
+        for _n_{node_id}, _e_{node_id}, _p_{node_id} in _complete_{node_id}:
+            _lines_{node_id}.append("  " + chr(10003) + " " + _n_{node_id}.ljust(16) + str(_e_{node_id}) + " frames")
+        _lines_{node_id}.append("")
+
+    if _in_progress_{node_id}:
+        _lines_{node_id}.append("  IN PROGRESS (" + str(len(_in_progress_{node_id})) + " shots)")
+        _lines_{node_id}.append(_div_{node_id})
+        for _n_{node_id}, _e_{node_id}, _f_{node_id}, _p_{node_id} in _in_progress_{node_id}:
+            _bar_{node_id} = chr(9608) * int(_p_{node_id}/10) + chr(9617) * (10 - int(_p_{node_id}/10))
+            _lines_{node_id}.append("  [" + _bar_{node_id} + "] " + str(_p_{node_id}).rjust(3) + "%  " + _n_{node_id}.ljust(14) + str(_f_{node_id}) + "/" + str(_e_{node_id}) + " frames")
+        _lines_{node_id}.append("")
+
+    if _not_started_{node_id}:
+        _lines_{node_id}.append("  NOT STARTED (" + str(len(_not_started_{node_id})) + " shots)")
+        _lines_{node_id}.append(_div_{node_id})
+        for _n_{node_id}, _e_{node_id}, _p_{node_id} in _not_started_{node_id}:
+            _lines_{node_id}.append("  - " + _n_{node_id}.ljust(16) + str(_e_{node_id}) + " frames pending")
+        _lines_{node_id}.append("")
+
+    if _not_found_{node_id}:
+        _lines_{node_id}.append("  FOLDER NOT FOUND (" + str(len(_not_found_{node_id})) + " shots)")
+        _lines_{node_id}.append(_div_{node_id})
+        for _n_{node_id} in _not_found_{node_id}:
+            _lines_{node_id}.append("  ! " + _n_{node_id})
+        _lines_{node_id}.append("")
+
+    if _notes_{node_id}:
+        _lines_{node_id} += [
+            "  NOTES / BLOCKERS",
+            _div_{node_id},
+            "  " + _notes_{node_id},
+            "",
+        ]
+
+    _lines_{node_id} += [
+        _sep_{node_id},
+        "  Generated by FlowPins Pipeline Suite  |  " + _ts_{node_id},
+        _sep_{node_id},
+    ]
+
+    for _l_{node_id} in _lines_{node_id}:
+        print(_l_{node_id})
+
+    if _save_{node_id}:
+        _out_dir_{node_id} = os.path.dirname(_csv_{node_id})
+        _rname_{node_id}   = "daily_report_" + _ep_{node_id} + "_" + datetime.now().strftime("%Y%m%d") + ".txt"
+        report_path = os.path.join(_out_dir_{node_id}, _rname_{node_id})
+        try:
+            with open(report_path, "w", encoding="utf-8") as _rf_{node_id}:
+                _rf_{node_id}.write(chr(10).join(_lines_{node_id}))
+            print("  Saved: " + report_path)
+        except Exception as _re_{node_id}:
+            print("  Save failed: " + str(_re_{node_id}))
+
+{exec_out}`,
+
+
 };
