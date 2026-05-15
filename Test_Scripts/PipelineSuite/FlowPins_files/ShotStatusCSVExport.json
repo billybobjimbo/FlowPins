@@ -1,0 +1,101 @@
+{
+  "nodes": [
+    {
+      "id": "node_1778814590649",
+      "type": "fp",
+      "position": {
+        "x": 255,
+        "y": 570
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Core - Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": true,
+      "positionAbsolute": {
+        "x": 255,
+        "y": 570
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1778814599793",
+      "type": "fp",
+      "position": {
+        "x": 555,
+        "y": 570
+      },
+      "data": {
+        "label": "Shot Status CSV Export",
+        "nodeKind": "rpt_shot_status_csv",
+        "profile": "Pipeline - Reporting",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "csv_path",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "total_shots",
+            "pin_type": "int"
+          },
+          {
+            "name": "complete_shots",
+            "pin_type": "int"
+          },
+          {
+            "name": "output_path",
+            "pin_type": "string"
+          }
+        ],
+        "props": {
+          "csv_path": "shot_list.csv",
+          "output_path": "",
+          "show_name": "Show Name",
+          "episode": "EP01"
+        }
+      },
+      "width": 213,
+      "height": 207,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 555,
+        "y": 570
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1778814590649",
+      "sourceHandle": "exec_out",
+      "target": "node_1778814599793",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1778814590649exec_out-node_1778814599793exec_in"
+    }
+  ]
+}

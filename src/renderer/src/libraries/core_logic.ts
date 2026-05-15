@@ -1935,4 +1935,31 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  "rpt_shot_status_csv": {
+    title: "Shot Status CSV Export",
+    profile: "Pipeline - Reporting",
+    inputs: [
+      { name: "exec_in",  pin_type: "exec"   },
+      { name: "csv_path", pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",       pin_type: "exec"    },
+      { name: "total_shots",    pin_type: "int"     },
+      { name: "complete_shots", pin_type: "int"     },
+      { name: "output_path",    pin_type: "string"  }
+    ],
+    default_props: {
+      csv_path:    "shot_list.csv",
+      output_path: "",
+      show_name:   "Show Name",
+      episode:     "EP01"
+    },
+    ui_schema: [
+      { label: "Shot List CSV",   prop_key: "csv_path",    type: "input" },
+      { label: "Output Folder",   prop_key: "output_path", type: "input" },
+      { label: "Show Name",       prop_key: "show_name",   type: "input" },
+      { label: "Episode",         prop_key: "episode",     type: "input" }
+    ]
+  },
+
 };

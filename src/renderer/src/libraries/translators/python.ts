@@ -3872,4 +3872,116 @@ else:
 {exec_out}`,
 
 
+  "rpt_shot_status_csv": `# Shot Status CSV Export
+# Scans shot folders from a CSV shot list and exports a status report
+import os, re, csv
+from datetime import datetime
+
+_csv_{node_id}    = r"{csv_path}".replace(chr(92), "/")
+_out_{node_id}    = r"{output_path}".replace(chr(92), "/").rstrip("/")
+_show_{node_id}   = "{show_name}"
+_ep_{node_id}     = "{episode}"
+
+total_shots    = 0
+complete_shots = 0
+output_path    = ""
+
+if not os.path.isfile(_csv_{node_id}):
+    print("FlowPins ERROR: Shot list not found — " + _csv_{node_id})
+else:
+    _shots_{node_id} = []
+    try:
+        with open(_csv_{node_id}, newline="", encoding="utf-8-sig") as _f_{node_id}:
+            _reader_{node_id} = csv.DictReader(_f_{node_id})
+            for _row_{node_id} in _reader_{node_id}:
+                _shots_{node_id}.append({k.strip(): v.strip() for k, v in _row_{node_id}.items()})
+    except Exception as _e_{node_id}:
+        print("FlowPins ERROR reading CSV: " + str(_e_{node_id}))
+
+    total_shots = len(_shots_{node_id})
+    _ts_{node_id} = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    _digit_{node_id} = chr(92) + "d"
+    _rows_{node_id}  = []
+
+    print("FlowPins Shot Status CSV Export")
+    print("  Show    : " + _show_{node_id})
+    print("  Episode : " + _ep_{node_id})
+    print("  Shots   : " + str(total_shots))
+    print("-" * 55)
+
+    for _shot_{node_id} in _shots_{node_id}:
+        _name_{node_id}    = _shot_{node_id}.get("shot_name",   "unknown")
+        _folder_{node_id}  = _shot_{node_id}.get("folder_path", "").replace(chr(92), "/")
+        _start_{node_id}   = int(_shot_{node_id}.get("start_frame", "1") or 1)
+        _end_{node_id}     = int(_shot_{node_id}.get("end_frame",   "1") or 1)
+        _ext_{node_id}     = _shot_{node_id}.get("extension", ".png")
+        _expected_{node_id} = _end_{node_id} - _start_{node_id} + 1
+
+        # Count frames
+        _found_{node_id} = 0
+        _missing_list_{node_id} = []
+        if os.path.isdir(_folder_{node_id}):
+            _pat_{node_id} = re.compile("(" + _digit_{node_id} + "+)" + re.escape(_ext_{node_id}) + "$", re.IGNORECASE)
+            _nums_{node_id} = set()
+            for _fn_{node_id} in os.listdir(_folder_{node_id}):
+                _m_{node_id} = _pat_{node_id}.search(_fn_{node_id})
+                if _m_{node_id}:
+                    _fnum_{node_id} = int(_m_{node_id}.group(1))
+                    if _start_{node_id} <= _fnum_{node_id} <= _end_{node_id}:
+                        _nums_{node_id}.add(_fnum_{node_id})
+            _found_{node_id} = len(_nums_{node_id})
+            _missing_list_{node_id} = sorted(set(range(_start_{node_id}, _end_{node_id}+1)) - _nums_{node_id})
+
+        _missing_{node_id} = len(_missing_list_{node_id})
+        _pct_{node_id}     = round((_found_{node_id} / _expected_{node_id}) * 100) if _expected_{node_id} > 0 else 0
+
+        # Status
+        if not os.path.isdir(_folder_{node_id}):
+            _status_{node_id} = "NOT FOUND"
+        elif _found_{node_id} == 0:
+            _status_{node_id} = "NOT STARTED"
+        elif _missing_{node_id} == 0:
+            _status_{node_id} = "COMPLETE"
+            complete_shots += 1
+        else:
+            _status_{node_id} = "IN PROGRESS"
+
+        # Missing frame summary (first 5)
+        _miss_str_{node_id} = ""
+        if _missing_list_{node_id}:
+            _miss_str_{node_id} = " ".join(str(f).zfill(4) for f in _missing_list_{node_id}[:5])
+            if len(_missing_list_{node_id}) > 5:
+                _miss_str_{node_id} += " (+" + str(len(_missing_list_{node_id})-5) + " more)"
+
+        _rows_{node_id}.append([
+            _show_{node_id}, _ep_{node_id}, _name_{node_id},
+            str(_expected_{node_id}), str(_found_{node_id}), str(_missing_{node_id}),
+            str(_pct_{node_id}) + "%", _status_{node_id},
+            _folder_{node_id}, _miss_str_{node_id}, _ts_{node_id}
+        ])
+
+        print("  " + _name_{node_id}.ljust(12) + " " + _status_{node_id}.ljust(14) +
+              str(_found_{node_id}) + "/" + str(_expected_{node_id}) + " frames  " + str(_pct_{node_id}) + "%")
+
+    print("-" * 55)
+    print("  Complete: " + str(complete_shots) + "/" + str(total_shots) + " shots")
+
+    # Save CSV
+    _out_folder_{node_id} = _out_{node_id} if _out_{node_id} and os.path.isdir(_out_{node_id}) else os.path.dirname(_csv_{node_id})
+    _rname_{node_id} = "shot_status_" + _ep_{node_id} + "_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".csv"
+    output_path = os.path.join(_out_folder_{node_id}, _rname_{node_id})
+
+    try:
+        with open(output_path, "w", newline="", encoding="utf-8") as _rf_{node_id}:
+            _w_{node_id} = csv.writer(_rf_{node_id})
+            _w_{node_id}.writerow(["Show","Episode","Shot","Expected","Found","Missing","Percent","Status","Folder","Missing Frames","Generated"])
+            for _r_{node_id} in _rows_{node_id}:
+                _w_{node_id}.writerow(_r_{node_id})
+        print("  Saved : " + output_path)
+    except Exception as _re_{node_id}:
+        print("  Save failed: " + str(_re_{node_id}))
+
+{exec_out}`,
+
+
 };
