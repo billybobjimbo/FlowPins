@@ -4142,4 +4142,165 @@ else:
 {exec_out}`,
 
 
+  "rpt_error_log_summariser": `# Error Log Summariser
+# Parses log files and produces a clean grouped error summary
+import os, re
+from datetime import datetime
+
+_folder_{node_id}  = "{log_folder}".replace(chr(92), "/").rstrip("/")
+_ext_{node_id}     = "{log_extension}"
+_recursive_{node_id} = str("{recursive}").lower() == "true"
+_save_{node_id}    = str("{save_report}").lower() == "true"
+_top_{node_id}     = int({top_errors})
+
+total_errors = 0
+error_types  = 0
+report_path  = ""
+has_errors   = False
+
+# Error patterns — extract the core message stripping timestamps/line numbers
+_ERROR_PATS_{node_id} = [
+    re.compile(r"error[:\s]+(.+)", re.IGNORECASE),
+    re.compile(r"fatal[:\s]+(.+)", re.IGNORECASE),
+    re.compile(r"failed[:\s]+(.+)", re.IGNORECASE),
+    re.compile(r"exception[:\s]+(.+)", re.IGNORECASE),
+    re.compile(r"traceback.+", re.IGNORECASE),
+    re.compile(r"cannot\s+\w+.+", re.IGNORECASE),
+    re.compile(r"permission denied.+", re.IGNORECASE),
+    re.compile(r"out of memory.+", re.IGNORECASE),
+    re.compile(r"file not found.+", re.IGNORECASE),
+    re.compile(r"access denied.+", re.IGNORECASE),
+]
+
+def _normalise_{node_id}(msg):
+    _dig_{node_id} = chr(92) + "d"
+    _s_{node_id}   = chr(92) + "s"
+    _b_{node_id}   = chr(92) + "b"
+    msg = re.sub(_dig_{node_id} + "{1,4}" + "[-:/]" + _dig_{node_id} + "{1,2}" + "[-:/]" + _dig_{node_id} + "{1,4}" + _s_{node_id} + "*", "", msg)
+    msg = re.sub(_b_{node_id} + "frame[: ]+" + _dig_{node_id} + "+" + _b_{node_id}, "frame N", msg, flags=re.IGNORECASE)
+    msg = re.sub("[A-Za-z]:[/]+" + ".+?" + _dig_{node_id} + "+[.][a-z]+", "<file>", msg, flags=re.IGNORECASE)
+    return msg.strip()[:100]
+
+if not _folder_{node_id} or not os.path.isdir(_folder_{node_id}):
+    print("FlowPins ERROR: Log folder not found — " + str(_folder_{node_id}))
+else:
+    # Collect log files
+    _logs_{node_id} = []
+    if _recursive_{node_id}:
+        for _r_{node_id}, _d_{node_id}, _f_{node_id} in os.walk(_folder_{node_id}):
+            for _fn_{node_id} in _f_{node_id}:
+                if _fn_{node_id}.lower().endswith(_ext_{node_id}.lower()):
+                    _logs_{node_id}.append(os.path.join(_r_{node_id}, _fn_{node_id}))
+    else:
+        for _fn_{node_id} in os.listdir(_folder_{node_id}):
+            if _fn_{node_id}.lower().endswith(_ext_{node_id}.lower()):
+                _logs_{node_id}.append(os.path.join(_folder_{node_id}, _fn_{node_id}))
+
+    _ts_{node_id} = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    _error_counts_{node_id}  = {}  # normalised message -> count
+    _error_sources_{node_id} = {}  # normalised message -> set of log files
+    _file_counts_{node_id}   = {}  # log file -> error count
+    _warn_counts_{node_id}   = 0
+
+    for _lf_{node_id} in _logs_{node_id}:
+        _fname_{node_id} = os.path.basename(_lf_{node_id})
+        _file_counts_{node_id}[_fname_{node_id}] = 0
+        try:
+            with open(_lf_{node_id}, "r", encoding="utf-8", errors="ignore") as _f_{node_id}:
+                for _line_{node_id} in _f_{node_id}:
+                    _l_{node_id} = _line_{node_id}.strip()
+                    if not _l_{node_id}: continue
+                    _ll_{node_id} = _l_{node_id}.lower()
+
+                    # Check warnings separately
+                    if "warning" in _ll_{node_id} and "error" not in _ll_{node_id}:
+                        _warn_counts_{node_id} += 1
+                        continue
+
+                    # Check for errors
+                    for _pat_{node_id} in _ERROR_PATS_{node_id}:
+                        _m_{node_id} = _pat_{node_id}.search(_l_{node_id})
+                        if _m_{node_id}:
+                            _msg_{node_id} = _normalise_{node_id}(_m_{node_id}.group(0))
+                            if _msg_{node_id}:
+                                _error_counts_{node_id}[_msg_{node_id}] = _error_counts_{node_id}.get(_msg_{node_id}, 0) + 1
+                                if _msg_{node_id} not in _error_sources_{node_id}:
+                                    _error_sources_{node_id}[_msg_{node_id}] = set()
+                                _error_sources_{node_id}[_msg_{node_id}].add(_fname_{node_id})
+                                _file_counts_{node_id}[_fname_{node_id}] = _file_counts_{node_id}.get(_fname_{node_id}, 0) + 1
+                            break
+        except Exception as _e_{node_id}:
+            print("  Could not read: " + _fname_{node_id} + " — " + str(_e_{node_id}))
+
+    total_errors = sum(_error_counts_{node_id}.values())
+    error_types  = len(_error_counts_{node_id})
+    has_errors   = total_errors > 0
+
+    # Sort by count descending
+    _sorted_{node_id} = sorted(_error_counts_{node_id}.items(), key=lambda x: x[1], reverse=True)
+
+    _W_{node_id}   = 62
+    _sep_{node_id} = "=" * _W_{node_id}
+    _div_{node_id} = "-" * _W_{node_id}
+
+    _lines_{node_id} = [
+        _sep_{node_id},
+        "  ERROR LOG SUMMARY",
+        "  Generated: " + _ts_{node_id},
+        "  Folder   : " + _folder_{node_id},
+        "  Log Files: " + str(len(_logs_{node_id})),
+        _sep_{node_id},
+        "",
+        "  OVERVIEW",
+        _div_{node_id},
+        "  Total Errors  : " + str(total_errors),
+        "  Unique Types  : " + str(error_types),
+        "  Warnings      : " + str(_warn_counts_{node_id}),
+        "",
+    ]
+
+    if not has_errors:
+        _lines_{node_id}.append("  NO ERRORS FOUND — all logs clean")
+    else:
+        _lines_{node_id} += [
+            "  TOP " + str(min(_top_{node_id}, error_types)) + " ERROR TYPES (by frequency)",
+            _div_{node_id},
+        ]
+        for _msg_{node_id}, _cnt_{node_id} in _sorted_{node_id}[:_top_{node_id}]:
+            _bar_{node_id}  = chr(9608) * min(_cnt_{node_id}, 15)
+            _src_{node_id}  = ", ".join(sorted(_error_sources_{node_id}.get(_msg_{node_id}, set())))
+            _lines_{node_id}.append("  " + str(_cnt_{node_id}).rjust(4) + "x  " + _msg_{node_id}[:50])
+            _lines_{node_id}.append("        " + _bar_{node_id} + "  [" + _src_{node_id} + "]")
+        _lines_{node_id}.append("")
+
+        _lines_{node_id} += [
+            "  ERRORS PER LOG FILE",
+            _div_{node_id},
+        ]
+        for _fn_{node_id}, _cnt_{node_id} in sorted(_file_counts_{node_id}.items(), key=lambda x: x[1], reverse=True):
+            _lines_{node_id}.append("  " + str(_cnt_{node_id}).rjust(4) + " errors  " + _fn_{node_id})
+
+    _lines_{node_id} += [
+        "",
+        _sep_{node_id},
+        "  Generated by FlowPins Pipeline Suite",
+        _sep_{node_id},
+    ]
+
+    for _l_{node_id} in _lines_{node_id}:
+        print(_l_{node_id})
+
+    if _save_{node_id}:
+        _rname_{node_id} = "error_summary_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".txt"
+        report_path = os.path.join(_folder_{node_id}, _rname_{node_id})
+        try:
+            with open(report_path, "w", encoding="utf-8") as _rf_{node_id}:
+                _rf_{node_id}.write(chr(10).join(_lines_{node_id}))
+            print("  Saved: " + report_path)
+        except Exception as _re_{node_id}:
+            print("  Save failed: " + str(_re_{node_id}))
+
+{exec_out}`,
+
+
 };

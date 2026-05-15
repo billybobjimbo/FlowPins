@@ -1994,4 +1994,34 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  "rpt_error_log_summariser": {
+    title: "Error Log Summariser",
+    profile: "Pipeline - Reporting",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec"   },
+      { name: "log_folder",  pin_type: "string" }
+    ],
+    outputs: [
+      { name: "exec_out",      pin_type: "exec"    },
+      { name: "total_errors",  pin_type: "int"     },
+      { name: "error_types",   pin_type: "int"     },
+      { name: "report_path",   pin_type: "string"  },
+      { name: "has_errors",    pin_type: "boolean" }
+    ],
+    default_props: {
+      log_folder:    "",
+      log_extension: ".log",
+      recursive:     false,
+      save_report:   true,
+      top_errors:    10
+    },
+    ui_schema: [
+      { label: "Log Folder",         prop_key: "log_folder",    type: "input"    },
+      { label: "Log Extension",      prop_key: "log_extension", type: "input"    },
+      { label: "Scan Subfolders",    prop_key: "recursive",     type: "checkbox" },
+      { label: "Save Report",        prop_key: "save_report",   type: "checkbox" },
+      { label: "Top N Error Types",  prop_key: "top_errors",    type: "number"   }
+    ]
+  },
+
 };

@@ -1,0 +1,101 @@
+{
+  "nodes": [
+    {
+      "id": "node_1778815525682",
+      "type": "fp",
+      "position": {
+        "x": 480,
+        "y": 465
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Core - Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117
+    },
+    {
+      "id": "node_1778815538783",
+      "type": "fp",
+      "position": {
+        "x": 765,
+        "y": 465
+      },
+      "data": {
+        "label": "Error Log Summariser",
+        "nodeKind": "rpt_error_log_summariser",
+        "profile": "Pipeline - Reporting",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "log_folder",
+            "pin_type": "string"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          },
+          {
+            "name": "total_errors",
+            "pin_type": "int"
+          },
+          {
+            "name": "error_types",
+            "pin_type": "int"
+          },
+          {
+            "name": "report_path",
+            "pin_type": "string"
+          },
+          {
+            "name": "has_errors",
+            "pin_type": "boolean"
+          }
+        ],
+        "props": {
+          "log_folder": "D:/Pipeline_suite/",
+          "log_extension": ".log",
+          "recursive": false,
+          "save_report": true,
+          "top_errors": 10
+        }
+      },
+      "width": 203,
+      "height": 237,
+      "selected": true,
+      "positionAbsolute": {
+        "x": 765,
+        "y": 465
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1778815525682",
+      "sourceHandle": "exec_out",
+      "target": "node_1778815538783",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1778815525682exec_out-node_1778815538783exec_in",
+      "animated": true
+    }
+  ]
+}
