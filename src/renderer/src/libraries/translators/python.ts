@@ -3714,4 +3714,162 @@ else:
 {exec_out}`,
 
 
+  "rpt_signoff_sheet": `# Delivery Sign-Off Sheet
+# Formal delivery record with validation results and sign-off lines
+import os, re, io
+from PIL import Image, ImageCms
+from datetime import datetime
+
+_folder_{node_id}   = {folder_path}
+_ext_{node_id}      = extension if isinstance(extension, str) and extension.startswith(".") else "{extension}"
+_start_{node_id}    = int({start_frame})
+_end_{node_id}      = int({end_frame})
+_width_{node_id}    = int({width})
+_height_{node_id}   = int({height})
+_cs_{node_id}       = "{colourspace}"
+_studio_{node_id}   = "{studio_name}"
+_client_{node_id}   = "{client_name}"
+_show_{node_id}     = "{show_name}"
+_ep_{node_id}       = "{episode}"
+_shot_{node_id}     = "{shot_name}"
+_deliv_{node_id}    = "{deliverable}"
+_fspec_{node_id}    = "{format_spec}"
+_prep_{node_id}     = "{prepared_by}"
+_save_{node_id}     = str("{save_report}").lower() == "true"
+
+if isinstance(_folder_{node_id}, str):
+    _folder_{node_id} = _folder_{node_id}.replace(chr(92), "/").rstrip("/")
+
+report_path = ""
+all_passed  = False
+_ts_{node_id} = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+_date_{node_id} = datetime.now().strftime("%B %d, %Y")
+
+if not _folder_{node_id} or not os.path.isdir(_folder_{node_id}):
+    print("FlowPins ERROR: Folder not found — " + str(_folder_{node_id}))
+else:
+    # Run validations
+    _files_{node_id} = sorted([f for f in os.listdir(_folder_{node_id}) if f.lower().endswith(_ext_{node_id}.lower())])
+    _found_{node_id} = len(_files_{node_id})
+    _expected_{node_id} = _end_{node_id} - _start_{node_id} + 1
+
+    # Frame check
+    _digit_{node_id} = chr(92) + "d"
+    _fpat_{node_id}  = re.compile("(" + _digit_{node_id} + "+)" + re.escape(_ext_{node_id}) + "$", re.IGNORECASE)
+    _nums_{node_id}  = set()
+    for _fn_{node_id} in _files_{node_id}:
+        _m_{node_id} = _fpat_{node_id}.search(_fn_{node_id})
+        if _m_{node_id}: _nums_{node_id}.add(int(_m_{node_id}.group(1)))
+    _missing_{node_id} = sorted(set(range(_start_{node_id}, _end_{node_id}+1)) - _nums_{node_id})
+    _frames_ok_{node_id} = len(_missing_{node_id}) == 0
+
+    # Resolution check (sample)
+    _res_ok_{node_id} = True
+    _res_detail_{node_id} = str(_width_{node_id}) + "x" + str(_height_{node_id})
+    for _fn_{node_id} in _files_{node_id}[:5]:
+        try:
+            with Image.open(os.path.join(_folder_{node_id}, _fn_{node_id})) as _img_{node_id}:
+                if _img_{node_id}.width != _width_{node_id} or _img_{node_id}.height != _height_{node_id}:
+                    _res_ok_{node_id} = False
+                    _res_detail_{node_id} = "MISMATCH: found " + str(_img_{node_id}.width) + "x" + str(_img_{node_id}.height)
+                    break
+        except: pass
+
+    # CS check (sample)
+    _cs_ok_{node_id} = True
+    _cs_detail_{node_id} = _cs_{node_id}
+    for _fn_{node_id} in _files_{node_id}[:5]:
+        try:
+            with Image.open(os.path.join(_folder_{node_id}, _fn_{node_id})) as _img_{node_id}:
+                _info_{node_id} = _img_{node_id}.info
+                if "icc_profile" in _info_{node_id}:
+                    try:
+                        _desc_{node_id} = ImageCms.getProfileDescription(ImageCms.ImageCmsProfile(io.BytesIO(_info_{node_id}["icc_profile"]))).strip().lower()
+                        _det_{node_id} = "sRGB" if "srgb" in _desc_{node_id} else "Rec.709" if "709" in _desc_{node_id} else _desc_{node_id}[:20]
+                    except: _det_{node_id} = "ICC"
+                elif "srgb" in _info_{node_id}: _det_{node_id} = "sRGB"
+                else: _det_{node_id} = "Untagged"
+                if _det_{node_id}.lower() != _cs_{node_id}.lower():
+                    _cs_ok_{node_id} = False
+                    _cs_detail_{node_id} = "MISMATCH: found " + _det_{node_id}
+                    break
+        except: pass
+
+    all_passed = _frames_ok_{node_id} and _res_ok_{node_id} and _cs_ok_{node_id}
+    _status_{node_id} = "APPROVED FOR DELIVERY" if all_passed else "REQUIRES ATTENTION"
+
+    # Build document
+    _W_{node_id} = 62
+    _sep_{node_id}   = "=" * _W_{node_id}
+    _div_{node_id}   = "-" * _W_{node_id}
+    _blank_{node_id} = ""
+
+    _lines_{node_id} = [
+        _sep_{node_id},
+        "  DELIVERY SIGN-OFF SHEET",
+        "  FlowPins Pipeline Suite  |  " + _date_{node_id},
+        _sep_{node_id},
+        _blank_{node_id},
+        "  PRODUCTION DETAILS",
+        _div_{node_id},
+        "  Studio        : " + _studio_{node_id},
+        "  Client        : " + _client_{node_id},
+        "  Show          : " + _show_{node_id},
+        "  Episode       : " + _ep_{node_id},
+        "  Shot          : " + _shot_{node_id},
+        "  Deliverable   : " + _deliv_{node_id},
+        "  Prepared By   : " + (_prep_{node_id} or "_________________________"),
+        "  Date          : " + _date_{node_id},
+        _blank_{node_id},
+        "  DELIVERY SPECIFICATION",
+        _div_{node_id},
+        "  Format        : " + _ext_{node_id}.upper().lstrip("."),
+        "  Frame Range   : " + str(_start_{node_id}) + " - " + str(_end_{node_id}) + "  (" + str(_expected_{node_id}) + " frames)",
+        "  Resolution    : " + str(_width_{node_id}) + " x " + str(_height_{node_id}),
+        "  Colourspace   : " + _cs_{node_id},
+        "  Spec          : " + _fspec_{node_id},
+        "  Folder        : " + _folder_{node_id},
+        _blank_{node_id},
+        "  VALIDATION RESULTS",
+        _div_{node_id},
+        "  Frame Count   : " + ("PASS  — " + str(_found_{node_id}) + " frames present" if _frames_ok_{node_id} else "FAIL  — " + str(len(_missing_{node_id})) + " frames missing"),
+        "  Resolution    : " + ("PASS  — " + _res_detail_{node_id} if _res_ok_{node_id} else "FAIL  — " + _res_detail_{node_id}),
+        "  Colourspace   : " + ("PASS  — " + _cs_detail_{node_id} if _cs_ok_{node_id} else "FAIL  — " + _cs_detail_{node_id}),
+        _blank_{node_id},
+        "  OVERALL STATUS: " + _status_{node_id},
+        _blank_{node_id},
+        _sep_{node_id},
+        "  SIGN-OFF",
+        _div_{node_id},
+        _blank_{node_id},
+        "  Prepared by   : _________________________  Date: ____________",
+        _blank_{node_id},
+        "  Approved by   : _________________________  Date: ____________",
+        _blank_{node_id},
+        "  Client sign-off: ________________________  Date: ____________",
+        _blank_{node_id},
+        _sep_{node_id},
+        "  Generated by FlowPins Pipeline Suite  |  " + _ts_{node_id},
+        _sep_{node_id},
+    ]
+
+    # Print to terminal
+    for _l_{node_id} in _lines_{node_id}:
+        print(_l_{node_id})
+
+    # Save
+    if _save_{node_id}:
+        _rname_{node_id} = "signoff_" + _shot_{node_id} + "_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".txt"
+        report_path = os.path.join(_folder_{node_id}, _rname_{node_id})
+        try:
+            with open(report_path, "w", encoding="utf-8") as _rf_{node_id}:
+                _rf_{node_id}.write(chr(10).join(_lines_{node_id}))
+            print("")
+            print("  Report: " + report_path)
+        except Exception as _re_{node_id}:
+            print("  Save failed: " + str(_re_{node_id}))
+
+{exec_out}`,
+
+
 };

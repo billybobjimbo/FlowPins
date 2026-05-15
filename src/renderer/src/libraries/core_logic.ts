@@ -1885,4 +1885,54 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  "rpt_signoff_sheet": {
+    title: "Delivery Sign-Off Sheet",
+    profile: "Pipeline - Reporting",
+    inputs: [
+      { name: "exec_in",        pin_type: "exec"   },
+      { name: "folder_path",    pin_type: "string" },
+      { name: "extension",      pin_type: "string" },
+      { name: "start_frame",    pin_type: "int"    },
+      { name: "end_frame",      pin_type: "int"    }
+    ],
+    outputs: [
+      { name: "exec_out",     pin_type: "exec"    },
+      { name: "report_path",  pin_type: "string"  },
+      { name: "all_passed",   pin_type: "boolean" }
+    ],
+    default_props: {
+      studio_name:   "Studio Name",
+      client_name:   "Client Name",
+      show_name:     "Show Name",
+      episode:       "EP01",
+      shot_name:     "sc0001",
+      deliverable:   "Final Composite",
+      format_spec:   "1920x1080 PNG sRGB",
+      prepared_by:   "",
+      extension:     ".png",
+      start_frame:   1,
+      end_frame:     100,
+      width:         1920,
+      height:        1080,
+      colourspace:   "sRGB",
+      save_report:   true
+    },
+    ui_schema: [
+      { label: "Studio Name",      prop_key: "studio_name",  type: "input"    },
+      { label: "Client Name",      prop_key: "client_name",  type: "input"    },
+      { label: "Show Name",        prop_key: "show_name",    type: "input"    },
+      { label: "Episode",          prop_key: "episode",      type: "input"    },
+      { label: "Shot Name",        prop_key: "shot_name",    type: "input"    },
+      { label: "Deliverable Type", prop_key: "deliverable",  type: "input"    },
+      { label: "Format Spec",      prop_key: "format_spec",  type: "input"    },
+      { label: "Prepared By",      prop_key: "prepared_by",  type: "input"    },
+      { label: "Start Frame",      prop_key: "start_frame",  type: "number"   },
+      { label: "End Frame",        prop_key: "end_frame",    type: "number"   },
+      { label: "Expected Width",   prop_key: "width",        type: "number"   },
+      { label: "Expected Height",  prop_key: "height",       type: "number"   },
+      { label: "Expected CS",      prop_key: "colourspace",  type: "input"    },
+      { label: "Save Report",      prop_key: "save_report",  type: "checkbox" }
+    ]
+  },
+
 };
