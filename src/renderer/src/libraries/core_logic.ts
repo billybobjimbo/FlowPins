@@ -2024,4 +2024,28 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  // ==========================================================================
+  // PIPELINE SUITE — LAUNCHER
+  // ==========================================================================
+
+  "ps_launch_suite": {
+    title: "Launch Pipeline Suite",
+    profile: "Pipeline - Suite",
+    inputs: [
+      { name: "exec_in", pin_type: "exec" }
+    ],
+    outputs: [
+      { name: "exec_out",  pin_type: "exec"    },
+      { name: "launched",  pin_type: "boolean" }
+    ],
+    default_props: {
+      launcher_path: "",
+      wait_for_close: false
+    },
+    ui_schema: [
+      { label: "Path to launcher.py  (leave blank to auto-detect)", prop_key: "launcher_path", type: "input"    },
+      { label: "Wait for Suite to close before continuing",         prop_key: "wait_for_close", type: "checkbox" }
+    ]
+  },
+
 };

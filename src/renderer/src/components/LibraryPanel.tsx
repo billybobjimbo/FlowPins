@@ -35,7 +35,7 @@ export interface LibraryPanelProps {
   selectedNode: any | null;
   nodes: any[];
   edges: any[];
-  activeMode: 'js_toonboom' | 'py_standard' | 'py_maya' | 'cs_csharp' | 'lua_fusion' | 'py_houdini' | 'gml_standard';
+  activeMode: 'js_toonboom' | 'py_standard' | 'py_maya' | 'cs_csharp' | 'lua_fusion' | 'py_houdini' | 'gml_standard' | 'py_nuke';
   setActiveMode: (mode: any) => void;
 }
 

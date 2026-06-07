@@ -199,6 +199,11 @@ export class EvelynLibrarian {
       return { intent: 'list', entities, confidence: 'medium', rawPrompt: prompt };
     }
 
+    // --- PIPELINE SUITE LAUNCHER ---
+    if (/pipeline suite|launch suite|open suite|launch pipeline|pipeline launcher|open pipeline/i.test(p)) {
+      return { intent: 'launch_pipeline_suite', entities, confidence: 'high', rawPrompt: prompt };
+    }
+
     // --- BASIC SETUP ---
     if (/basic|hello|start|setup|begin|simple|starter/i.test(p)) {
       return { intent: 'basic_setup', entities, confidence: 'high', rawPrompt: prompt };
@@ -440,6 +445,21 @@ export class EvelynLibrarian {
         edges: [
           { source: 'n_start', target: 'n_print', sourceHandle: 'exec_out', targetHandle: 'exec_in' },
           { source: 'n_str',   target: 'n_print', sourceHandle: 'value',    targetHandle: 'message' },
+        ]
+      };
+    }
+
+    // --- Pipeline Suite Launcher ---
+    if (intent === 'launch_pipeline_suite') {
+      return {
+        id: 'evelyn_pipeline_suite',
+        message: "The Pipeline Suite? Now that is a proper request. One launcher node, wired and ready. Set the path to your launcher.py in the Inspector if it doesn't auto-detect.",
+        nodes: [
+          { id: 'n_start',  nodeKind: 'start',             x: 0,   y: 150 },
+          { id: 'n_launch', nodeKind: 'ps_launch_suite',  x: 250, y: 150 },
+        ],
+        edges: [
+          { source: 'n_start', target: 'n_launch', sourceHandle: 'exec_out', targetHandle: 'exec_in' },
         ]
       };
     }

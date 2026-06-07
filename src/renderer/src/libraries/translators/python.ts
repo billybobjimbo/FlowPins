@@ -4303,4 +4303,74 @@ else:
 {exec_out}`,
 
 
+  // ==========================================================================
+  // PIPELINE SUITE — LAUNCHER
+  // ==========================================================================
+
+  "ps_launch_suite": `# Launch Pipeline Suite
+# Launches the FlowPins Pipeline Suite from within FlowPins
+import os, sys, subprocess
+
+_launcher_path_{node_id} = "{launcher_path}"
+_wait_{node_id}          = str("{wait_for_close}").lower() == "true"
+
+launched = False
+
+# Auto-detect launcher.py location
+_search_paths_{node_id} = []
+
+# 1. Use explicit path if set
+if _launcher_path_{node_id} and os.path.isfile(_launcher_path_{node_id}):
+    _search_paths_{node_id} = [_launcher_path_{node_id}]
+else:
+    # 2. Same folder as this script
+    _script_dir_{node_id} = os.path.dirname(os.path.abspath(__file__))
+    _search_paths_{node_id} = [
+        os.path.join(_script_dir_{node_id}, "launcher.py"),
+        os.path.join(_script_dir_{node_id}, "..", "launcher.py"),
+        os.path.join(_script_dir_{node_id}, "Pipeline_Suite", "launcher.py"),
+        os.path.join(_script_dir_{node_id}, "FlowPins_Pipeline_Suite", "launcher.py"),
+    ]
+    # 3. Common install locations
+    _drives_{node_id} = ["C:/", "D:/", "E:/"]
+    for _drv_{node_id} in _drives_{node_id}:
+        _search_paths_{node_id}.append(_drv_{node_id} + "Pipeline_Suite/launcher.py")
+        _search_paths_{node_id}.append(_drv_{node_id} + "FlowPins_Pipeline_Suite/launcher.py")
+
+_found_path_{node_id} = None
+for _p_{node_id} in _search_paths_{node_id}:
+    if os.path.isfile(_p_{node_id}):
+        _found_path_{node_id} = _p_{node_id}
+        break
+
+if not _found_path_{node_id}:
+    print("FlowPins ERROR: Could not find launcher.py")
+    print("Please set the path in the node Inspector, or place launcher.py in:")
+    print("  " + os.path.dirname(os.path.abspath(__file__)))
+    launched = False
+else:
+    print("FlowPins Pipeline Suite")
+    print("  Launcher : " + _found_path_{node_id})
+    try:
+        _python_{node_id} = sys.executable
+        if _wait_{node_id}:
+            _proc_{node_id} = subprocess.run(
+                [_python_{node_id}, _found_path_{node_id}],
+                cwd=os.path.dirname(_found_path_{node_id})
+            )
+            launched = _proc_{node_id}.returncode == 0
+        else:
+            subprocess.Popen(
+                [_python_{node_id}, _found_path_{node_id}],
+                cwd=os.path.dirname(_found_path_{node_id})
+            )
+            launched = True
+        print("  Status   : Launched successfully")
+    except Exception as _e_{node_id}:
+        print("  ERROR: " + str(_e_{node_id}))
+        launched = False
+
+{exec_out}`,
+
+
 };

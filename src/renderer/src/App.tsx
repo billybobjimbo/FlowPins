@@ -1,8 +1,6 @@
 // src/renderer/src/App.tsx
 // ============================================================================
 // FLOWPINS: MAIN APPLICATION COMPONENT
-// Orchestrates the node canvas, library panel, node inspector, Evelyn prompt,
-// undo/redo, keyboard shortcuts, file I/O, and code compilation.
 // ============================================================================
 
 import React, { useMemo, useState, useEffect, useCallback } from "react";
@@ -23,11 +21,16 @@ import ReactFlow, {
 // @ts-ignore
 import "reactflow/dist/style.css";
 
-import { FPNode } from "./nodes/FPNode";
-import PromptBar from './components/PromptBar';
-import { LibraryPanel } from "./components/LibraryPanel";
-import { NodeInspector, type FPNodeData } from "./components/NodeInspector";
-import { NODE_LIBRARY } from './libraries/index';
+import { FPNode }                from "./nodes/FPNode";
+import { ConfluenceNode }        from "./nodes/ConfluenceNode";
+import { ConfluenceSubGraph }    from "./components/ConfluenceSubGraph";
+import PromptBar                 from './components/PromptBar';
+import { LibraryPanel }          from "./components/LibraryPanel";
+import { RightPanel }            from "./components/RightPanel";
+import { type FPNodeData }       from "./components/NodeInspector";
+import { ConfluenceStore }       from "./libraries/confluence_store";
+import { CONFLUENCE_DRAG_KEY }   from "./components/ConfluenceLibrary";
+import { NODE_LIBRARY }          from './libraries/index';
 import { generateCodeBlocks, type CompileMode, ALL_MODES } from './libraries/compiler';
 
 declare global {
@@ -42,9 +45,10 @@ declare global {
   }
 }
 
-const nodeTypes = { fp: FPNode };
+// ── Node types ────────────────────────────────────────────────────────────────
+const nodeTypes = { fp: FPNode, confluence: ConfluenceNode };
 
-// ---- Pin colour helper (used when wiring edges) ----------------------------
+// ── Pin colour helper ─────────────────────────────────────────────────────────
 function resolveEdgeColor(sourceNode: Node | undefined, sourceHandle: string): string {
   if (!sourceNode) return "#888888";
   const spec = NODE_LIBRARY[sourceNode.data.nodeKind];
@@ -61,7 +65,6 @@ function resolveEdgeColor(sourceNode: Node | undefined, sourceHandle: string): s
   return "#888888";
 }
 
-// ---- App profile label for context menu filtering -------------------------
 function getActiveAppProfile(mode: string): string {
   if (mode === 'gml_standard') return 'game maker';
   if (mode === 'js_toonboom')  return 'toon boom';
@@ -73,16 +76,22 @@ function getActiveAppProfile(mode: string): string {
   return '';
 }
 
+// ── Sub-graph frame state type ────────────────────────────────────────────────
+type SubGraphFrame = {
+  confluenceId: string;
+  groupNodeId:  string;
+  x:            number;
+  y:            number;
+};
+
 // =============================================================================
 //  MAIN APP COMPONENT
 // =============================================================================
 
 export default function App() {
 
-  // --- Expiry check ---
-  // Update this date when issuing new alpha builds.
   const EXPIRY_DATE = new Date('2026-12-31T00:00:00');
-  const isExpired = new Date() > EXPIRY_DATE;
+  const isExpired   = new Date() > EXPIRY_DATE;
 
   if (isExpired) {
     return (
@@ -106,6 +115,10 @@ export default function App() {
   const [menuSearch, setMenuSearch]         = useState("");
   const [menuSelectedIndex, setMenuSelectedIndex] = useState(0);
 
+  // ── Sub-graph frame state ─────────────────────────────────────────────────
+  // null = no frame open; set to open the floating sub-graph viewer
+  const [subGraphFrame, setSubGraphFrame] = useState<SubGraphFrame | null>(null);
+
   // --- Animated wires on selection ---
   useEffect(() => {
     setEdges((eds) =>
@@ -119,54 +132,41 @@ export default function App() {
   // --- Evelyn AI prompt handler ---
   const handleAIPrompt = async (prompt: string) => {
     setIsAILoading(true);
-
     setTimeout(() => {
       const parsedRequest = EvelynLibrarian.parsePrompt(prompt);
       const blueprint     = EvelynLibrarian.buildGraph(parsedRequest);
 
       if (blueprint) {
-        // Don't add anything to canvas if the blueprint has no nodes
         if (blueprint.nodes.length === 0) {
           setEvelynMessage(blueprint.message);
           setTimeout(() => setEvelynMessage(null), 6000);
           setIsAILoading(false);
           return;
         }
-
         const spawnStamp = Date.now();
-
         const generatedNodes: Node<FPNodeData>[] = blueprint.nodes.map((n: any) => {
           const spec = NODE_LIBRARY[n.nodeKind];
           return {
-            id:       `${n.id}_${spawnStamp}`,
-            type:     'fp',
+            id: `${n.id}_${spawnStamp}`, type: 'fp',
             position: { x: n.x, y: n.y },
             data: {
-              label:           spec?.title || n.nodeKind,
-              nodeKind:        n.nodeKind,
-              profile:         spec?.profile || 'General',
-              injectedInputs:  spec?.inputs  || [],
-              injectedOutputs: spec?.outputs || [],
-              props:           { ...spec?.default_props, ...n.props }
+              label: spec?.title || n.nodeKind, nodeKind: n.nodeKind,
+              profile: spec?.profile || 'General',
+              injectedInputs: spec?.inputs || [], injectedOutputs: spec?.outputs || [],
+              props: { ...spec?.default_props, ...n.props }
             }
           };
         });
-
         const generatedEdges: Edge[] = blueprint.edges.map((e: any) => {
           const sourceNode = generatedNodes.find((n: any) => n.id === `${e.source}_${spawnStamp}`);
           const color = resolveEdgeColor(sourceNode, e.sourceHandle);
           return {
-            id:           `e_${e.source}_${e.target}_${spawnStamp}`,
-            source:       `${e.source}_${spawnStamp}`,
-            target:       `${e.target}_${spawnStamp}`,
-            sourceHandle: e.sourceHandle,
-            targetHandle: e.targetHandle,
-            type:         'default',
-            animated:     false,
-            style:        { stroke: color, strokeWidth: 2 }
+            id: `e_${e.source}_${e.target}_${spawnStamp}`,
+            source: `${e.source}_${spawnStamp}`, target: `${e.target}_${spawnStamp}`,
+            sourceHandle: e.sourceHandle, targetHandle: e.targetHandle,
+            type: 'default', animated: false, style: { stroke: color, strokeWidth: 2 }
           };
         });
-
         setNodes((nds) => [...nds, ...generatedNodes]);
         setEdges((eds) => [...eds, ...generatedEdges]);
         setEvelynMessage(blueprint.message);
@@ -175,7 +175,6 @@ export default function App() {
         setEvelynMessage("I couldn't find anything for that. Try asking for a loop, a branch, a function, or 'spawn 10 objects'.");
         setTimeout(() => setEvelynMessage(null), 6000);
       }
-
       setIsAILoading(false);
     }, 800);
   };
@@ -193,8 +192,7 @@ export default function App() {
     if (past.length === 0) return;
     const previous = past[past.length - 1];
     setFuture((f) => [...f, { nodes, edges }]);
-    setNodes(previous.nodes);
-    setEdges(previous.edges);
+    setNodes(previous.nodes); setEdges(previous.edges);
     setPast((p) => p.slice(0, -1));
   }, [past, nodes, edges, setNodes, setEdges]);
 
@@ -202,12 +200,11 @@ export default function App() {
     if (future.length === 0) return;
     const next = future[future.length - 1];
     setPast((p) => [...p, { nodes, edges }]);
-    setNodes(next.nodes);
-    setEdges(next.edges);
+    setNodes(next.nodes); setEdges(next.edges);
     setFuture((f) => f.slice(0, -1));
   }, [future, nodes, edges, setNodes, setEdges]);
 
-  // --- Drag & drop / spawn ---
+  // --- Drag & drop ---
   const onDragOver = useCallback((event: any) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
@@ -217,16 +214,12 @@ export default function App() {
     takeSnapshot();
     const spec = NODE_LIBRARY[nodeKind];
     const newNode: Node<any> = {
-      id:       `node_${Date.now()}`,
-      type:     'fp',
-      position,
+      id: `node_${Date.now()}`, type: 'fp', position,
       data: {
-        label:           spec?.title || nodeKind,
-        nodeKind:        nodeKind,
-        profile:         spec?.profile || 'General',
-        injectedInputs:  spec?.inputs  || [],
-        injectedOutputs: spec?.outputs || [],
-        props:           { ...spec?.default_props }
+        label: spec?.title || nodeKind, nodeKind,
+        profile: spec?.profile || 'General',
+        injectedInputs: spec?.inputs || [], injectedOutputs: spec?.outputs || [],
+        props: { ...spec?.default_props }
       },
     };
     setNodes((nds) => nds.concat(newNode));
@@ -234,13 +227,61 @@ export default function App() {
 
   const onDrop = useCallback((event: any) => {
     event.preventDefault();
+
+    // ── Confluence group node drop ────────────────────────────────────────────
+    // Drops a single ◆ group node. Double-click opens the sub-graph frame.
+    const confluenceId = event.dataTransfer.getData(CONFLUENCE_DRAG_KEY);
+    if (confluenceId && reactFlowInstance) {
+      const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY });
+      const cn       = ConfluenceStore.getAll().find(n => n.id === confluenceId);
+      if (cn) {
+        takeSnapshot();
+        const newNode: Node<any> = {
+          id:       `conf_${Date.now()}`,
+          type:     'confluence',
+          position,
+          data: {
+            label:          cn.title,
+            confluenceId:   cn.id,
+            description:    cn.description,
+            category:       cn.category,
+            innerNodeCount: cn.nodes.length,
+            innerWireCount: (cn.wires || cn.edges || []).length,
+            nodeKind:       'confluence',
+            inputPins:      cn.inputPins  || [],
+            outputPins:     cn.outputPins || [],
+          },
+        };
+        setNodes(nds => [...nds, newNode]);
+      }
+      return;
+    }
+
+    // ── Regular node drop ─────────────────────────────────────────────────────
     const nodeKind = event.dataTransfer.getData('application/reactflow') || event.dataTransfer.getData('text/plain');
     if (!nodeKind || !reactFlowInstance) return;
     const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY });
     handleDropSpawn(nodeKind, position);
   }, [reactFlowInstance, setNodes, takeSnapshot]);
 
-  // --- Code generation (memoised) ---
+  // ── Double-click: open sub-graph frame ────────────────────────────────────
+  // The main canvas is completely untouched — we simply open a floating frame.
+  const onNodeDoubleClick = useCallback((_e: React.MouseEvent, node: Node) => {
+    if (node.type !== 'confluence') return;
+    setSubGraphFrame({
+      confluenceId: node.data.confluenceId,
+      groupNodeId:  node.id,
+      x:            160,
+      y:            80,
+    });
+  }, []);
+
+  // ── Close sub-graph frame ─────────────────────────────────────────────────
+  const closeSubGraph = useCallback(() => {
+    setSubGraphFrame(null);
+  }, []);
+
+  // --- Code generation ---
   const codeBlocks = useMemo(
     () => generateCodeBlocks(nodes, edges, activeMode),
     [nodes, edges, activeMode]
@@ -252,31 +293,28 @@ export default function App() {
     if (!reactFlowInstance) return;
     const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY });
     setSpawnMenu({ show: true, x: event.clientX, y: event.clientY, flowX: position.x, flowY: position.y });
-    setMenuSearch("");
-    setMenuSelectedIndex(0);
+    setMenuSearch(""); setMenuSelectedIndex(0);
   }, [reactFlowInstance]);
 
   const closeMenu = () => setSpawnMenu(null);
 
   const filteredMenuNodes = Object.entries(NODE_LIBRARY).filter(([_, spec]: [string, any]) => {
     const c = (spec.profile || "").toLowerCase();
-    const isCore     = c.startsWith('core');
-    const isAppMatch = c.startsWith('app -') && c.includes(getActiveAppProfile(activeMode));
-    const isPipeline  = c.startsWith('pipeline');
+    const isCore       = c.startsWith('core');
+    const isAppMatch   = c.startsWith('app -') && c.includes(getActiveAppProfile(activeMode));
+    const isPipeline   = c.startsWith('pipeline');
     const matchesSearch = spec.title.toLowerCase().includes(menuSearch.toLowerCase());
     return (isCore || isAppMatch || isPipeline) && matchesSearch;
   });
 
-  // --- File I/O via Electron IPC ---
+  // --- File I/O ---
   useEffect(() => {
     const handleLoadGraph = (_event: any, fileContent: string) => {
       try {
         const parsedData = JSON.parse(fileContent);
         if (parsedData.nodes && parsedData.edges) {
-          setNodes(parsedData.nodes);
-          setEdges(parsedData.edges);
-          setPast([]);
-          setFuture([]);
+          setNodes(parsedData.nodes); setEdges(parsedData.edges);
+          setPast([]); setFuture([]);
         }
       } catch (error) {
         alert("Failed to parse FlowPins save file. Is it corrupted?");
@@ -292,32 +330,28 @@ export default function App() {
       if (command === 'save-as') {
         const graphData = JSON.stringify({ nodes, edges }, null, 2);
         await window.electron.ipcRenderer.invoke('save-as-dialog', {
-          content:     graphData,
-          defaultName: 'my_graph.json',
-          filters:     [{ name: 'FlowPins Save File', extensions: ['json'] }]
+          content: graphData, defaultName: 'my_graph.json',
+          filters: [{ name: 'FlowPins Save File', extensions: ['json'] }]
         });
       } else if (command.startsWith('export-')) {
         const modeMap: Record<string, CompileMode> = {
-          'export-js':       'js_toonboom',
-          'export-py':       'py_maya',
-          'export-houdini':  'py_houdini',
-          'export-py-std':   'py_standard',
-          'export-cs':       'cs_csharp',
-          'export-lua':      'lua_fusion',
-          'export-gml':      'gml_standard',
+          'export-js': 'js_toonboom', 'export-py': 'py_maya',
+          'export-houdini': 'py_houdini', 'export-py-std': 'py_standard',
+          'export-cs': 'cs_csharp', 'export-lua': 'lua_fusion', 'export-gml': 'gml_standard',
         };
         const extMap: Record<CompileMode, string> = {
           js_toonboom: 'js', py_maya: 'py', py_houdini: 'py',
-          py_standard: 'py', cs_csharp: 'cs', lua_fusion: 'lua', gml_standard: 'gml'
+          py_standard: 'py', cs_csharp: 'cs', lua_fusion: 'lua',
+          gml_standard: 'gml', py_nuke: 'py',
         };
         const targetMode = modeMap[command] ?? activeMode;
         setActiveMode(targetMode);
         const generatedBlocks = generateCodeBlocks(nodes, edges, targetMode);
         const finalScript = generatedBlocks.map(b => b.text).join('\n');
         await window.electron.ipcRenderer.invoke('save-as-dialog', {
-          content:     finalScript,
+          content: finalScript,
           defaultName: `FlowPinsScript.${extMap[targetMode]}`,
-          filters:     [{ name: 'Script', extensions: [extMap[targetMode]] }]
+          filters: [{ name: 'Script', extensions: [extMap[targetMode]] }]
         });
       }
     };
@@ -354,10 +388,8 @@ export default function App() {
             .filter(e => idMap.has(e.source) && idMap.has(e.target))
             .map(e => ({
               ...e,
-              id:     `edge_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-              source: idMap.get(e.source)!,
-              target: idMap.get(e.target)!,
-              selected: true
+              id: `edge_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+              source: idMap.get(e.source)!, target: idMap.get(e.target)!, selected: true
             }));
           setNodes((nds) => [...nds.map(n => ({ ...n, selected: false })), ...newNodes]);
           setEdges((eds) => [...eds.map(e => ({ ...e, selected: false })), ...newEdges]);
@@ -405,7 +437,7 @@ export default function App() {
             onChange={(e) => { setMenuSearch(e.target.value); setMenuSelectedIndex(0); }}
             onKeyDown={(e) => {
               if (e.key === 'ArrowDown') { e.preventDefault(); setMenuSelectedIndex((prev) => Math.min(prev + 1, filteredMenuNodes.length - 1)); }
-              else if (e.key === 'ArrowUp')  { e.preventDefault(); setMenuSelectedIndex((prev) => Math.max(prev - 1, 0)); }
+              else if (e.key === 'ArrowUp') { e.preventDefault(); setMenuSelectedIndex((prev) => Math.max(prev - 1, 0)); }
               else if (e.key === 'Enter') {
                 e.preventDefault();
                 if (filteredMenuNodes.length > 0) {
@@ -444,14 +476,10 @@ export default function App() {
       )}
 
       <LibraryPanel
-        width={sidebarWidth}
-        onResize={setSidebarWidth}
-        codeBlocks={codeBlocks}
-        selectedNode={selectedNode}
-        nodes={nodes}
-        edges={edges}
-        activeMode={activeMode}
-        setActiveMode={setActiveMode}
+        width={sidebarWidth} onResize={setSidebarWidth}
+        codeBlocks={codeBlocks} selectedNode={selectedNode}
+        nodes={nodes} edges={edges}
+        activeMode={activeMode} setActiveMode={setActiveMode}
       />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative" }} onDrop={onDrop} onDragOver={onDragOver}>
@@ -478,6 +506,7 @@ export default function App() {
             onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onNodeClick={(_e: React.MouseEvent, n: Node) => setSelectedNodeId(n.id)}
+            onNodeDoubleClick={onNodeDoubleClick}
             onPaneClick={() => setSelectedNodeId(null)}
             onPaneContextMenu={onPaneContextMenu}
             onMoveStart={closeMenu}
@@ -498,10 +527,30 @@ export default function App() {
             <Controls />
             <MiniMap style={{ background: "#111", border: "1px solid #333" }} maskColor="rgba(0,0,0,0.6)" nodeColor="#444" />
           </ReactFlow>
+
+          {/* ── CONFLUENCE SUB-GRAPH FRAME ────────────────────────────────── */}
+          {subGraphFrame && (
+            <ConfluenceSubGraph
+              confluenceId={subGraphFrame.confluenceId}
+              groupNodeId={subGraphFrame.groupNodeId}
+              initialX={subGraphFrame.x}
+              initialY={subGraphFrame.y}
+              onClose={closeSubGraph}
+            />
+          )}
+
         </ReactFlowProvider>
       </div>
 
-      <NodeInspector node={selectedNode} onChangeLabel={onLabelChange} onChangeProp={onPropChange} />
+      <RightPanel
+        selectedNode={selectedNode}
+        nodes={nodes}
+        edges={edges}
+        onChangeLabel={onLabelChange}
+        onChangeProp={onPropChange}
+        onDropConfluence={() => {}}
+        reactFlowInstance={reactFlowInstance}
+      />
     </div>
   );
 }
