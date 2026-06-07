@@ -1,0 +1,324 @@
+{
+  "nodes": [
+    {
+      "id": "node_1780856324152",
+      "type": "fp",
+      "position": {
+        "x": 1215,
+        "y": 675
+      },
+      "data": {
+        "label": "Compare (int)",
+        "nodeKind": "compare_int",
+        "profile": "Core - Math",
+        "injectedInputs": [
+          {
+            "name": "a",
+            "pin_type": "int"
+          },
+          {
+            "name": "b",
+            "pin_type": "int"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "result",
+            "pin_type": "bool"
+          }
+        ],
+        "props": {
+          "op": ">"
+        }
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1215,
+        "y": 675
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1780856342568",
+      "type": "fp",
+      "position": {
+        "x": 585,
+        "y": 675
+      },
+      "data": {
+        "label": "Const Int",
+        "nodeKind": "const_int",
+        "profile": "Core - Data",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "value",
+            "pin_type": "int"
+          }
+        ],
+        "props": {
+          "value": 50
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 585,
+        "y": 675
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1780856392565",
+      "type": "fp",
+      "position": {
+        "x": 1665,
+        "y": 480
+      },
+      "data": {
+        "label": "If (Branch)",
+        "nodeKind": "if_branch",
+        "profile": "Core - Logic",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "condition",
+            "pin_type": "bool"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "true",
+            "pin_type": "exec"
+          },
+          {
+            "name": "false",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1665,
+        "y": 480
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1780856401707",
+      "type": "fp",
+      "position": {
+        "x": 1230,
+        "y": 480
+      },
+      "data": {
+        "label": "Start",
+        "nodeKind": "start",
+        "profile": "Core - Exec",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1230,
+        "y": 480
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1780856571298",
+      "type": "fp",
+      "position": {
+        "x": 2040,
+        "y": 645
+      },
+      "data": {
+        "label": "Print / Log",
+        "nodeKind": "console_print",
+        "profile": "Core - Exec",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          },
+          {
+            "name": "message",
+            "pin_type": "any"
+          }
+        ],
+        "injectedOutputs": [
+          {
+            "name": "exec_out",
+            "pin_type": "exec"
+          }
+        ],
+        "props": {}
+      },
+      "width": 200,
+      "height": 147,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2040,
+        "y": 645
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1780856581373",
+      "type": "fp",
+      "position": {
+        "x": 1665,
+        "y": 675
+      },
+      "data": {
+        "label": "Const String",
+        "nodeKind": "const_string",
+        "profile": "Core - Data",
+        "injectedInputs": [],
+        "injectedOutputs": [
+          {
+            "name": "text",
+            "pin_type": "string"
+          }
+        ],
+        "props": {
+          "value": "True"
+        }
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1665,
+        "y": 675
+      },
+      "dragging": false
+    },
+    {
+      "id": "node_1780856593702",
+      "type": "fp",
+      "position": {
+        "x": 2385,
+        "y": 645
+      },
+      "data": {
+        "label": "End Macro",
+        "nodeKind": "end_macro",
+        "profile": "Core - Exec",
+        "injectedInputs": [
+          {
+            "name": "exec_in",
+            "pin_type": "exec"
+          }
+        ],
+        "injectedOutputs": [],
+        "props": {}
+      },
+      "width": 200,
+      "height": 117,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2385,
+        "y": 645
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1780856342568",
+      "sourceHandle": "value",
+      "target": "node_1780856324152",
+      "targetHandle": "a",
+      "style": {
+        "stroke": "#00e5ff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1780856342568value-node_1780856324152a",
+      "animated": false,
+      "selected": false
+    },
+    {
+      "source": "node_1780856324152",
+      "sourceHandle": "result",
+      "target": "node_1780856392565",
+      "targetHandle": "condition",
+      "style": {
+        "stroke": "#ff2a2a",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1780856324152result-node_1780856392565condition",
+      "animated": false,
+      "selected": false
+    },
+    {
+      "source": "node_1780856401707",
+      "sourceHandle": "exec_out",
+      "target": "node_1780856392565",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1780856401707exec_out-node_1780856392565exec_in",
+      "animated": false,
+      "selected": false
+    },
+    {
+      "source": "node_1780856392565",
+      "sourceHandle": "true",
+      "target": "node_1780856571298",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1780856392565true-node_1780856571298exec_in",
+      "animated": false,
+      "selected": false
+    },
+    {
+      "source": "node_1780856581373",
+      "sourceHandle": "text",
+      "target": "node_1780856571298",
+      "targetHandle": "message",
+      "style": {
+        "stroke": "#ff007f",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1780856581373text-node_1780856571298message",
+      "animated": false,
+      "selected": false
+    },
+    {
+      "source": "node_1780856571298",
+      "sourceHandle": "exec_out",
+      "target": "node_1780856593702",
+      "targetHandle": "exec_in",
+      "style": {
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      "id": "reactflow__edge-node_1780856571298exec_out-node_1780856593702exec_in",
+      "animated": false,
+      "selected": false
+    }
+  ]
+}

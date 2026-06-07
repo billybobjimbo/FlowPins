@@ -45,12 +45,19 @@ function _load(): void {
     if (raw) {
       const parsed = JSON.parse(raw);
       // Migrate legacy fields
-      _registry = parsed.map((n: any) => ({
-        ...n,
-        wires:      n.wires      ?? n.edges ?? [],
-        inputPins:  n.inputPins  ?? [],
-        outputPins: n.outputPins ?? [],
-      }));
+      _registry = parsed.map((n: any) => {
+        const inputPins  = n.inputPins  ?? [];
+        const outputPins = n.outputPins ?? [];
+        // Migrate: ensure exec_in is first input pin
+        const hasExecIn  = inputPins.some((p: any)  => p.pinType === 'exec' || p.name === 'exec_in');
+        const hasExecOut = outputPins.some((p: any) => p.pinType === 'exec' || p.name === 'exec_out');
+        return {
+          ...n,
+          wires:      n.wires ?? n.edges ?? [],
+          inputPins:  hasExecIn  ? inputPins  : [{ name: 'exec_in',  pinType: 'exec', handleId: 'input_0_exec_in'  }, ...inputPins],
+          outputPins: hasExecOut ? outputPins : [{ name: 'exec_out', pinType: 'exec', handleId: 'output_0_exec_out' }, ...outputPins],
+        };
+      });
     }
   } catch { _registry = []; }
 }
@@ -86,24 +93,33 @@ export function scanPinsFromNodes(
   const leftSpec  = nodeLibrary[leftmostNode.data?.nodeKind]  || null;
   const rightSpec = nodeLibrary[rightmostNode.data?.nodeKind] || null;
 
-  // Input pins — from the leftmost node's INPUTS (what feeds into the group)
-  const inputPins: ConfluencePin[] = (leftSpec?.inputs || []).map(
-    (pin: any, i: number) => ({
-      name:     pin.name,
-      pinType:  pin.pin_type || 'any',
-      handleId: `input_${i}_${pin.name}`,
-    })
-  );
+  // exec_in and exec_out are ALWAYS first — every Confluence node is
+  // mid-graph and must be part of the exec chain. Start node lives on
+  // the main canvas; Confluence groups receive and pass exec flow.
+  const EXEC_IN:  ConfluencePin = { name: 'exec_in',  pinType: 'exec', handleId: 'input_0_exec_in'  };
+  const EXEC_OUT: ConfluencePin = { name: 'exec_out', pinType: 'exec', handleId: 'output_0_exec_out' };
 
-  // Output pins — from the rightmost node's OUTPUTS (what comes out of the group)
-  // If leftmost === rightmost (single node), use outputs of that same node
-  const outputPins: ConfluencePin[] = (rightSpec?.outputs || []).map(
-    (pin: any, i: number) => ({
+  // Input pins — exec_in first, then leftmost node's non-exec inputs
+  const dataInputPins: ConfluencePin[] = (leftSpec?.inputs || [])
+    .filter((pin: any) => pin.pin_type !== 'exec')
+    .map((pin: any, i: number) => ({
       name:     pin.name,
       pinType:  pin.pin_type || 'any',
-      handleId: `output_${i}_${pin.name}`,
-    })
-  );
+      handleId: `input_${i + 1}_${pin.name}`,
+    }));
+
+  const inputPins: ConfluencePin[] = [EXEC_IN, ...dataInputPins];
+
+  // Output pins — exec_out first, then rightmost node's non-exec outputs
+  const dataOutputPins: ConfluencePin[] = (rightSpec?.outputs || [])
+    .filter((pin: any) => pin.pin_type !== 'exec')
+    .map((pin: any, i: number) => ({
+      name:     pin.name,
+      pinType:  pin.pin_type || 'any',
+      handleId: `output_${i + 1}_${pin.name}`,
+    }));
+
+  const outputPins: ConfluencePin[] = [EXEC_OUT, ...dataOutputPins];
 
   return { inputPins, outputPins };
 }

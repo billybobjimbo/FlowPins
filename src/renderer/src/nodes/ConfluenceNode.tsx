@@ -56,8 +56,19 @@ export const ConfluenceNode = memo(function ConfluenceNode(
 ) {
   const { data, selected } = props;
 
-  const inputs  = data.inputPins  || [];
-  const outputs = data.outputPins || [];
+  // exec_in / exec_out are always first — guarantee them even on legacy
+  // saved groups that predate this requirement.
+  const EXEC_IN  = { name: 'exec_in',  pinType: 'exec', handleId: 'input_0_exec_in'  };
+  const EXEC_OUT = { name: 'exec_out', pinType: 'exec', handleId: 'output_0_exec_out' };
+
+  const rawInputs  = data.inputPins  || [];
+  const rawOutputs = data.outputPins || [];
+
+  const hasExecIn  = rawInputs.some((p: any)  => p.pinType === 'exec' || p.name === 'exec_in');
+  const hasExecOut = rawOutputs.some((p: any) => p.pinType === 'exec' || p.name === 'exec_out');
+
+  const inputs  = hasExecIn  ? rawInputs  : [EXEC_IN,  ...rawInputs];
+  const outputs = hasExecOut ? rawOutputs : [EXEC_OUT, ...rawOutputs];
   const pinRows = Math.max(inputs.length, outputs.length, 1);
 
   const outerBorder = selected
