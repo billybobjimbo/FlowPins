@@ -33,6 +33,8 @@ import { ConfluenceStore, scanPinsFromNodes } from "./libraries/confluence_store
 import { CONFLUENCE_DRAG_KEY }       from "./components/ConfluenceLibrary";
 import { NODE_LIBRARY }              from './libraries/index';
 import { generateCodeBlocks, type CompileMode, ALL_MODES } from './libraries/compiler';
+import { WelcomeScreen }     from './components/WelcomeScreen';
+import { JOURNEYS, getJourney, type Journey } from './libraries/journeys';
 
 declare global {
   interface Window {
@@ -115,6 +117,7 @@ export default function App() {
   // ── Ctrl+G group dialog state ─────────────────────────────────────────────
   const [showGroupDialog, setShowGroupDialog] = useState(false);
 
+
   // --- Animated wires ---
   useEffect(() => {
     setEdges(eds => eds.map(edge => ({
@@ -125,6 +128,32 @@ export default function App() {
 
   // --- Evelyn ---
   const handleAIPrompt = async (prompt: string) => {
+    // In guided mode, intercept place/skip/exit commands
+    if (activeJourney) {
+      const p = prompt.trim().toLowerCase();
+      if (/^(place it|yes|do it|place them|place nodes?)$/.test(p)) {
+        placeJourneyNodes();
+        return;
+      }
+      if (/^(next|done|continue|advance|skip)$/.test(p)) {
+        advanceJourneyStep();
+        return;
+      }
+      if (/^(exit|quit|stop|leave|freeform)$/.test(p)) {
+        setActiveJourney(null);
+        setJourneyStep(0);
+        return;
+      }
+      // Hint request
+      if (/hint|help|stuck|what do i do|how/i.test(p)) {
+        const step = activeJourney.steps[journeyStep];
+        if (step?.hint) {
+          setEvelynMessage(step.hint);
+          setTimeout(() => setEvelynMessage(null), 7000);
+          return;
+        }
+      }
+    }
     setIsAILoading(true);
     setTimeout(() => {
       const parsedRequest = EvelynLibrarian.parsePrompt(prompt);
@@ -179,6 +208,110 @@ export default function App() {
     setPast(p => [...p, { nodes, edges }]);
     setFuture([]);
   }, [nodes, edges]);
+
+  // ── Welcome screen state ──────────────────────────────────────────────────
+  const welcomeSuppressed = localStorage.getItem('fp_welcome_suppressed') === 'true';
+  const [showWelcome, setShowWelcome] = useState(!welcomeSuppressed);
+
+  // ── Guided journey state ──────────────────────────────────────────────────
+  const [activeJourney,   setActiveJourney]   = useState<Journey | null>(null);
+  const [journeyStep,     setJourneyStep]     = useState(0);
+  const [evelynStepMsg,   setEvelynStepMsg]   = useState<string | null>(null);
+
+  // Check step completion — useMemo so it re-evaluates whenever
+  // nodes or edges change (IIFE wouldn't reliably trigger re-render)
+  const stepComplete = useMemo(() => {
+    if (!activeJourney) return false;
+    const step = activeJourney.steps[journeyStep];
+    if (!step) return false;
+    const cond = step.completion;
+
+    if (cond.type === 'node_exists') {
+      return nodes.some(n => n.data?.nodeKind === cond.nodeKind);
+    }
+
+    if (cond.type === 'node_connected') {
+      // Checks BOTH source and target — catches exec wires and data wires
+      const nodeIds = new Set(
+        nodes
+          .filter(n => n.data?.nodeKind === cond.nodeKind)
+          .map(n => n.id)
+      );
+      return edges.some(e => nodeIds.has(e.source) || nodeIds.has(e.target));
+    }
+
+    if (cond.type === 'manual') return false;
+    return false;
+  }, [activeJourney, journeyStep, nodes, edges]);
+
+  // Advance journey step
+  const advanceJourneyStep = useCallback(() => {
+    if (!activeJourney) return;
+    const nextStep = journeyStep + 1;
+    if (nextStep >= activeJourney.steps.length) {
+      // Journey complete
+      setEvelynMessage(activeJourney.completeSays);
+      setTimeout(() => setEvelynMessage(null), 8000);
+      setActiveJourney(null);
+      setJourneyStep(0);
+    } else {
+      setJourneyStep(nextStep);
+      setEvelynStepMsg(activeJourney.steps[nextStep].evelynSays);
+    }
+  }, [activeJourney, journeyStep]);
+
+  // Start a journey
+  const startJourney = useCallback((journeyId: string) => {
+    const journey = getJourney(journeyId);
+    if (!journey) return;
+    setShowWelcome(false);
+    setActiveJourney(journey);
+    setJourneyStep(0);
+    setEvelynStepMsg(journey.steps[0].evelynSays);
+  }, []);
+
+  // Place nodes for current step
+  const placeJourneyNodes = useCallback(() => {
+    if (!activeJourney) return;
+    const step = activeJourney.steps[journeyStep];
+    if (!step?.autoPlace) return;
+    takeSnapshot();
+    const stamp = Date.now();
+    const newNodes = step.autoPlace.nodes.map(n => {
+      const spec = NODE_LIBRARY[n.nodeKind];
+      return {
+        id:       `${n.id}_${stamp}`,
+        type:     'fp',
+        position: { x: n.x, y: n.y },
+        data: {
+          label:           spec?.title || n.nodeKind,
+          nodeKind:        n.nodeKind,
+          profile:         spec?.profile || 'General',
+          injectedInputs:  spec?.inputs  || [],
+          injectedOutputs: spec?.outputs || [],
+          props:           { ...spec?.default_props, ...n.props },
+        },
+      };
+    });
+    const newEdges = step.autoPlace.edges.map(e => ({
+      id:           `e_${e.source}_${e.target}_${stamp}`,
+      source:       `${e.source}_${stamp}`,
+      target:       `${e.target}_${stamp}`,
+      sourceHandle: e.sourceHandle,
+      targetHandle: e.targetHandle,
+      type:         'default',
+      style:        { stroke: '#888888', strokeWidth: 2 },
+    }));
+    setNodes(nds => [...nds, ...newNodes]);
+    setEdges(eds => [...eds, ...newEdges]);
+    setEvelynMessage(step.successSays);
+    setTimeout(() => setEvelynMessage(null), 5000);
+  }, [activeJourney, journeyStep, takeSnapshot, setNodes, setEdges]);
+
+  // Handle suppress checkbox
+  const handleSuppressChange = useCallback((suppress: boolean) => {
+    localStorage.setItem('fp_welcome_suppressed', String(suppress));
+  }, []);
 
   const undo = useCallback(() => {
     if (!past.length) return;
@@ -539,7 +672,18 @@ export default function App() {
             </div>
           )}
 
-          <PromptBar onSubmit={handleAIPrompt} isLoading={isAILoading} />
+          <PromptBar
+            onSubmit={handleAIPrompt}
+            isLoading={isAILoading}
+            onShowWelcome={() => setShowWelcome(true)}
+            journey={activeJourney}
+            currentStep={journeyStep}
+            onPlaceNodes={placeJourneyNodes}
+            onSkipStep={advanceJourneyStep}
+            onExitJourney={() => { setActiveJourney(null); setJourneyStep(0); }}
+            stepComplete={stepComplete}
+            onAdvanceStep={advanceJourneyStep}
+          />
 
           <ReactFlow
             nodes={nodes} edges={edges} nodeTypes={nodeTypes}
@@ -584,6 +728,16 @@ export default function App() {
 
         </ReactFlowProvider>
       </div>
+
+      {/* ── WELCOME SCREEN ────────────────────────────────────────────────── */}
+      {showWelcome && (
+        <WelcomeScreen
+          onStartJourney={startJourney}
+          onDismiss={() => setShowWelcome(false)}
+          onSuppressChange={handleSuppressChange}
+          suppressed={welcomeSuppressed}
+        />
+      )}
 
       <RightPanel
         selectedNode={subGraphFrame ? selectedInnerNode : selectedNode}

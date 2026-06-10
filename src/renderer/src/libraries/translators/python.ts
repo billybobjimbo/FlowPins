@@ -4372,5 +4372,48 @@ else:
 
 {exec_out}`,
 
+  // ==========================================================================
+  // CORE — TERMINAL
+  // ANSI escape sequences as named outputs from terminal_codes node.
+  // No raw_code needed — these compile to proper Python constants.
+  // ==========================================================================
+
+  "terminal_codes": `# Terminal ANSI codes
+CLEAR_SCREEN      = "\x1b[2J\x1b[H"
+GREEN_TEXT        = "\x1b[32m"
+BRIGHT_WHITE_TEXT = "\x1b[1;37m"
+RESET_COLOR       = "\x1b[0m"
+HIDE_CURSOR       = "\x1b[?25l"
+SHOW_CURSOR       = "\x1b[?25h"
+{exec_out}`,
+
+  "terminal_print_char": `sys.stdout.write({color_code} + {char} + {reset_code})
+sys.stdout.flush()
+{exec_out}`,
+
+  "terminal_clear": `sys.stdout.write({clear_code})
+sys.stdout.flush()
+{exec_out}`,
+
+  // ==========================================================================
+  // CORE — TEXT (new)
+  // ==========================================================================
+
+  "string_get_char": "({text}[{index}] if 0 <= {index} < len({text}) else '')",
+  "string_length":   "len({text})",
+
+  // ==========================================================================
+  // CORE — COLLECTIONS (new)
+  // ==========================================================================
+
+  "list_set_index": `if 0 <= {index} < len({list}):
+    {list}[{index}] = {value}
+{exec_out}`,
+
+  "list_get_index": "({list}[{index}] if 0 <= {index} < len({list}) else None)",
+
+  "list_fill": `{list} = [{value}] * {length}
+{exec_out}`,
+
 
 };

@@ -2048,4 +2048,117 @@ export const CORE_NODES: Record<string, NodeSpec> = {
     ]
   },
 
+  // ==========================================================================
+  // CORE — TERMINAL
+  // Nodes for terminal output and ANSI control sequences.
+  // These make terminal animations and CLI tools possible without raw_code.
+  // ==========================================================================
+
+  "terminal_codes": {
+    title: "Terminal Codes",
+    profile: "Core - Terminal",
+    inputs:  [{ name: "exec_in", pin_type: "exec" }],
+    outputs: [
+      { name: "exec_out",          pin_type: "exec"   },
+      { name: "clear_screen",      pin_type: "string" },
+      { name: "green_text",        pin_type: "string" },
+      { name: "bright_white_text", pin_type: "string" },
+      { name: "reset_color",       pin_type: "string" },
+      { name: "hide_cursor",       pin_type: "string" },
+      { name: "show_cursor",       pin_type: "string" },
+    ]
+  },
+
+  "terminal_print_char": {
+    title: "Terminal Print Char",
+    profile: "Core - Terminal",
+    inputs: [
+      { name: "exec_in",     pin_type: "exec"   },
+      { name: "char",        pin_type: "string" },
+      { name: "color_code",  pin_type: "string" },
+      { name: "reset_code",  pin_type: "string" },
+    ],
+    outputs: [
+      { name: "exec_out", pin_type: "exec" }
+    ]
+  },
+
+  "terminal_clear": {
+    title: "Clear Terminal",
+    profile: "Core - Terminal",
+    inputs:  [{ name: "exec_in",      pin_type: "exec"   },
+              { name: "clear_code",   pin_type: "string" }],
+    outputs: [{ name: "exec_out",     pin_type: "exec"   }]
+  },
+
+  // ==========================================================================
+  // CORE — TEXT (new nodes)
+  // ==========================================================================
+
+  "string_get_char": {
+    title: "Get Character",
+    profile: "Core - Text",
+    inputs: [
+      { name: "text",  pin_type: "string" },
+      { name: "index", pin_type: "int"    }
+    ],
+    outputs: [
+      { name: "char",  pin_type: "string" }
+    ]
+  },
+
+  "string_length": {
+    title: "String Length",
+    profile: "Core - Text",
+    inputs:  [{ name: "text",   pin_type: "string" }],
+    outputs: [{ name: "length", pin_type: "int"    }]
+  },
+
+  // ==========================================================================
+  // CORE — COLLECTIONS (new nodes)
+  // ==========================================================================
+
+  "list_set_index": {
+    title: "List Set At Index",
+    profile: "Core - Collections",
+    inputs: [
+      { name: "exec_in", pin_type: "exec" },
+      { name: "list",    pin_type: "list" },
+      { name: "index",   pin_type: "int"  },
+      { name: "value",   pin_type: "any"  }
+    ],
+    outputs: [
+      { name: "exec_out", pin_type: "exec" },
+      { name: "list",     pin_type: "list" }
+    ]
+  },
+
+  "list_get_index": {
+    title: "List Get At Index",
+    profile: "Core - Collections",
+    inputs: [
+      { name: "list",  pin_type: "list" },
+      { name: "index", pin_type: "int"  }
+    ],
+    outputs: [
+      { name: "value", pin_type: "any" }
+    ]
+  },
+
+  "list_fill": {
+    title: "List Fill",
+    profile: "Core - Collections",
+    inputs: [
+      { name: "exec_in", pin_type: "exec" },
+      { name: "length",  pin_type: "int"  },
+      { name: "value",   pin_type: "any"  }
+    ],
+    outputs: [
+      { name: "exec_out", pin_type: "exec" },
+      { name: "list",     pin_type: "list" }
+    ],
+    default_props: { length: 10, value: 0 }
+  },
+
+
 };
