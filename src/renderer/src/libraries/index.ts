@@ -6,9 +6,9 @@
 // ============================================================================
 import { CORE_NODES } from './core_logic';
 import { TOONBOOM_NODES } from './toonboom';
+// Still loaded on purpose: hidden in the UI via release.ts, but kept in
+// NODE_LIBRARY so existing saved graphs containing these nodes still resolve.
 import { MAYA_NODES } from './maya';
-import { PIN_COLORS } from './types';
-// We import the types specifically here
 import type { PinSpec, NodeSpec, UIItem } from './types';
 
 // Export the combined library
@@ -18,6 +18,7 @@ export const NODE_LIBRARY: Record<string, NodeSpec> = {
   ...MAYA_NODES
 };
 
-// Re-exporting for use in App.tsx and NodeInspector.tsx
-export { PIN_COLORS };
+// Colour helpers forwarded for convenience — PIN_COLORS is gone.
+export { pinColor, profileColor, PIN } from './theme';
+
 export type { PinSpec, NodeSpec, UIItem };

@@ -1,20 +1,18 @@
 // src/libraries/types.ts
 
-// 1. Define the colors for your node pins
-export const PIN_COLORS: Record<string, string> = {
-  exec: "#ffffff",
-  string: "#ff007a",
-  float: "#44ff00",
-  list: "#00d8ff"
-};
+// PIN_COLORS used to live here. It was exported, re-exported through
+// index.ts "for use in App.tsx and NodeInspector.tsx", and then never
+// consumed by anything — while quietly disagreeing with the two live
+// copies (it had string as #ff007a and float as #44ff00).
+// Pin colours now come from theme.ts via pinColor().
 
-// 2. Define what a Pin looks like
+// 1. Define what a Pin looks like
 export type PinSpec = {
   name: string;
   pin_type: string;
 };
 
-// 3. Define the UI elements (Dropdowns, etc.)
+// 2. Define the UI elements (Dropdowns, etc.)
 export type UIItem = {
   label: string;
   prop_key: string;
@@ -22,7 +20,7 @@ export type UIItem = {
   options?: string[]; // Only used for dropdowns
 };
 
-// 4. The master Rulebook for every node in FlowPins
+// 3. The master Rulebook for every node in FlowPins
 export interface NodeSpec {
   title: string;
   profile: string;
@@ -31,5 +29,5 @@ export interface NodeSpec {
   default_props?: Record<string, any>;
   ui_schema?: UIItem[];
   // Clean, wildcard dictionary for ALL current and future languages
-  translations?: Record<string, string | ((data: any) => string)>; 
+  translations?: Record<string, string | ((data: any) => string)>;
 }

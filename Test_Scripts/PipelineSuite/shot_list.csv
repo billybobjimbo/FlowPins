@@ -1,3 +1,0 @@
-shot_name,folder_path,start_frame,end_frame,frame_padding,prefix,naming_pattern,colourspace,extension,width,height
-sc0220,D:/MMSM/EP01/Renders_TK_01/sc0220,1,116,4,,@@##_@@####-####,sRGB,.png,1920,1080
-sc0190,D:/MMSM/EP01/Renders_TK_01/sc0190,1,45,4,,@@##_@@####-####,sRGB,.png,1920,1080

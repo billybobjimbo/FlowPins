@@ -1,50 +1,22 @@
 // src/renderer/src/nodes/FPNode.tsx
 import React, { memo } from "react";
 import { Handle, Position, type NodeProps } from "reactflow";
+import { alpha, pinColor } from "../libraries/theme";
+import { profileColorFor } from "../libraries/skins";
+import { useSkin } from "../libraries/SkinProvider";
 
-// --- THE BRAND COLOR LOOKUP ---
-const getProfileColor = (profile: string) => {
-  const p = (profile || "").toLowerCase();
-  
-  if (p.includes('toon boom - blur'))     return "#5b9bd5"; // Light Blue - Blur
-  if (p.includes('toon boom - effects'))  return "#7b68ee"; // Purple - Effects  
-  if (p.includes('toon boom - colour'))   return "#48a999"; // Teal - Colour
-  if (p.includes('toon boom - output'))   return "#e8503a"; // Red - Output
-  if (p.includes('toon boom - composite'))return "#4a83c4"; // Blue - Composite
-  if (p.includes('toon boom - rigging'))  return "#66bb6a"; // Green - Rigging
-  if (p.includes('toon boom - scene'))    return "#ffa726"; // Orange - Scene
-  if (p.includes('toon boom - ui'))       return "#ab47bc"; // Violet - UI
-  if (p.includes('toon boom - camera'))   return "#26c6da"; // Cyan - Camera
-  if (p.includes('toon boom - query'))    return "#8d6e63"; // Brown - Query
-  if (p.includes('toon boom') || p.includes('toonboom')) return "#4a83c4"; // Blue - fallback
-  if (p.includes('maya')) return "#c343ea"; // Grey
-  if (p.includes('python')) return "#2d572c"; // Green
-  if (p.includes('lua') || p.includes('fusion')) return "#242a59"; // Navy
-  if (p.includes('c#') || p.includes('unity')) return "#e66900"; // Orange
-  if (p.includes('game') || p.includes('gml')) return "#00ff8c"; // GameMaker Cyan
-  if (p.includes('pipeline - naming'))   return "#f5a623"; // Amber - Naming
-  if (p.includes('pipeline - reporting')) return "#e8943a"; // Dark Amber - Reporting
-  if (p.includes('pipeline - image'))     return "#ffcc44"; // Yellow - Image
-  if (p.includes('pipeline'))             return "#f5a623"; // Amber - Pipeline (fallback)
-  if (p.includes('core')) return "#aaaaaa"; // Neutral Grey for Standard Library
-  
-  return "#ffffff"; // Fallback
-};
-
-// --- THE DATA PIN COLOR LOOKUP ---
-const getPinColor = (pinType?: string) => {
-  if (!pinType) return "#888888";
-  if (pinType === "exec") return "#ffffff";
-  if (pinType === "string") return "#ff007f"; // Magenta
-  if (pinType === "int" || pinType === "float" || pinType === "number") return "#00e5ff"; // Cyan
-  if (pinType === "boolean") return "#ff2a2a"; // Red
-  if (pinType === "any") return "#826cf3"; // Light Purple
-  return "#aaaaaa"; // Fallback Gray
-};
+// Colour lookups previously lived here as getProfileColor() and getPinColor().
+// Both are now in theme.ts — getPinColor was missing a 'list' case, so list
+// pins rendered grey here and cyan on Confluence nodes.
 
 export const FPNode = memo(function FPNode(props: NodeProps<any>) {
   const { data, selected } = props;
   const nodeKind = data.nodeKind;
+
+  // Tokens come from the active skin, so switching target restyles every node
+  // without this component knowing which skin is in play.
+  const skin = useSkin();
+  const { surface, border, text, shadow, radius } = skin;
 
   let inputs = [...(data.injectedInputs || [])];
   const outputs = [...(data.injectedOutputs || [])];
@@ -57,51 +29,58 @@ export const FPNode = memo(function FPNode(props: NodeProps<any>) {
     else if (currentBlur === "Radial") inputs.push({ name: "radial_radius", pin_type: "float" });
   }
 
-  // Grab the theme color for this specific node
-  const themeColor = getProfileColor(data.profile);
+  const themeColor = profileColorFor(data.profile, skin);
 
   return (
     <div
       style={{
-        minWidth: 200, borderRadius: 12, padding: "14px", position: "relative",
-        background: "rgba(20,20,20,0.95)",
-        // The border and glow now match the App's brand color!
-        border: selected ? `2px solid ${themeColor}` : "2px solid #333",
-        boxShadow: selected ? `0 0 20px ${themeColor}60` : "0 10px 30px rgba(0,0,0,0.5)", 
-        color: "white", display: "flex", flexDirection: "column", gap: 12,
+        minWidth: 200, borderRadius: radius.lg, padding: "14px", position: "relative",
+        background: surface.node,
+        // Unselected nodes used a flat neutral border, which sat ~7 L* off the
+        // node body and gave the card no edge — it read as a blur on the canvas.
+        // Tinting the border with the node's own profile colour defines the
+        // edge AND makes category legible across the whole graph at a glance,
+        // not just on the selected node.
+        border: selected
+          ? `2px solid ${themeColor}`
+          : `2px solid ${alpha(themeColor, 0.55)}`,
+        boxShadow: selected
+          ? `0 0 18px ${alpha(themeColor, 0.28)}, ${shadow.node}`
+          : shadow.node,
+        color: text.primary, display: "flex", flexDirection: "column", gap: 12,
         transition: "all 0.2s ease"
       }}
     >
       {/* Node Header */}
-      <div style={{ borderBottom: "1px solid #333", paddingBottom: 8 }}>
+      <div style={{ borderBottom: `1px solid ${border.default}`, paddingBottom: 8 }}>
         <div style={{ fontSize: 16, fontWeight: 800, color: themeColor }}>
           {data.label}
         </div>
-        <div style={{ fontSize: 11, opacity: 0.5, marginTop: 2, textTransform: 'uppercase', letterSpacing: '1px' }}>
+        <div style={{ fontSize: 11, color: text.disabled, marginTop: 2, textTransform: 'uppercase', letterSpacing: '1px' }}>
           {data.profile}
         </div>
       </div>
 
       {/* Pins Container */}
       <div style={{ display: "flex", justifyContent: "space-between", gap: 20 }}>
-        
+
         {/* INPUTS (LEFT) */}
         <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "flex-start" }}>
           {inputs.map((p: any) => {
             const isExec = p.pin_type === "exec";
-            const pinColor = getPinColor(p.pin_type);
+            const c = pinColor(p.pin_type);
             return (
               <div key={p.name} style={{ display: "flex", alignItems: "center", position: "relative", height: 20 }}>
-                <Handle 
-                  type="target" position={Position.Left} id={p.name} 
-                  style={{ 
-                    width: isExec ? 12 : 10, height: isExec ? 12 : 10, 
-                    borderRadius: isExec ? 2 : 999, 
-                    background: pinColor,
-                    border: "1px solid #000", left: -21 
-                  }} 
+                <Handle
+                  type="target" position={Position.Left} id={p.name}
+                  style={{
+                    width: isExec ? 12 : 10, height: isExec ? 12 : 10,
+                    borderRadius: isExec ? 2 : 999,
+                    background: c,
+                    border: `1px solid ${alpha(surface.canvas, 0.75)}`, left: -21
+                  }}
                 />
-                <span style={{ fontSize: 12, color: pinColor }}>{p.name}</span> 
+                <span style={{ fontSize: 12, color: c }}>{p.name}</span>
               </div>
             );
           })}
@@ -111,25 +90,25 @@ export const FPNode = memo(function FPNode(props: NodeProps<any>) {
         <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "flex-end" }}>
           {outputs.map((p: any) => {
             const isExec = p.pin_type === "exec";
-            const pinColor = getPinColor(p.pin_type);
+            const c = pinColor(p.pin_type);
             return (
               <div key={p.name} style={{ display: "flex", alignItems: "center", position: "relative", height: 20 }}>
-                {/* Note how the text label comes BEFORE the handle on the right side! */}
-                <span style={{ fontSize: 12, color: pinColor }}>{p.name}</span> 
-                <Handle 
-                  type="source" position={Position.Right} id={p.name} 
-                  style={{ 
-                    width: isExec ? 12 : 10, height: isExec ? 12 : 10, 
-                    borderRadius: isExec ? 2 : 999, 
-                    background: pinColor,
-                    border: "1px solid #000", right: -21 
-                  }} 
+                {/* Label sits before the handle on the right side */}
+                <span style={{ fontSize: 12, color: c }}>{p.name}</span>
+                <Handle
+                  type="source" position={Position.Right} id={p.name}
+                  style={{
+                    width: isExec ? 12 : 10, height: isExec ? 12 : 10,
+                    borderRadius: isExec ? 2 : 999,
+                    background: c,
+                    border: `1px solid ${alpha(surface.canvas, 0.75)}`, right: -21
+                  }}
                 />
               </div>
             );
           })}
         </div>
-        
+
       </div>
     </div>
   );

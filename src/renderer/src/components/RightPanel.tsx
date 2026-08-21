@@ -10,6 +10,7 @@ import { ConfluenceLibrary } from './ConfluenceLibrary';
 import { ConfluenceStore, CONFLUENCE_COLOR, scanPinsFromNodes } from '../libraries/confluence_store';
 import { NODE_LIBRARY } from '../libraries/index';
 import type { Node } from 'reactflow';
+import { alpha } from '../libraries/theme';
 
 interface Props {
   selectedNode:      Node<FPNodeData> | null;
@@ -88,7 +89,7 @@ export const RightPanel = ({
       ref={containerRef}
       style={{
         width: `${PANEL_WIDTH}px`, minWidth: `${PANEL_WIDTH}px`,
-        background: '#111', borderLeft: '2px solid #222',
+        background: 'var(--fp-surface-base)', borderLeft: '2px solid var(--fp-surface-overlay)',
         display: 'flex', flexDirection: 'column',
         height: '100%', overflow: 'hidden', position: 'relative',
       }}
@@ -99,17 +100,17 @@ export const RightPanel = ({
         overflow: 'hidden', display: 'flex', flexDirection: 'column',
       }}>
         <div style={{
-          padding: '10px 14px 8px', background: '#0d0d0d',
-          borderBottom: '1px solid #222', flexShrink: 0,
+          padding: '10px 14px 8px', background: 'var(--fp-surface-sunken)',
+          borderBottom: '1px solid var(--fp-surface-overlay)', flexShrink: 0,
         }}>
           <div style={{
             fontSize: '10px', fontWeight: 'bold', letterSpacing: '1.5px',
-            color: selectedNode ? '#00d8ff' : '#333',
+            color: selectedNode ? 'var(--fp-accent-primary)' : 'var(--fp-border-default)',
           }}>
             ⚙ PROPERTIES
           </div>
           {selectedNode && (
-            <div style={{ fontSize: '9px', color: '#555', marginTop: '2px', letterSpacing: '0.5px' }}>
+            <div style={{ fontSize: '9px', color: 'var(--fp-text-faint)', marginTop: '2px', letterSpacing: '0.5px' }}>
               {selectedNode.data.nodeKind}
             </div>
           )}
@@ -128,11 +129,11 @@ export const RightPanel = ({
         onMouseDown={onSashMouseDown}
         style={{
           height: '6px', flexShrink: 0, cursor: 'ns-resize',
-          background: '#1a1a1a', borderTop: `1px solid ${CONFLUENCE_COLOR}33`,
-          borderBottom: '1px solid #0a0a0a', position: 'relative', zIndex: 10,
+          background: 'var(--fp-surface-raised)', borderTop: `1px solid ${alpha(CONFLUENCE_COLOR, 0.20)}`,
+          borderBottom: '1px solid var(--fp-surface-canvas)', position: 'relative', zIndex: 10,
         }}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `${CONFLUENCE_COLOR}33`; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#1a1a1a'; }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `${alpha(CONFLUENCE_COLOR, 0.20)}`; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--fp-surface-raised)'; }}
       >
         <div style={{
           position: 'absolute', top: '50%', left: '50%',

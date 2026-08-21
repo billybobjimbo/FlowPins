@@ -16,13 +16,13 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
     title: "Refract",
     profile: "App - Toon Boom - Effects",
     inputs: [
-      { name: "in_image", pin_type: "exec" },
+      { name: "in_image", pin_type: "image" },
       { name: "intensity", pin_type: "float" }, 
       { name: "height", pin_type: "float" }, 
       { name: "refract_map", pin_type: 'image'}    
     ],
     outputs: [
-      { name: "out_image", pin_type: "exec" }
+      { name: "out_image", pin_type: "image" }
     ],
     default_props: { intensity: 10, height: 0 },
     ui_schema: [
@@ -35,12 +35,12 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
     title: "Radial Blur",
     profile: "App - Toon Boom - Blur",
     inputs: [
-      { name: "in_image", pin_type: "exec" },
+      { name: "in_image", pin_type: "image" },
       { name: "radius", pin_type: "float" },   
       { name: "quality", pin_type: "string" }  
     ],
     outputs: [
-      { name: "out_image", pin_type: "exec" }
+      { name: "out_image", pin_type: "image" }
     ],
     default_props: { radius: 5, quality: "HIGH" },
     ui_schema: [
@@ -59,12 +59,17 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
   },
   "tb_create_drawing": {
     title: 'Create Drawing',
-    profile: 'App - Toon Boom - Scene',
+    profile: 'App - Toon Boom - Drawing',
     inputs: [
       { name: 'exec_in', pin_type: 'exec' },
       { name: 'node_name', pin_type: 'string' },
       { name: 'offset_x', pin_type: 'int' },
-      { name: 'offset_y', pin_type: 'int' }
+      { name: 'offset_y', pin_type: 'int' },
+      // Accepts a Peg's transform_out to become this Drawing's real parent.
+      // NOTE: this node currently has NO fallback exec-order linking at all
+      // (unlike every other tb_ node) — see the harmony.ts template comment.
+      // Leaving that as-is here; only the explicit-wire path is new.
+      { name: 'transform_in', pin_type: 'transform' }
     ],
     outputs: [
       { name: 'exec_out', pin_type: 'exec' },
@@ -88,9 +93,11 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "exec_in", pin_type: "exec" },
       { name: "node_name", pin_type: "string" },
       { name: "offset_x", pin_type: "int" },
-      { name: "offset_y", pin_type: "int" }
-    ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+      { name: "offset_y", pin_type: "int" },
+      { name: "image_in_1", pin_type: "image" },
+      { name: "image_in_2", pin_type: "image" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     default_props: { offset_x: 0, offset_y: 0 },
     ui_schema: [
       { label: "Composite Name", prop_key: "node_name", type: "input" },
@@ -183,7 +190,15 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "offset_x", pin_type: "int" }, // <-- Added X Offset
       { name: "offset_y", pin_type: "int" }
     ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+    outputs: [
+      { name: "exec_out", pin_type: "exec" },
+      // Real Harmony port semantics: a Peg's output carries transformation
+      // data (docs.toonboom.com — green ports). Wire this into a Drawing's
+      // transform_in to make this Peg its real parent — the compiler uses
+      // this wire to emit an explicit node.link(), overriding the guessed
+      // exec-order parenting that runs when nothing is wired.
+      { name: "transform_out", pin_type: "transform" }
+    ],
     default_props: { offset_x: 0, offset_y: 0 },
     ui_schema: [
       { label: "Node Name", prop_key: "name", type: "input" },
@@ -194,13 +209,14 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
   },
   "uni_drawing": {
     title: "Drawing (Read)",
-    profile: "App - Toon Boom - Rigging",
+    profile: "App - Toon Boom - Drawing",
     inputs: [
       { name: "exec_in", pin_type: "exec" },
       { name: "name", pin_type: "string" },
-      { name: "offset_y", pin_type: "int" }
-    ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+      { name: "offset_y", pin_type: "int" },
+      { name: "transform_in", pin_type: "transform" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     default_props: { name: "Drawing", offset_y: 0 },
     ui_schema: [
       { label: "Drawing Name", prop_key: "name", type: "input" },
@@ -295,9 +311,10 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
     profile: "App - Toon Boom - Effects",
     inputs: [
       { name: "exec_in", pin_type: "exec" }, 
-      { name: "group_name", pin_type: "string" }
-    ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+      { name: "group_name", pin_type: "string" },
+      { name: "image_in", pin_type: "image" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     
   },
 
@@ -317,9 +334,18 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "exec_in",    pin_type: "exec" },
       { name: "node_name",  pin_type: "string" },
       { name: "offset_x",  pin_type: "int" },
-      { name: "offset_y",  pin_type: "int" }
+      { name: "offset_y",  pin_type: "int" },
+      // Two image layers for this pass — the case the old lastCreatedNode
+      // convention could never express, since it only ever remembers one
+      // predecessor and every node hardcoded input port 0. Add
+      // image_in_3 / _4 the same way if a composite needs more layers.
+      { name: "image_in_1", pin_type: "image" },
+      { name: "image_in_2", pin_type: "image" }
     ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+    outputs: [
+      { name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }
+    ],
     default_props: {
       node_name: "Composite",
       offset_x: 0,
@@ -343,8 +369,8 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
     profile: "App - Toon Boom - Output",
     inputs: [
       { name: "exec_in",   pin_type: "exec" },
-      { name: "node_name", pin_type: "string" }
-    ],
+      { name: "node_name", pin_type: "string" },
+      { name: "image_in", pin_type: "image" }],
     outputs: [{ name: "exec_out", pin_type: "exec" }],
     default_props: { node_name: "Display", offset_x: 0, offset_y: 0 },
     ui_schema: [
@@ -359,7 +385,8 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
     profile: "App - Toon Boom - Output",
     inputs: [
       { name: "exec_in",    pin_type: "exec" },
-      { name: "node_name",  pin_type: "string" }
+      { name: "node_name",  pin_type: "string" },
+      { name: "image_in",   pin_type: "image" }
     ],
     outputs: [{ name: "exec_out", pin_type: "exec" }],
     default_props: {
@@ -385,9 +412,10 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
     profile: "App - Toon Boom - Composite",
     inputs: [
       { name: "exec_in",   pin_type: "exec" },
-      { name: "node_name", pin_type: "string" }
-    ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+      { name: "node_name", pin_type: "string" },
+      { name: "image_in", pin_type: "image" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     default_props: { node_name: "Visibility", visible: "true" },
     ui_schema: [
       { label: "Node Name", prop_key: "node_name", type: "input" },
@@ -401,9 +429,11 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
     profile: "App - Toon Boom - Composite",
     inputs: [
       { name: "exec_in",   pin_type: "exec" },
-      { name: "node_name", pin_type: "string" }
-    ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+      { name: "node_name", pin_type: "string" },
+      { name: "image_in_1", pin_type: "image" },
+      { name: "image_in_2", pin_type: "image" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     default_props: { node_name: "Image-Switch", port_index: 0 },
     ui_schema: [
       { label: "Node Name",  prop_key: "node_name",  type: "input" },
@@ -422,9 +452,10 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "exec_in",   pin_type: "exec" },
       { name: "node_name", pin_type: "string" },
       { name: "offset_x",  pin_type: "int" },
-      { name: "offset_y",  pin_type: "int" }
-    ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+      { name: "offset_y",  pin_type: "int" },
+      { name: "image_in", pin_type: "image" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     default_props: {
       node_name:     "Blur-Box",
       offset_x:      0,
@@ -454,9 +485,16 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "exec_in",   pin_type: "exec" },
       { name: "node_name", pin_type: "string" },
       { name: "offset_x",  pin_type: "int" },
-      { name: "offset_y",  pin_type: "int" }
+      { name: "offset_y",  pin_type: "int" },
+      // The image this effect filters. Wiring this overrides the guessed
+      // exec-order parent with the actual upstream image source.
+      { name: "image_in",  pin_type: "image" }
     ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+    outputs: [
+      { name: "exec_out", pin_type: "exec" },
+      // The filtered result, for downstream nodes (e.g. Composite) to wire from.
+      { name: "image_out", pin_type: "image" }
+    ],
     default_props: {
       node_name:   "Blur-Gaussian",
       offset_x:    0,
@@ -481,9 +519,10 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "exec_in",   pin_type: "exec" },
       { name: "node_name", pin_type: "string" },
       { name: "offset_x",  pin_type: "int" },
-      { name: "offset_y",  pin_type: "int" }
-    ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+      { name: "offset_y",  pin_type: "int" },
+      { name: "image_in", pin_type: "image" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     default_props: {
       node_name:    "Blur-Variable",
       offset_x:     0,
@@ -510,9 +549,10 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "exec_in",   pin_type: "exec" },
       { name: "node_name", pin_type: "string" },
       { name: "offset_x",  pin_type: "int" },
-      { name: "offset_y",  pin_type: "int" }
-    ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+      { name: "offset_y",  pin_type: "int" },
+      { name: "image_in", pin_type: "image" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     default_props: {
       node_name: "Blur-Directional",
       offset_x:  0,
@@ -536,9 +576,10 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "exec_in",   pin_type: "exec" },
       { name: "node_name", pin_type: "string" },
       { name: "offset_x",  pin_type: "int" },
-      { name: "offset_y",  pin_type: "int" }
-    ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+      { name: "offset_y",  pin_type: "int" },
+      { name: "image_in", pin_type: "image" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     default_props: {
       node_name:    "Matte-Blur",
       offset_x:     0,
@@ -566,9 +607,10 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "exec_in",   pin_type: "exec" },
       { name: "node_name", pin_type: "string" },
       { name: "offset_x",  pin_type: "int" },
-      { name: "offset_y",  pin_type: "int" }
-    ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+      { name: "offset_y",  pin_type: "int" },
+      { name: "image_in", pin_type: "image" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     default_props: { node_name: "Matte-Resize", offset_x: 0, offset_y: 0, radius: 0 },
     ui_schema: [
       { label: "Node Name", prop_key: "node_name", type: "input" },
@@ -589,9 +631,10 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "exec_in",   pin_type: "exec" },
       { name: "node_name", pin_type: "string" },
       { name: "offset_x",  pin_type: "int" },
-      { name: "offset_y",  pin_type: "int" }
-    ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+      { name: "offset_y",  pin_type: "int" },
+      { name: "image_in", pin_type: "image" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     default_props: {
       node_name:    "Glow",
       offset_x:     0,
@@ -622,9 +665,10 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "exec_in",   pin_type: "exec" },
       { name: "node_name", pin_type: "string" },
       { name: "offset_x",  pin_type: "int" },
-      { name: "offset_y",  pin_type: "int" }
-    ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+      { name: "offset_y",  pin_type: "int" },
+      { name: "image_in", pin_type: "image" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     default_props: {
       node_name:   "Highlight",
       offset_x:    0,
@@ -651,9 +695,10 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "exec_in",   pin_type: "exec" },
       { name: "node_name", pin_type: "string" },
       { name: "offset_x",  pin_type: "int" },
-      { name: "offset_y",  pin_type: "int" }
-    ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+      { name: "offset_y",  pin_type: "int" },
+      { name: "image_in", pin_type: "image" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     default_props: {
       node_name:   "Tone",
       offset_x:    0,
@@ -680,9 +725,10 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "exec_in",   pin_type: "exec" },
       { name: "node_name", pin_type: "string" },
       { name: "offset_x",  pin_type: "int" },
-      { name: "offset_y",  pin_type: "int" }
-    ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+      { name: "offset_y",  pin_type: "int" },
+      { name: "image_in", pin_type: "image" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     default_props: {
       node_name:  "Colour-Scale",
       offset_x:   0,
@@ -714,9 +760,10 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "exec_in",   pin_type: "exec" },
       { name: "node_name", pin_type: "string" },
       { name: "offset_x",  pin_type: "int" },
-      { name: "offset_y",  pin_type: "int" }
-    ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+      { name: "offset_y",  pin_type: "int" },
+      { name: "image_in", pin_type: "image" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     default_props: {
       node_name:  "Hue-Saturation",
       offset_x:   0,
@@ -744,7 +791,8 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "offset_x",  pin_type: "int" },
       { name: "offset_y",  pin_type: "int" }
     ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     default_props: {
       node_name: "Colour-Card",
       offset_x:  0,
@@ -766,9 +814,10 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "exec_in",   pin_type: "exec" },
       { name: "node_name", pin_type: "string" },
       { name: "offset_x",  pin_type: "int" },
-      { name: "offset_y",  pin_type: "int" }
-    ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+      { name: "offset_y",  pin_type: "int" },
+      { name: "image_in", pin_type: "image" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     default_props: {
       node_name: "Cutter",
       offset_x:  0,
@@ -793,7 +842,8 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "offset_x",  pin_type: "int" },
       { name: "offset_y",  pin_type: "int" }
     ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     default_props: {
       node_name:    "Gradient",
       offset_x:     0,
@@ -816,9 +866,10 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "exec_in",   pin_type: "exec" },
       { name: "node_name", pin_type: "string" },
       { name: "offset_x",  pin_type: "int" },
-      { name: "offset_y",  pin_type: "int" }
-    ],
-    outputs: [{ name: "exec_out", pin_type: "exec" }],
+      { name: "offset_y",  pin_type: "int" },
+      { name: "image_in", pin_type: "image" }],
+    outputs: [{ name: "exec_out", pin_type: "exec" },
+      { name: "image_out", pin_type: "image" }],
     default_props: { node_name: "Colour-Override", offset_x: 0, offset_y: 0 },
     ui_schema: [
       { label: "Node Name", prop_key: "node_name", type: "input" },
@@ -834,8 +885,9 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { name: "exec_in",   pin_type: "exec" },
       { name: "node_name", pin_type: "string" },
       { name: "offset_x",  pin_type: "int" },
-      { name: "offset_y",  pin_type: "int" }
-    ],
+      { name: "offset_y",  pin_type: "int" },
+      { name: "image_in_1", pin_type: "image" },
+      { name: "image_in_2", pin_type: "image" }],
     outputs: [{ name: "exec_out", pin_type: "exec" }],
     default_props: {
       node_name:    "Multi-Layer-Write",
@@ -1240,6 +1292,94 @@ export const TOONBOOM_NODES: Record<string, NodeSpec> = {
       { label: "Offset X", prop_key: "offset_x", type: "number" },
       { label: "Offset Y", prop_key: "offset_y", type: "number" }
     ]
+  },
+
+  // ==========================================================================
+  // SCENE PULSE — Harmony 22+ Python Interface target only.
+  // See translators/harmony_py.ts for the compiled output. These nodes are
+  // NOT available under the js_toonboom (Qt Script) compile mode — they're
+  // routed to the "toonboom_python" profile in seed.ts.
+  // ==========================================================================
+
+  "tb_get_scene_nodes": {
+    title: "Get All Scene Nodes",
+    profile: "App - Toon Boom - Query",
+    inputs: [
+      { name: "exec_in", pin_type: "exec" }
+    ],
+    outputs: [
+      { name: "exec_out",   pin_type: "exec" },
+      { name: "node_list",  pin_type: "list" },
+      { name: "node_count", pin_type: "int"  }
+    ],
+    default_props: {},
+    ui_schema: []
+  },
+
+  "tb_is_node_orphaned": {
+    title: "Is Node Orphaned?",
+    profile: "App - Toon Boom - Query",
+    inputs: [
+      { name: "exec_in", pin_type: "exec" }
+    ],
+    outputs: [
+      { name: "exec_out",    pin_type: "exec" },
+      { name: "is_orphaned", pin_type: "bool" }
+    ],
+    default_props: { node_path: "Top/Drawing-1" },
+    ui_schema: [
+      { label: "Node Path", prop_key: "node_path", type: "input" }
+    ]
+  },
+
+  "tb_classify_orphan_severity": {
+    title: "Classify Orphan Severity",
+    profile: "App - Toon Boom - Query",
+    inputs: [
+      { name: "exec_in", pin_type: "exec" }
+    ],
+    outputs: [
+      { name: "exec_out", pin_type: "exec"   },
+      { name: "severity", pin_type: "string" },
+      { name: "reason",   pin_type: "string" }
+    ],
+    default_props: { node_path: "Top/Peg-1" },
+    ui_schema: [
+      { label: "Node Path", prop_key: "node_path", type: "input" }
+    ]
+  },
+
+  "tb_scan_orphaned_nodes": {
+    title: "Scan Scene For Orphaned Nodes",
+    profile: "App - Toon Boom - Query",
+    inputs: [
+      { name: "exec_in", pin_type: "exec" }
+    ],
+    outputs: [
+      { name: "exec_out",       pin_type: "exec" },
+      { name: "orphan_results", pin_type: "list" },
+      { name: "orphan_count",   pin_type: "int"  }
+    ],
+    default_props: {},
+    ui_schema: []
+    // NOTE: orphan_results is a list of dicts ({path, name, severity,
+    // reason}), not a flat list of strings like most other list outputs
+    // here. A future "tb_unpack_orphan_result" node would let the panel
+    // pull individual fields out per-item inside a foreach loop.
+  },
+
+  "tb_get_process_memory_mb": {
+    title: "Get Harmony Process Memory (MB)",
+    profile: "App - Toon Boom - Query",
+    inputs: [
+      { name: "exec_in", pin_type: "exec" }
+    ],
+    outputs: [
+      { name: "exec_out",  pin_type: "exec"  },
+      { name: "memory_mb", pin_type: "float" }
+    ],
+    default_props: {},
+    ui_schema: []
   },
 
 };

@@ -31,18 +31,19 @@ import { ConfluenceStore, CONFLUENCE_COLOR } from '../libraries/confluence_store
 import { NODE_LIBRARY }                    from '../libraries/index';
 import { Handle, Position }                from 'reactflow';
 import { pinColor }                        from '../nodes/ConfluenceNode';
+import { alpha } from '../libraries/theme';
 
 // ── Port node components ──────────────────────────────────────────────────────
 
 function PortInputNode({ data }: any) {
   return (
     <div style={{
-      background: `${CONFLUENCE_COLOR}22`, border: `1px solid ${CONFLUENCE_COLOR}88`,
+      background: `${alpha(CONFLUENCE_COLOR, 0.13)}`, border: `1px solid ${alpha(CONFLUENCE_COLOR, 0.53)}`,
       borderRadius: '6px', padding: '6px 12px', minWidth: '90px',
       textAlign: 'center', position: 'relative',
     }}>
       <Handle type="source" position={Position.Right} id={data.handleId}
-        style={{ background: pinColor(data.pinType), width: data.pinType==='exec'?12:10, height: data.pinType==='exec'?12:10, borderRadius: data.pinType==='exec'?2:999, border: '1px solid #000' }}
+        style={{ background: pinColor(data.pinType), width: data.pinType==='exec'?12:10, height: data.pinType==='exec'?12:10, borderRadius: data.pinType==='exec'?2:999, border: '1px solid var(--fp-surface-canvas)' }}
       />
       <div style={{ fontSize:'8px', color:CONFLUENCE_COLOR, marginBottom:'2px', letterSpacing:'1px', fontWeight:'bold' }}>INPUT</div>
       <div style={{ color:pinColor(data.pinType), fontSize:'10px' }}>{data.label}</div>
@@ -53,12 +54,12 @@ function PortInputNode({ data }: any) {
 function PortOutputNode({ data }: any) {
   return (
     <div style={{
-      background: `${CONFLUENCE_COLOR}22`, border: `1px solid ${CONFLUENCE_COLOR}88`,
+      background: `${alpha(CONFLUENCE_COLOR, 0.13)}`, border: `1px solid ${alpha(CONFLUENCE_COLOR, 0.53)}`,
       borderRadius: '6px', padding: '6px 12px', minWidth: '90px',
       textAlign: 'center', position: 'relative',
     }}>
       <Handle type="target" position={Position.Left} id={data.handleId}
-        style={{ background: pinColor(data.pinType), width: data.pinType==='exec'?12:10, height: data.pinType==='exec'?12:10, borderRadius: data.pinType==='exec'?2:999, border: '1px solid #000' }}
+        style={{ background: pinColor(data.pinType), width: data.pinType==='exec'?12:10, height: data.pinType==='exec'?12:10, borderRadius: data.pinType==='exec'?2:999, border: '1px solid var(--fp-surface-canvas)' }}
       />
       <div style={{ fontSize:'8px', color:CONFLUENCE_COLOR, marginBottom:'2px', letterSpacing:'1px', fontWeight:'bold' }}>OUTPUT</div>
       <div style={{ color:pinColor(data.pinType), fontSize:'10px' }}>{data.label}</div>
@@ -250,10 +251,10 @@ function InnerCanvas({
         onNodeDragStart={() => takeInnerSnapshot()}
         fitView
         snapToGrid
-        style={{ background: '#060606' }}
+        style={{ background: 'var(--fp-surface-canvas)' }}
         deleteKeyCode={null}   // handled manually in onKeyDown to prevent outer canvas deletion
       >
-        <Background variant={BackgroundVariant.Dots} gap={16} color="#1a1a1a" />
+        <Background variant={BackgroundVariant.Dots} gap={16} color="var(--fp-surface-raised)" />
         <Controls />
       </ReactFlow>
     </div>
@@ -365,7 +366,7 @@ export const ConfluenceSubGraph = ({
 
   if (!cn) {
     return (
-      <div style={{ position:'fixed', left:pos.x, top:pos.y, width:FRAME_W, height:120, background:'#0d0d0d', border:`2px solid ${CONFLUENCE_COLOR}`, borderRadius:'10px', zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center', color:'#555', fontSize:'12px' }}>
+      <div style={{ position:'fixed', left:pos.x, top:pos.y, width:FRAME_W, height:120, background:'var(--fp-surface-sunken)', border:`2px solid ${CONFLUENCE_COLOR}`, borderRadius:'10px', zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center', color:'var(--fp-text-faint)', fontSize:'12px' }}>
         Confluence node not found.
       </div>
     );
@@ -378,48 +379,48 @@ export const ConfluenceSubGraph = ({
     <div style={{
       position:'fixed', left:pos.x, top:pos.y, width:size.w, height:size.h, zIndex:2000,
       display:'flex', flexDirection:'column', borderRadius:'10px', overflow:'hidden',
-      outline:`3px solid ${CONFLUENCE_COLOR}22`, outlineOffset:'2px',
+      outline:`3px solid ${alpha(CONFLUENCE_COLOR, 0.13)}`, outlineOffset:'2px',
       border:`2px solid ${CONFLUENCE_COLOR}`,
-      boxShadow:`0 24px 60px rgba(0,0,0,0.8), 0 0 30px ${CONFLUENCE_COLOR}22`,
+      boxShadow:`0 24px 60px rgba(0,0,0,0.8), 0 0 30px ${alpha(CONFLUENCE_COLOR, 0.13)}`,
     }}>
 
       {/* ── TITLE BAR ─────────────────────────────────────────────────────── */}
-      <div onMouseDown={onTitleMouseDown} style={{ background:`linear-gradient(90deg, #0d0d0d 0%, ${CONFLUENCE_COLOR}18 100%)`, borderBottom:`1px solid ${CONFLUENCE_COLOR}44`, padding:'8px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', cursor:'grab', flexShrink:0, userSelect:'none' }}>
+      <div onMouseDown={onTitleMouseDown} style={{ background:`linear-gradient(90deg, var(--fp-surface-sunken) 0%, ${alpha(CONFLUENCE_COLOR, 0.09)} 100%)`, borderBottom:`1px solid ${alpha(CONFLUENCE_COLOR, 0.27)}`, padding:'8px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', cursor:'grab', flexShrink:0, userSelect:'none' }}>
         <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
           <span style={{ color:CONFLUENCE_COLOR, fontSize:'12px' }}>◆</span>
-          <span style={{ color:'#cccccc', fontSize:'12px', fontWeight:'bold' }}>{cn.title}</span>
-          <span style={{ color:CONFLUENCE_COLOR, fontSize:'8px', fontWeight:'bold', letterSpacing:'1.5px', background:`${CONFLUENCE_COLOR}22`, border:`1px solid ${CONFLUENCE_COLOR}44`, borderRadius:'3px', padding:'1px 5px' }}>CONFLUENCE</span>
-          {cn.category && <span style={{ color:'#444', fontSize:'9px' }}>{cn.category}</span>}
+          <span style={{ color:'var(--fp-text-primary)', fontSize:'12px', fontWeight:'bold' }}>{cn.title}</span>
+          <span style={{ color:CONFLUENCE_COLOR, fontSize:'8px', fontWeight:'bold', letterSpacing:'1.5px', background:`${alpha(CONFLUENCE_COLOR, 0.13)}`, border:`1px solid ${alpha(CONFLUENCE_COLOR, 0.27)}`, borderRadius:'3px', padding:'1px 5px' }}>CONFLUENCE</span>
+          {cn.category && <span style={{ color:'var(--fp-border-strong)', fontSize:'9px' }}>{cn.category}</span>}
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-          <span style={{ color:'#333', fontSize:'9px' }}>{cn.nodes.length} nodes · {(cn.wires || cn.edges || []).length} wires</span>
-          <div onClick={onClose} style={{ color:'#555', fontSize:'14px', cursor:'pointer', padding:'2px 6px', borderRadius:'3px', transition:'all 0.15s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='#cc4444'; (e.currentTarget as HTMLElement).style.background='#cc444422'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='#555'; (e.currentTarget as HTMLElement).style.background='transparent'; }}
+          <span style={{ color:'var(--fp-border-default)', fontSize:'9px' }}>{cn.nodes.length} nodes · {(cn.wires || cn.edges || []).length} wires</span>
+          <div onClick={onClose} style={{ color:'var(--fp-text-faint)', fontSize:'14px', cursor:'pointer', padding:'2px 6px', borderRadius:'3px', transition:'all 0.15s' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='var(--fp-state-danger)'; (e.currentTarget as HTMLElement).style.background='rgba(204, 68, 68, 0.13)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='var(--fp-text-faint)'; (e.currentTarget as HTMLElement).style.background='transparent'; }}
           >✕</div>
         </div>
       </div>
 
       {/* ── PIN LEGEND ────────────────────────────────────────────────────── */}
       {(inputPins.length > 0 || outputPins.length > 0) && (
-        <div style={{ background:'#080808', borderBottom:`1px solid ${CONFLUENCE_COLOR}22`, padding:'4px 14px', display:'flex', gap:'16px', flexShrink:0, flexWrap:'wrap' }}>
+        <div style={{ background:'var(--fp-surface-canvas)', borderBottom:`1px solid ${alpha(CONFLUENCE_COLOR, 0.13)}`, padding:'4px 14px', display:'flex', gap:'16px', flexShrink:0, flexWrap:'wrap' }}>
           {inputPins.map((p: any, i: number) => (
             <div key={i} style={{ display:'flex', alignItems:'center', gap:'4px' }}>
               <span style={{ color:CONFLUENCE_COLOR, fontSize:'8px' }}>→</span>
-              <span style={{ color:'#555', fontSize:'8px' }}>IN: {p.name}</span>
+              <span style={{ color:'var(--fp-text-faint)', fontSize:'8px' }}>IN: {p.name}</span>
             </div>
           ))}
           {outputPins.map((p: any, i: number) => (
             <div key={i} style={{ display:'flex', alignItems:'center', gap:'4px' }}>
               <span style={{ color:CONFLUENCE_COLOR, fontSize:'8px' }}>←</span>
-              <span style={{ color:'#555', fontSize:'8px' }}>OUT: {p.name}</span>
+              <span style={{ color:'var(--fp-text-faint)', fontSize:'8px' }}>OUT: {p.name}</span>
             </div>
           ))}
         </div>
       )}
 
       {/* ── INNER CANVAS ──────────────────────────────────────────────────── */}
-      <div style={{ flex:1, background:'#060606' }}>
+      <div style={{ flex:1, background:'var(--fp-surface-canvas)' }}>
         <ReactFlowProvider>
           <InnerCanvas
             innerNodes={innerNodes}
@@ -439,12 +440,12 @@ export const ConfluenceSubGraph = ({
       </div>
 
       {/* ── FOOTER ────────────────────────────────────────────────────────── */}
-      <div style={{ background:'#080808', borderTop:`1px solid ${CONFLUENCE_COLOR}22`, padding:'5px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, position:'relative' }}>
-        <span style={{ color:'#2a2a2a', fontSize:'8px', letterSpacing:'0.5px' }}>
+      <div style={{ background:'var(--fp-surface-canvas)', borderTop:`1px solid ${alpha(CONFLUENCE_COLOR, 0.13)}`, padding:'5px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, position:'relative' }}>
+        <span style={{ color:'var(--fp-surface-overlay)', fontSize:'8px', letterSpacing:'0.5px' }}>
           Ctrl+D duplicate  ·  Ctrl+Z undo  ·  Drag title to move  ·  Drag ◢ to resize
         </span>
-        <div onClick={onClose} style={{ color:CONFLUENCE_COLOR, fontSize:'9px', fontWeight:'bold', letterSpacing:'1px', cursor:'pointer', padding:'2px 8px', border:`1px solid ${CONFLUENCE_COLOR}44`, borderRadius:'3px', transition:'all 0.15s' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background=`${CONFLUENCE_COLOR}22`; }}
+        <div onClick={onClose} style={{ color:CONFLUENCE_COLOR, fontSize:'9px', fontWeight:'bold', letterSpacing:'1px', cursor:'pointer', padding:'2px 8px', border:`1px solid ${alpha(CONFLUENCE_COLOR, 0.27)}`, borderRadius:'3px', transition:'all 0.15s' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background=`${alpha(CONFLUENCE_COLOR, 0.13)}`; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background='transparent'; }}
         >CLOSE</div>
         <div onMouseDown={e => { e.preventDefault(); resizing.current=true; resizeStart.current={ mouseX:e.clientX, mouseY:e.clientY, w:size.w, h:size.h }; document.body.style.cursor='nwse-resize'; document.body.style.userSelect='none'; }}

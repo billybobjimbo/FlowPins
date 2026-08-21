@@ -33,6 +33,10 @@ import { ConfluenceStore, scanPinsFromNodes } from "./libraries/confluence_store
 import { CONFLUENCE_DRAG_KEY }       from "./components/ConfluenceLibrary";
 import { NODE_LIBRARY }              from './libraries/index';
 import { generateCodeBlocks, type CompileMode, ALL_MODES } from './libraries/compiler';
+import { isHiddenProfile } from './libraries/release';
+import { SkinProvider } from './libraries/SkinProvider';
+import { SKINS, skinForTarget } from './libraries/skins';
+import { pinColor } from './libraries/theme';
 import { WelcomeScreen }     from './components/WelcomeScreen';
 import { JOURNEYS, getJourney, type Journey } from './libraries/journeys';
 
@@ -50,30 +54,23 @@ declare global {
 
 const nodeTypes = { fp: FPNode, confluence: ConfluenceNode };
 
-function resolveEdgeColor(sourceNode: Node | undefined, sourceHandle: string): string {
-  if (!sourceNode) return "#888888";
+function resolveEdgeColor(sourceNode: any, sourceHandle: string | null | undefined): string {
+  // Was a fourth hand-written pin table (after FPNode, ConfluenceNode and the
+  // dead PIN_COLORS). It had drifted: no 'number' case, and 'list' returned the
+  // brand accent — which is why wire colours didn't match pin colours.
+  if (!sourceNode) return pinColor(undefined);
   const spec = NODE_LIBRARY[sourceNode.data.nodeKind];
-  if (!spec) return "#888888";
+  if (!spec) return pinColor(undefined);
   const outPin = spec.outputs?.find((o: any) => o.name === sourceHandle);
-  if (!outPin) return "#888888";
-  if (outPin.pin_type === 'exec')   return "#ffffff";
-  if (outPin.pin_type === 'string') return "#ff007f";
-  if (outPin.pin_type === 'int')    return "#00e5ff";
-  if (outPin.pin_type === 'float')  return "#00e5ff";
-  if (outPin.pin_type === 'bool')   return "#ff2a2a";
-  if (outPin.pin_type === 'list')   return "#00d8ff";
-  if (outPin.pin_type === 'any')    return "#826cf3";
-  return "#888888";
+  if (!outPin) return pinColor(undefined);
+  return pinColor(outPin.pin_type === 'bool' ? 'boolean' : outPin.pin_type);
 }
 
 function getActiveAppProfile(mode: string): string {
-  if (mode === 'gml_standard') return 'game maker';
   if (mode === 'js_toonboom')  return 'toon boom';
-  if (mode === 'py_maya')      return 'maya';
-  if (mode === 'lua_fusion')   return 'fusion';
-  if (mode === 'cs_csharp')    return 'unity';
-  if (mode === 'py_houdini')   return 'houdini';
+  if (mode === 'py_harmony')   return 'toon boom';
   if (mode === 'py_standard')  return 'python';
+  if (mode === 'cs_csharp')    return 'unity';
   return '';
 }
 
@@ -85,9 +82,9 @@ export default function App() {
   const EXPIRY_DATE = new Date('2026-12-31T00:00:00');
   if (new Date() > EXPIRY_DATE) {
     return (
-      <div style={{ width:'100vw', height:'100vh', backgroundColor:'#050505', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', color:'#fff', fontFamily:'sans-serif' }}>
-        <h1 style={{ color:'#ff4444', marginBottom:'10px' }}>Alpha Build Expired</h1>
-        <p style={{ color:'#aaa' }}>Please contact Alistair for the latest build.</p>
+      <div style={{ width:'100vw', height:'100vh', backgroundColor:'var(--fp-surface-canvas)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', color:'var(--fp-text-bright)', fontFamily:'sans-serif' }}>
+        <h1 style={{ color:'var(--fp-state-danger)', marginBottom:'10px' }}>Alpha Build Expired</h1>
+        <p style={{ color:'var(--fp-text-secondary)' }}>Please contact Alistair for the latest build.</p>
       </div>
     );
   }
@@ -96,8 +93,23 @@ export default function App() {
   const [selectedNodeId,     setSelectedNodeId]     = useState<string | null>(null);
   const [nodes, setNodes, onNodesChange]            = useNodesState<FPNodeData>([]);
   const [edges, setEdges, onEdgesChange]            = useEdgesState<Edge[]>([]);
+
+  // Wire colour, derived fresh on every render rather than baked in once at
+  // connection time. resolveEdgeColor() previously only ran in two places —
+  // onConnect (a wire just dragged by hand) and blueprint placement — so any
+  // edge loaded from a saved file, or drawn before a node's pins were typed
+  // correctly (exactly what happened during today's Toon Boom pin rollout),
+  // kept whatever stroke it got at creation and never picked up the real
+  // colour. This recomputes every edge's stroke from its actual source pin
+  // on every render, so wire colour always matches current pin types —
+  // old saves included — with no need to re-draw anything.
+  const styledEdges = useMemo(() => edges.map(e => {
+    const sourceNode = nodes.find(n => n.id === e.source);
+    const color = resolveEdgeColor(sourceNode, e.sourceHandle);
+    return { ...e, style: { ...(e.style || {}), stroke: color, strokeWidth: 2 } };
+  }), [edges, nodes]);
   const [reactFlowInstance,  setReactFlowInstance]  = useState<any>(null);
-  const [activeMode,         setActiveMode]         = useState<CompileMode>('gml_standard');
+  const [activeMode,         setActiveMode]         = useState<CompileMode>('js_toonboom');
   const [isAILoading,        setIsAILoading]        = useState(false);
   const [evelynMessage,      setEvelynMessage]      = useState<string | null>(null);
   const [spawnMenu,          setSpawnMenu]          = useState<{ show: boolean, x: number, y: number, flowX: number, flowY: number } | null>(null);
@@ -300,7 +312,7 @@ export default function App() {
       sourceHandle: e.sourceHandle,
       targetHandle: e.targetHandle,
       type:         'default',
-      style:        { stroke: '#888888', strokeWidth: 2 },
+      style:        { stroke: 'var(--fp-text-muted)', strokeWidth: 2 },
     }));
     setNodes(nds => [...nds, ...newNodes]);
     setEdges(eds => [...eds, ...newEdges]);
@@ -429,6 +441,12 @@ export default function App() {
     setShowGroupDialog(false);
   }, [nodes, edges, takeSnapshot, setNodes, setEdges]);
 
+  // --- Active skin ---
+  // Harmony JS / Harmony Py -> Harmony skin, everything else -> FlowPins.
+  // App reads it directly because it renders the provider and therefore sits
+  // outside it; every child uses useSkin().
+  const skin = useMemo(() => SKINS[skinForTarget(activeMode)], [activeMode]);
+
   // --- Code generation ---
   const codeBlocks = useMemo(() => generateCodeBlocks(nodes, edges, activeMode), [nodes, edges, activeMode]);
 
@@ -444,6 +462,7 @@ export default function App() {
   const closeMenu = () => setSpawnMenu(null);
 
   const filteredMenuNodes = Object.entries(NODE_LIBRARY).filter(([_, spec]: [string, any]) => {
+    if (isHiddenProfile(spec.profile)) return false;
     const c = (spec.profile || "").toLowerCase();
     return (c.startsWith('core') || (c.startsWith('app -') && c.includes(getActiveAppProfile(activeMode))) || c.startsWith('pipeline'))
       && spec.title.toLowerCase().includes(menuSearch.toLowerCase());
@@ -470,19 +489,20 @@ export default function App() {
         });
       } else if (command.startsWith('export-')) {
         const modeMap: Record<string, CompileMode> = {
-          'export-js':'js_toonboom','export-py':'py_maya','export-houdini':'py_houdini',
-          'export-py-std':'py_standard','export-cs':'cs_csharp','export-lua':'lua_fusion','export-gml':'gml_standard',
+          'export-js':      'js_toonboom',
+          'export-py-harmony':'py_harmony',
+          'export-py-std':  'py_standard',
+          'export-cs':      'cs_csharp',
         };
-        const extMap: Record<CompileMode, string> = {
-          js_toonboom:'js', py_maya:'py', py_houdini:'py', py_standard:'py',
-          cs_csharp:'cs', lua_fusion:'lua', gml_standard:'gml', py_nuke:'py',
+        const extMap: Partial<Record<CompileMode, string>> = {
+          js_toonboom: 'js', py_harmony: 'py', py_standard: 'py', cs_csharp: 'cs',
         };
         const targetMode = modeMap[command] ?? activeMode;
         setActiveMode(targetMode);
         const script = generateCodeBlocks(nodes, edges, targetMode).map(b => b.text).join('\n');
         await window.electron.ipcRenderer.invoke('save-as-dialog', {
-          content: script, defaultName: `FlowPinsScript.${extMap[targetMode]}`,
-          filters: [{ name: 'Script', extensions: [extMap[targetMode]] }]
+          content: script, defaultName: `FlowPinsScript.${extMap[targetMode] ?? 'txt'}`,
+          filters: [{ name: 'Script', extensions: [extMap[targetMode] ?? 'txt'] }]
         });
       }
     };
@@ -564,15 +584,18 @@ export default function App() {
 
   // =============================================================================
   return (
+    <SkinProvider mode={activeMode}>
     <div
       tabIndex={0} onKeyDown={onKeyDown} onClick={closeMenu}
-      style={{ height:"100vh", width:"100vw", display:"flex", background:"#050505", outline:'none', position:'relative' }}
+      style={{ height:"100vh", width:"100vw", display:"flex",
+               background: skin.surface.canvas, outline:'none', position:'relative',
+               transition: 'background-color 0.25s ease' }}
     >
       {/* CONTEXT MENU */}
       {spawnMenu && (
         <div onClick={e => e.stopPropagation()} style={{
           position:'absolute', left:spawnMenu.x, top:spawnMenu.y,
-          width:220, maxHeight:300, background:'#111', border:'1px solid #333',
+          width:220, maxHeight:300, background:'var(--fp-surface-base)', border:'1px solid var(--fp-border-default)',
           borderRadius:8, zIndex:9999, boxShadow:'0 15px 40px rgba(0,0,0,0.8)',
           display:'flex', flexDirection:'column', overflow:'hidden'
         }}>
@@ -585,21 +608,21 @@ export default function App() {
               else if (e.key==='ArrowUp') { e.preventDefault(); setMenuSelectedIndex(p => Math.max(p-1, 0)); }
               else if (e.key==='Enter') { e.preventDefault(); if (filteredMenuNodes.length>0) { handleDropSpawn(filteredMenuNodes[menuSelectedIndex][0], {x:spawnMenu.flowX, y:spawnMenu.flowY}); closeMenu(); } }
             }}
-            style={{ background:'#1a1a1a', border:'none', borderBottom:'1px solid #333', color:'#00d8ff', padding:'10px 12px', fontSize:13, outline:'none' }}
+            style={{ background:'var(--fp-surface-raised)', border:'none', borderBottom:'1px solid var(--fp-border-default)', color:'var(--fp-accent-primary)', padding:'10px 12px', fontSize:13, outline:'none' }}
           />
           <div style={{ flex:1, overflowY:'auto', padding:4 }}>
             {filteredMenuNodes.length===0 ? (
-              <div style={{ padding:12, color:'#666', fontSize:12, textAlign:'center' }}>No nodes found.</div>
+              <div style={{ padding:12, color:'var(--fp-text-disabled)', fontSize:12, textAlign:'center' }}>No nodes found.</div>
             ) : filteredMenuNodes.map(([kind, spec]: [string, any], index: number) => {
               const isSel = index === menuSelectedIndex;
               return (
                 <div key={kind}
                   onClick={() => { handleDropSpawn(kind, {x:spawnMenu.flowX, y:spawnMenu.flowY}); closeMenu(); }}
                   onMouseEnter={() => setMenuSelectedIndex(index)}
-                  style={{ padding:'8px 10px', color:isSel?'#fff':'#ccc', fontSize:12, cursor:'pointer', borderRadius:4, background:isSel?'#2a2a2a':'transparent', borderLeft:isSel?'3px solid #00d8ff':'3px solid transparent' }}
+                  style={{ padding:'8px 10px', color:isSel?'var(--fp-text-bright)':'var(--fp-text-primary)', fontSize:12, cursor:'pointer', borderRadius:4, background:isSel?'var(--fp-surface-overlay)':'transparent', borderLeft:isSel?'3px solid var(--fp-accent-primary)':'3px solid transparent' }}
                 >
                   <div style={{ fontWeight:'bold' }}>{spec.title}</div>
-                  <div style={{ fontSize:9, color:isSel?'#888':'#666', marginTop:2 }}>{spec.profile}</div>
+                  <div style={{ fontSize:9, color:isSel?'var(--fp-text-muted)':'var(--fp-text-disabled)', marginTop:2 }}>{spec.profile}</div>
                 </div>
               );
             })}
@@ -620,24 +643,24 @@ export default function App() {
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              width: 320, background: '#0a0a0a',
-              border: `2px solid #536878`,
+              width: 320, background: 'var(--fp-surface-canvas)',
+              border: `2px solid var(--fp-accent-confluence)`,
               borderRadius: '10px', overflow: 'hidden',
               boxShadow: '0 24px 60px rgba(0,0,0,0.8)',
             }}
           >
             {/* Dialog header */}
             <div style={{
-              background: 'linear-gradient(90deg, #0d0d0d 0%, #53687818 100%)',
-              borderBottom: '1px solid #53687844',
+              background: 'linear-gradient(90deg, var(--fp-surface-sunken) 0%, rgba(83, 104, 120, 0.09) 100%)',
+              borderBottom: '1px solid rgba(83, 104, 120, 0.27)',
               padding: '10px 14px',
               display: 'flex', alignItems: 'center', gap: '8px',
             }}>
-              <span style={{ color: '#536878', fontSize: '13px' }}>◆</span>
-              <span style={{ color: '#cccccc', fontSize: '12px', fontWeight: 'bold' }}>
+              <span style={{ color: 'var(--fp-accent-confluence)', fontSize: '13px' }}>◆</span>
+              <span style={{ color: 'var(--fp-text-primary)', fontSize: '12px', fontWeight: 'bold' }}>
                 Group Selected Nodes
               </span>
-              <span style={{ color: '#536878', fontSize: '8px', background: '#53687822', border: '1px solid #53687844', borderRadius: '3px', padding: '1px 5px', marginLeft: 'auto', letterSpacing: '1px' }}>
+              <span style={{ color: 'var(--fp-accent-confluence)', fontSize: '8px', background: 'rgba(83, 104, 120, 0.13)', border: '1px solid rgba(83, 104, 120, 0.27)', borderRadius: '3px', padding: '1px 5px', marginLeft: 'auto', letterSpacing: '1px' }}>
                 CTRL+G
               </span>
             </div>
@@ -662,12 +685,12 @@ export default function App() {
           {evelynMessage && (
             <div style={{
               position:'absolute', bottom:'100px', left:'50%', transform:'translateX(-50%)',
-              background:'rgba(0,216,255,0.1)', border:'1px solid #00d8ff', color:'#fff',
+              background:'rgba(0,216,255,0.1)', border:'1px solid var(--fp-accent-primary)', color:'var(--fp-text-bright)',
               padding:'12px 24px', borderRadius:'8px', zIndex:1000,
               boxShadow:'0 4px 20px rgba(0,216,255,0.2)', backdropFilter:'blur(4px)',
               display:'flex', alignItems:'center', gap:'10px', maxWidth:'600px'
             }}>
-              <span style={{ color:'#00d8ff', fontWeight:'bold', whiteSpace:'nowrap' }}>Evelyn:</span>
+              <span style={{ color:'var(--fp-accent-primary)', fontWeight:'bold', whiteSpace:'nowrap' }}>Evelyn:</span>
               <span>{evelynMessage}</span>
             </div>
           )}
@@ -686,7 +709,7 @@ export default function App() {
           />
 
           <ReactFlow
-            nodes={nodes} edges={edges} nodeTypes={nodeTypes}
+            nodes={nodes} edges={styledEdges} nodeTypes={nodeTypes}
             onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onNodeClick={(_e, n) => setSelectedNodeId(n.id)}
@@ -701,15 +724,15 @@ export default function App() {
             onNodeDragStart={() => takeSnapshot()}
             onSelectionDragStart={() => takeSnapshot()}
             snapToGrid fitView
-            style={{ background:"#050505" }}
+            style={{ background:"var(--fp-surface-canvas)" }}
             panOnDrag={[1,2]}
             selectionOnDrag={true}
             selectionMode={SelectionMode.Partial}
             selectionKeyCode={null}
           >
-            <Background variant={BackgroundVariant.Dots} gap={18} color="#333" />
+            <Background variant={BackgroundVariant.Dots} gap={18} color={skin.border.subtle} />
             <Controls />
-            <MiniMap style={{ background:"#111", border:"1px solid #333" }} maskColor="rgba(0,0,0,0.6)" nodeColor="#444" />
+            <MiniMap style={{ background:"var(--fp-surface-base)", border:"1px solid var(--fp-border-default)" }} maskColor="rgba(0,0,0,0.6)" nodeColor="var(--fp-border-strong)" />
           </ReactFlow>
 
           {subGraphFrame && (
@@ -752,5 +775,6 @@ export default function App() {
         reactFlowInstance={reactFlowInstance}
       />
     </div>
+    </SkinProvider>
   );
 }

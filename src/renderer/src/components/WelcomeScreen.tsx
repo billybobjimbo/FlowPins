@@ -8,12 +8,12 @@
 import React, { useState } from 'react';
 import { JOURNEYS, type Journey } from '../libraries/journeys';
 
-const CYAN   = '#00d8ff';
-const AMBER  = '#f5a623';
-const BG     = '#0a0a0a';
-const BORDER = '#1e1e1e';
-const TEXT   = '#cccccc';
-const MUTED  = '#555555';
+const CYAN   = 'var(--fp-accent-primary)';
+const AMBER  = 'var(--fp-accent-amber)';
+const BG     = 'var(--fp-surface-canvas)';
+const BORDER = 'var(--fp-surface-raised)';
+const TEXT   = 'var(--fp-text-primary)';
+const MUTED  = 'var(--fp-text-faint)';
 
 interface Props {
   onStartJourney:  (journeyId: string) => void;
@@ -49,13 +49,13 @@ export const WelcomeScreen = ({ onStartJourney, onDismiss, onSuppressChange, sup
           border:       `1px solid ${BORDER}`,
           borderRadius: '12px',
           overflow:     'hidden',
-          boxShadow:    `0 32px 80px rgba(0,0,0,0.9), 0 0 0 1px #00d8ff18`,
+          boxShadow:    `0 32px 80px rgba(0,0,0,0.9), 0 0 0 1px rgba(0, 216, 255, 0.09)`,
         }}
       >
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <div style={{
-          background:    'linear-gradient(135deg, #0d0d0d 0%, #0a1a1a 100%)',
+          background:    'linear-gradient(135deg, var(--fp-surface-sunken) 0%, var(--fp-surface-sunken) 100%)',
           borderBottom:  `1px solid ${BORDER}`,
           padding:       '28px 32px 24px',
         }}>
@@ -73,7 +73,7 @@ export const WelcomeScreen = ({ onStartJourney, onDismiss, onSuppressChange, sup
               fontSize:      '9px',
               fontWeight:    'bold',
               letterSpacing: '2px',
-              color:         '#444',
+              color:         'var(--fp-border-strong)',
               borderRadius:  '3px',
               padding:       '2px 6px',
             }}>
@@ -116,7 +116,7 @@ export const WelcomeScreen = ({ onStartJourney, onDismiss, onSuppressChange, sup
                     gap:           '14px',
                     padding:       '12px 16px',
                     borderRadius:  '6px',
-                    background:    isHovered ? '#0d1a1a' : '#0d0d0d',
+                    background:    isHovered ? 'var(--fp-surface-raised)' : 'var(--fp-surface-sunken)',
                     border:        `1px solid ${isHovered ? CYAN + '44' : BORDER}`,
                     cursor:        'pointer',
                     transition:    'all 0.15s',
@@ -145,7 +145,7 @@ export const WelcomeScreen = ({ onStartJourney, onDismiss, onSuppressChange, sup
 
                   {/* Arrow */}
                   <div style={{
-                    color:      isHovered ? CYAN : '#333',
+                    color:      isHovered ? CYAN : 'var(--fp-border-default)',
                     fontSize:   '16px',
                     flexShrink: 0,
                     transition: 'color 0.15s',
@@ -198,7 +198,7 @@ export const WelcomeScreen = ({ onStartJourney, onDismiss, onSuppressChange, sup
             }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLElement).style.color   = TEXT;
-              (e.currentTarget as HTMLElement).style.borderColor = '#333';
+              (e.currentTarget as HTMLElement).style.borderColor = 'var(--fp-border-default)';
             }}
             onMouseLeave={e => {
               (e.currentTarget as HTMLElement).style.color   = MUTED;

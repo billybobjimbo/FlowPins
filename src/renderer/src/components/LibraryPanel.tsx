@@ -15,13 +15,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NODE_LIBRARY } from '../libraries/index';
 
-import { HARMONY_TRANSLATIONS } from '../libraries/translators/harmony';
-import { FUSION_TRANSLATIONS }  from '../libraries/translators/fusion';
-import { MAYA_TRANSLATIONS }    from '../libraries/translators/maya';
+import { HARMONY_TRANSLATIONS }    from '../libraries/translators/harmony';
+import { HARMONY_PY_TRANSLATIONS } from '../libraries/translators/harmony_py';
 import { PYTHON_TRANSLATIONS }  from '../libraries/translators/python';
 import { CSHARP_TRANSLATIONS }  from '../libraries/translators/csharp';
-import { HOUDINI_TRANSLATIONS } from '../libraries/translators/houdini';
-import { GML_TRANSLATIONS }     from '../libraries/translators/gml';
+import { GROUP_ORDER, isHiddenProfile, tierLabel } from '../libraries/release';
+import { ALL_MODES, MODE_LABELS, type CompileMode } from '../libraries/compiler';
+import { SURFACE, BORDER, TEXT, ACCENT, RADIUS, profileColor } from '../libraries/theme';
+import { alpha } from '../libraries/theme';
+import { profileColorForPanel } from '../libraries/skins';
+import { useSkin } from '../libraries/SkinProvider';
 
 export type CodeBlock = {
   id: string | null;
@@ -35,21 +38,17 @@ export interface LibraryPanelProps {
   selectedNode: any | null;
   nodes: any[];
   edges: any[];
-  activeMode: 'js_toonboom' | 'py_standard' | 'py_maya' | 'cs_csharp' | 'lua_fusion' | 'py_houdini' | 'gml_standard' | 'py_nuke';
+  activeMode: CompileMode;
   setActiveMode: (mode: any) => void;
 }
 
 // ---- HELPERS ----------------------------------------------------------------
 
 const getActiveAppProfile = (mode: string): string => {
-  if (mode === 'gml_standard') return 'game maker';
   if (mode === 'js_toonboom')  return 'toon boom';
-  if (mode === 'py_maya')      return 'maya';
-  if (mode === 'lua_fusion')   return 'fusion';
-  if (mode === 'cs_csharp')    return 'unity';
-  if (mode === 'py_houdini')   return 'houdini';
+  if (mode === 'py_harmony')   return 'toon boom';
   if (mode === 'py_standard')  return 'python';
-  if (mode === 'py_nuke')      return 'nuke';
+  if (mode === 'cs_csharp')    return 'unity';
   return '';
 };
 
@@ -70,50 +69,19 @@ const getTopGroup = (profile: string): string => {
   return 'Other';
 };
 
-// Sort order for top-level groups
-const GROUP_ORDER: Record<string, number> = {
-  'Core':          0,
-  'Pipeline':      1,
-  'App - Toon Boom': 2,
-  'App - Maya':    3,
-  'App - Houdini': 4,
-};
+// GROUP_ORDER now lives in release.ts alongside the rest of the release scope.
 
 const getTranslationDict = (mode: string): Record<string, any> => {
   if (mode === 'js_toonboom')  return HARMONY_TRANSLATIONS;
-  if (mode === 'py_maya')      return MAYA_TRANSLATIONS;
-  if (mode === 'lua_fusion')   return FUSION_TRANSLATIONS;
+  if (mode === 'py_harmony')   return HARMONY_PY_TRANSLATIONS;
   if (mode === 'py_standard')  return PYTHON_TRANSLATIONS;
   if (mode === 'cs_csharp')    return CSHARP_TRANSLATIONS;
-  if (mode === 'py_houdini')   return HOUDINI_TRANSLATIONS;
-  if (mode === 'gml_standard') return GML_TRANSLATIONS;
   return {};
 };
 
 // ---- PROFILE COLOR (matches FPNode.tsx) ------------------------------------
 
-const getProfileColor = (profile: string): string => {
-  const p = profile.toLowerCase();
-  if (p.includes('toon boom - blur'))      return '#5b9bd5';
-  if (p.includes('toon boom - effects'))   return '#7b68ee';
-  if (p.includes('toon boom - colour'))    return '#48a999';
-  if (p.includes('toon boom - output'))    return '#e8503a';
-  if (p.includes('toon boom - composite')) return '#4a83c4';
-  if (p.includes('toon boom - rigging'))   return '#66bb6a';
-  if (p.includes('toon boom - scene'))     return '#ffa726';
-  if (p.includes('toon boom - ui'))        return '#ab47bc';
-  if (p.includes('toon boom - camera'))    return '#26c6da';
-  if (p.includes('toon boom - query'))     return '#8d6e63';
-  if (p.includes('toon boom') || p.includes('toonboom')) return '#4a83c4';
-  if (p.includes('maya'))     return '#c343ea';
-  if (p.includes('python'))   return '#2d572c';
-  if (p.includes('lua') || p.includes('fusion')) return '#242a59';
-  if (p.includes('c#') || p.includes('unity'))   return '#e66900';
-  if (p.includes('game') || p.includes('gml'))   return '#00ff8c';
-  if (p.includes('pipeline')) return '#f5a623';
-  if (p.includes('core'))     return '#aaaaaa';
-  return '#ffffff';
-};
+// resolved per-skin inside the component via profileColorFor()
 
 // ============================================================================
 // COMPONENT
@@ -129,6 +97,12 @@ export const LibraryPanel = ({
   activeMode,
   setActiveMode
 }: LibraryPanelProps) => {
+
+  const skin = useSkin();
+  // Panel rows sit on light chrome in the Harmony skin — this resolver
+  // uses the lightened variant. FPNode/ConfluenceNode use profileColorFor()
+  // directly instead, since canvas nodes are always on a dark body.
+  const getProfileColor = (prof: string) => profileColorForPanel(prof, skin);
 
   const [activeTab, setActiveTab]       = useState<'nodes' | 'code'>('nodes');
   const [copyFeedback, setCopyFeedback] = useState(false);
@@ -162,9 +136,11 @@ export const LibraryPanel = ({
   // All unique profiles — all App groups always visible in the library.
   // The active DCC mode only affects the context menu (right-click spawn),
   // not the library panel, so TDs can browse all nodes at any time.
+  // Profiles parked for this release (see release.ts) are filtered out here.
+  // The nodes themselves stay in NODE_LIBRARY so saved graphs still resolve.
   const allProfiles = Array.from(
     new Set(Object.values(NODE_LIBRARY).map((n: any) => n.profile))
-  );
+  ).filter((p: any) => !isHiddenProfile(p));
 
   // Group profiles into top-level groups
   // Core - Math, Core - Logic → under "Core"
@@ -231,7 +207,7 @@ export const LibraryPanel = ({
 
       if (connectedInputs.length === 0) {
         return (
-          <div style={{ color: '#555', fontSize: '11px', fontStyle: 'italic' }}>
+          <div style={{ color: 'var(--fp-text-faint)', fontSize: '11px', fontStyle: 'italic' }}>
             No configurable properties.
           </div>
         );
@@ -243,7 +219,7 @@ export const LibraryPanel = ({
         const value      = sourceNode?.data?.props?.value ?? sourceNode?.data?.label ?? '(wired)';
         return (
           <div key={pin.name} style={{ display: 'flex', gap: '8px', marginBottom: '6px', alignItems: 'baseline' }}>
-            <span style={{ color: '#666', fontSize: '11px', minWidth: '100px' }}>
+            <span style={{ color: 'var(--fp-text-disabled)', fontSize: '11px', minWidth: '100px' }}>
               {pin.name}
             </span>
             <span style={{ color: color, fontSize: '12px', fontWeight: 'bold' }}>
@@ -268,17 +244,17 @@ export const LibraryPanel = ({
       return (
         <div key={key} style={{ 
           display: 'flex', gap: '8px', marginBottom: '8px', 
-          alignItems: 'baseline', borderBottom: '1px solid #1a1a1a',
+          alignItems: 'baseline', borderBottom: '1px solid var(--fp-surface-raised)',
           paddingBottom: '6px'
         }}>
           <span style={{ 
-            color: '#666', fontSize: '11px', 
+            color: 'var(--fp-text-disabled)', fontSize: '11px', 
             minWidth: `${maxLen * 7}px`, fontFamily: 'monospace'
           }}>
             {paddedLabel}
           </span>
           <span style={{ 
-            color: wireVal ? '#a8ff00' : color, 
+            color: wireVal ? 'var(--fp-state-success)' : color, 
             fontSize: '12px', fontWeight: 'bold', fontFamily: 'monospace'
           }}>
             {wireVal ? String(wireVal) + ' ⟵ wired' : String(currentVal)}
@@ -292,7 +268,7 @@ export const LibraryPanel = ({
 
   return (
     <div style={{
-      width: `${width}px`, background: '#111', borderRight: '2px solid #222',
+      width: `${width}px`, background: 'var(--fp-surface-base)', borderRight: '2px solid var(--fp-surface-overlay)',
       display: 'flex', flexDirection: 'column', position: 'relative',
       minWidth: '150px', height: '100%'
     }}>
@@ -300,38 +276,40 @@ export const LibraryPanel = ({
       {/* TARGET SELECTOR */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '10px 12px', background: '#151515', borderBottom: '1px solid #222'
+        padding: '10px 12px', background: SURFACE.base, borderBottom: `1px solid ${BORDER.default}`
       }}>
-        <div style={{ color: '#888', fontSize: '11px', fontWeight: 'bold', letterSpacing: '1px' }}>TARGET</div>
+        <div style={{ color: TEXT.muted, fontSize: '11px', fontWeight: 'bold', letterSpacing: '1px' }}>TARGET</div>
         <select
           value={activeMode}
           onChange={(e) => setActiveMode(e.target.value as any)}
           style={{
-            padding: '4px 8px', background: '#222', color: '#00d8ff',
-            border: '1px solid #444', borderRadius: '4px', cursor: 'pointer',
+            padding: '4px 8px', background: SURFACE.overlay, color: ACCENT.primary,
+            border: `1px solid ${BORDER.strong}`, borderRadius: RADIUS.md, cursor: 'pointer',
             fontSize: '11px', fontWeight: 'bold', outline: 'none'
           }}
         >
-          <option value="gml_standard">GameMaker (GML)</option>
-          <option value="py_nuke">Nuke (Py)</option>
-          <option value="js_toonboom">Harmony (JS)</option>
-          <option value="py_standard">Python (Std)</option>
-          <option value="py_maya">Maya (Py)</option>
-          <option value="py_houdini">Houdini (Py)</option>
-          <option value="lua_fusion">Fusion (Lua)</option>
-          <option value="cs_csharp">Unity (C#)</option>
+          {/* Was nine hardcoded options. Now driven by release.ts, so parked
+              targets disappear here the moment their tier changes. */}
+          {ALL_MODES.map((mode) => {
+            const tag = tierLabel(mode);
+            return (
+              <option key={mode} value={mode}>
+                {MODE_LABELS[mode]}{tag ? '  · experimental' : ''}
+              </option>
+            );
+          })}
         </select>
       </div>
 
       {/* TABS */}
-      <div style={{ display: 'flex', background: '#080808', borderBottom: '1px solid #222' }}>
+      <div style={{ display: 'flex', background: 'var(--fp-surface-canvas)', borderBottom: '1px solid var(--fp-surface-overlay)' }}>
         {(['nodes', 'code'] as const).map((tab) => (
           <button
             key={tab} onClick={() => setActiveTab(tab)}
             style={{
               flex: 1, padding: '12px', fontSize: '11px', fontWeight: 'bold',
-              letterSpacing: '1px', background: activeTab === tab ? '#1a1a1a' : 'transparent',
-              border: 'none', color: activeTab === tab ? '#00d8ff' : '#666',
+              letterSpacing: '1px', background: activeTab === tab ? 'var(--fp-surface-raised)' : 'transparent',
+              border: 'none', color: activeTab === tab ? 'var(--fp-accent-primary)' : 'var(--fp-text-disabled)',
               cursor: 'pointer', transition: 'all 0.2s'
             }}
           >
@@ -356,8 +334,8 @@ export const LibraryPanel = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
-                  width: '100%', boxSizing: 'border-box', background: '#050505',
-                  color: 'white', padding: '8px 12px', border: '1px solid #444',
+                  width: '100%', boxSizing: 'border-box', background: 'var(--fp-surface-canvas)',
+                  color: 'white', padding: '8px 12px', border: '1px solid var(--fp-border-strong)',
                   borderRadius: '6px', outline: 'none', fontSize: '12px'
                 }}
               />
@@ -394,11 +372,11 @@ export const LibraryPanel = ({
                         <div
                           onClick={() => toggleTop(topGroup)}
                           style={{
-                            color: isTopOpen ? topColor : '#888',
+                            color: isTopOpen ? topColor : 'var(--fp-text-muted)',
                             fontSize: '10px', fontWeight: 'bold', padding: '8px 10px',
-                            background: '#151515', borderRadius: '4px', cursor: 'pointer',
+                            background: 'var(--fp-surface-base)', borderRadius: '4px', cursor: 'pointer',
                             display: 'flex', justifyContent: 'space-between',
-                            border: `1px solid ${isTopOpen ? topColor + '44' : '#222'}`,
+                            border: `1px solid ${isTopOpen ? topColor + '44' : 'var(--fp-surface-overlay)'}`,
                             userSelect: 'none', transition: 'all 0.2s', marginBottom: '4px'
                           }}
                         >
@@ -411,18 +389,18 @@ export const LibraryPanel = ({
                               <div
                                 key={kind} draggable onDragStart={(e) => onDragStart(e, kind)}
                                 style={{
-                                  padding: '9px 10px', background: '#1a1a1a', marginBottom: '3px',
-                                  borderRadius: '4px', fontSize: '12px', color: '#ccc',
-                                  cursor: 'grab', border: '1px solid #222', transition: 'all 0.1s'
+                                  padding: '9px 10px', background: 'var(--fp-surface-raised)', marginBottom: '3px',
+                                  borderRadius: '4px', fontSize: '12px', color: 'var(--fp-text-primary)',
+                                  cursor: 'grab', border: '1px solid var(--fp-surface-overlay)', transition: 'all 0.1s'
                                 }}
                                 onMouseEnter={(e) => {
-                                  e.currentTarget.style.background = '#2a2a2a';
+                                  e.currentTarget.style.background = 'var(--fp-surface-overlay)';
                                   e.currentTarget.style.borderColor = topColor + '88';
                                   e.currentTarget.style.transform = 'translateX(2px)';
                                 }}
                                 onMouseLeave={(e) => {
-                                  e.currentTarget.style.background = '#1a1a1a';
-                                  e.currentTarget.style.borderColor = '#222';
+                                  e.currentTarget.style.background = 'var(--fp-surface-raised)';
+                                  e.currentTarget.style.borderColor = 'var(--fp-surface-overlay)';
                                   e.currentTarget.style.transform = 'translateX(0)';
                                 }}
                               >
@@ -450,11 +428,11 @@ export const LibraryPanel = ({
                       <div
                         onClick={() => toggleTop(topGroup)}
                         style={{
-                          color: isTopOpen ? topColor : '#888',
+                          color: isTopOpen ? topColor : 'var(--fp-text-muted)',
                           fontSize: '10px', fontWeight: 'bold', padding: '8px 10px',
-                          background: '#151515', borderRadius: '4px', cursor: 'pointer',
+                          background: 'var(--fp-surface-base)', borderRadius: '4px', cursor: 'pointer',
                           display: 'flex', justifyContent: 'space-between',
-                          border: `1px solid ${isTopOpen ? topColor + '44' : '#222'}`,
+                          border: `1px solid ${isTopOpen ? topColor + '44' : 'var(--fp-surface-overlay)'}`,
                           userSelect: 'none', transition: 'all 0.2s', marginBottom: '4px',
                           letterSpacing: '1px'
                         }}
@@ -465,7 +443,7 @@ export const LibraryPanel = ({
 
                       {/* SUB-GROUP ACCORDIONS e.g. Blur, Colour, Effects */}
                       {isTopOpen && (
-                        <div style={{ paddingLeft: '8px', borderLeft: `2px solid ${topColor}22` }}>
+                        <div style={{ paddingLeft: '8px', borderLeft: `2px solid ${alpha(topColor, 0.13)}` }}>
                           {subProfiles.map(profile => {
                             const topPrefix = topGroup + ' - ';
                             const subLabel = profile.startsWith(topPrefix)
@@ -488,7 +466,7 @@ export const LibraryPanel = ({
                                   style={{
                                     color: isSubOpen ? subColor : subColor + 'aa',
                                     fontSize: '10px', fontWeight: 'bold', padding: '6px 8px',
-                                    background: '#0d0d0d', borderRadius: '4px', cursor: 'pointer',
+                                    background: 'var(--fp-surface-sunken)', borderRadius: '4px', cursor: 'pointer',
                                     display: 'flex', justifyContent: 'space-between',
                                     border: `1px solid ${isSubOpen ? subColor + '66' : subColor + '22'}`,
                                     userSelect: 'none', transition: 'all 0.2s', marginBottom: '3px',
@@ -504,19 +482,19 @@ export const LibraryPanel = ({
                                       <div
                                         key={kind} draggable onDragStart={(e) => onDragStart(e, kind)}
                                         style={{
-                                          padding: '8px 10px', background: '#1a1a1a', marginBottom: '3px',
-                                          borderRadius: '4px', fontSize: '12px', color: '#ccc',
-                                          cursor: 'grab', border: `1px solid #222`, transition: 'all 0.1s',
-                                          borderLeft: `3px solid ${subColor}66`
+                                          padding: '8px 10px', background: 'var(--fp-surface-raised)', marginBottom: '3px',
+                                          borderRadius: '4px', fontSize: '12px', color: 'var(--fp-text-primary)',
+                                          cursor: 'grab', border: `1px solid var(--fp-surface-overlay)`, transition: 'all 0.1s',
+                                          borderLeft: `3px solid ${alpha(subColor, 0.40)}`
                                         }}
                                         onMouseEnter={(e) => {
-                                          e.currentTarget.style.background = '#2a2a2a';
+                                          e.currentTarget.style.background = 'var(--fp-surface-overlay)';
                                           e.currentTarget.style.borderColor = subColor + '88';
                                           e.currentTarget.style.transform = 'translateX(2px)';
                                         }}
                                         onMouseLeave={(e) => {
-                                          e.currentTarget.style.background = '#1a1a1a';
-                                          e.currentTarget.style.borderColor = '#222';
+                                          e.currentTarget.style.background = 'var(--fp-surface-raised)';
+                                          e.currentTarget.style.borderColor = 'var(--fp-surface-overlay)';
                                           e.currentTarget.style.transform = 'translateX(0)';
                                         }}
                                       >
@@ -542,11 +520,11 @@ export const LibraryPanel = ({
                     <div
                       onClick={() => toggleTop(topGroup)}
                       style={{
-                        color: isTopOpen ? topColor : '#666',
+                        color: isTopOpen ? topColor : 'var(--fp-text-disabled)',
                         fontSize: '11px', fontWeight: 'bold', padding: '10px 10px',
-                        background: '#0d0d0d', borderRadius: '4px', cursor: 'pointer',
+                        background: 'var(--fp-surface-sunken)', borderRadius: '4px', cursor: 'pointer',
                         display: 'flex', justifyContent: 'space-between',
-                        border: `1px solid ${isTopOpen ? topColor + '66' : '#1a1a1a'}`,
+                        border: `1px solid ${isTopOpen ? topColor + '66' : 'var(--fp-surface-raised)'}`,
                         userSelect: 'none', transition: 'all 0.2s',
                         marginBottom: isTopOpen ? '4px' : '0',
                         letterSpacing: '1px'
@@ -558,7 +536,7 @@ export const LibraryPanel = ({
 
                     {/* SUB-CATEGORIES */}
                     {isTopOpen && (
-                      <div style={{ paddingLeft: '8px', borderLeft: `2px solid ${topColor}22` }}>
+                      <div style={{ paddingLeft: '8px', borderLeft: `2px solid ${alpha(topColor, 0.13)}` }}>
                         {subProfiles.map(profile => {
                           // Strip the top-group prefix for the sub-header label
                           // e.g. "Core - Math" → "Math"
@@ -596,7 +574,7 @@ export const LibraryPanel = ({
                                 style={{
                                   color: isSubOpen ? subColor : subColor + 'aa',
                                   fontSize: '10px', fontWeight: 'bold', padding: '6px 10px',
-                                  background: '#151515', borderRadius: '4px', cursor: 'pointer',
+                                  background: 'var(--fp-surface-base)', borderRadius: '4px', cursor: 'pointer',
                                   display: 'flex', justifyContent: 'space-between',
                                   border: `1px solid ${isSubOpen ? subColor + '66' : subColor + '22'}`,
                                   userSelect: 'none', transition: 'all 0.2s',
@@ -614,18 +592,18 @@ export const LibraryPanel = ({
                                     <div
                                       key={kind} draggable onDragStart={(e) => onDragStart(e, kind)}
                                       style={{
-                                        padding: '9px 10px', background: '#1a1a1a', marginBottom: '3px',
-                                        borderRadius: '4px', fontSize: '12px', color: '#ccc',
-                                        cursor: 'grab', border: '1px solid #222', transition: 'all 0.1s'
+                                        padding: '9px 10px', background: 'var(--fp-surface-raised)', marginBottom: '3px',
+                                        borderRadius: '4px', fontSize: '12px', color: 'var(--fp-text-primary)',
+                                        cursor: 'grab', border: '1px solid var(--fp-surface-overlay)', transition: 'all 0.1s'
                                       }}
                                       onMouseEnter={(e) => {
-                                        e.currentTarget.style.background = '#2a2a2a';
+                                        e.currentTarget.style.background = 'var(--fp-surface-overlay)';
                                         e.currentTarget.style.borderColor = subColor + '88';
                                         e.currentTarget.style.transform = 'translateX(2px)';
                                       }}
                                       onMouseLeave={(e) => {
-                                        e.currentTarget.style.background = '#1a1a1a';
-                                        e.currentTarget.style.borderColor = '#222';
+                                        e.currentTarget.style.background = 'var(--fp-surface-raised)';
+                                        e.currentTarget.style.borderColor = 'var(--fp-surface-overlay)';
                                         e.currentTarget.style.transform = 'translateX(0)';
                                       }}
                                     >
@@ -651,12 +629,12 @@ export const LibraryPanel = ({
 
             {/* SCRIPT VIEW with node highlighting */}
             <div style={{ display: 'flex', flexDirection: 'column', flex: 2, minHeight: 0 }}>
-              <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px', fontWeight: 'bold', letterSpacing: '1px' }}>
+              <div style={{ fontSize: '10px', color: 'var(--fp-text-muted)', marginBottom: '4px', fontWeight: 'bold', letterSpacing: '1px' }}>
                 SCRIPT {selectedNode ? '— click a node to jump to its code' : ''}
               </div>
               <div
                 ref={codeScrollRef}
-                style={{ flex: 1, background: '#0a0a0a', border: '1px solid #222', borderRadius: '4px', overflow: 'auto' }}
+                style={{ flex: 1, background: 'var(--fp-surface-canvas)', border: '1px solid var(--fp-surface-overlay)', borderRadius: '4px', overflow: 'auto' }}
               >
                 {codeBlocks.map((block, index) => {
                   // Is this block owned by the selected node?
@@ -666,18 +644,7 @@ export const LibraryPanel = ({
                   // Get the node's theme colour for the highlight
                   const blockNode    = nodes.find((n: any) => n.id === block.id);
                   const blockProfile = blockNode?.data?.profile || '';
-                  const getProfileColor = (p: string) => {
-                    const pl = p.toLowerCase();
-                    if (pl.includes('toon boom'))  return '#4a83c4';
-                    if (pl.includes('maya'))        return '#c343ea';
-                    if (pl.includes('houdini'))     return '#c343ea';
-                    if (pl.includes('fusion'))      return '#242a59';
-                    if (pl.includes('unity'))       return '#e66900';
-                    if (pl.includes('game maker'))  return '#00ff8c';
-                    if (pl.includes('pipeline'))    return '#f5a623';
-                    if (pl.includes('core'))        return '#4a9eff';
-                    return '#4a9eff';
-                  };
+                  // was a second inline copy of the profile table
                   const blockColor = getProfileColor(blockProfile);
 
                   return (
@@ -708,7 +675,7 @@ export const LibraryPanel = ({
                         margin: 0,
                         fontFamily: 'monospace',
                         fontSize: '11px',
-                        color: isSelected ? '#fff' : isBoilerplate ? '#555' : '#bbb',
+                        color: isSelected ? 'var(--fp-text-bright)' : isBoilerplate ? 'var(--fp-text-faint)' : 'var(--fp-text-secondary)',
                         whiteSpace: 'pre-wrap',
                         lineHeight: '1.6'
                       }}>
@@ -725,7 +692,7 @@ export const LibraryPanel = ({
               <div style={{ 
                 fontSize: '10px', marginBottom: '4px', fontWeight: 'bold', 
                 letterSpacing: '1px',
-                color: selectedNode ? getProfileColor(selectedNode.data.profile || '') : '#555'
+                color: selectedNode ? getProfileColor(selectedNode.data.profile || '') : 'var(--fp-text-faint)'
               }}>
                 {selectedNode 
                   ? '⚙ ' + selectedNode.data.label.toUpperCase() + ' — ' + selectedNode.data.profile
@@ -733,15 +700,15 @@ export const LibraryPanel = ({
                 }
               </div>
               <div style={{ 
-                flex: 1, background: '#050505', borderRadius: '4px', 
-                border: '1px solid #1a1a1a', overflow: 'auto', padding: '12px'
+                flex: 1, background: 'var(--fp-surface-canvas)', borderRadius: '4px', 
+                border: '1px solid var(--fp-surface-raised)', overflow: 'auto', padding: '12px'
               }}>
                 {selectedNode ? (
                   <div>
                     {buildXRayProps(selectedNode)}
                   </div>
                 ) : (
-                  <div style={{ color: '#333', fontSize: '11px', fontStyle: 'italic' }}>
+                  <div style={{ color: 'var(--fp-border-default)', fontSize: '11px', fontStyle: 'italic' }}>
                     Click any node on the canvas to see its properties here.
                   </div>
                 )}
@@ -752,8 +719,8 @@ export const LibraryPanel = ({
             <button
               onClick={handleCopy}
               style={{
-                padding: '10px', background: copyFeedback ? '#4caf50' : '#00d8ff',
-                color: '#000', fontWeight: 'bold', border: 'none', flexShrink: 0,
+                padding: '10px', background: copyFeedback ? 'var(--fp-state-success)' : 'var(--fp-accent-primary)',
+                color: 'var(--fp-surface-canvas)', fontWeight: 'bold', border: 'none', flexShrink: 0,
                 borderRadius: '4px', cursor: 'pointer', transition: 'background 0.2s'
               }}
             >

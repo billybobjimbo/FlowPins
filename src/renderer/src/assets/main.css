@@ -14,7 +14,9 @@ body,
 body {
   overflow: hidden;
   user-select: none;
-  background: #0a0a0a;
+  /* Follows the active skin — SkinProvider writes these variables. */
+  background: var(--fp-surface-canvas, #0E0D0C);
+  transition: background-color 0.25s ease;
 
   /* optional global wallpaper (OFF by default) */
   /* background-image: url("./wavy-lines.svg");
@@ -50,9 +52,9 @@ body {
 
 /* --- ReactFlow theming (safe) --- */
 .react-flow__controls {
-  background: rgba(10, 10, 10, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  border-radius: 12px;
+  background: var(--fp-surface-base);
+  border: 1px solid var(--fp-border-default);
+  border-radius: var(--fp-radius-lg, 12px);
   overflow: hidden;
   backdrop-filter: blur(10px);
 }
@@ -60,17 +62,17 @@ body {
 .react-flow__controls button {
   background: transparent;
   border: 0;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--fp-text-primary);
 }
 
 .react-flow__controls button:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--fp-surface-overlay);
 }
 
 .react-flow__minimap {
-  background: rgba(10, 10, 10, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  border-radius: 12px;
+  background: var(--fp-surface-base);
+  border: 1px solid var(--fp-border-default);
+  border-radius: var(--fp-radius-lg, 12px);
   overflow: hidden;
   backdrop-filter: blur(10px);
 }

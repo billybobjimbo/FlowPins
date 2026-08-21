@@ -12,6 +12,7 @@ import { type Node, type Edge } from 'reactflow';
 import { NODE_LIBRARY } from './index';
 import { ConfluenceStore } from './confluence_store';
 import { HARMONY_TRANSLATIONS }  from './translators/harmony';
+import { HARMONY_PY_TRANSLATIONS, HARMONY_PY_PREAMBLE } from './translators/harmony_py';
 import { FUSION_TRANSLATIONS }   from './translators/fusion';
 import { MAYA_TRANSLATIONS }     from './translators/maya';
 import { PYTHON_TRANSLATIONS }   from './translators/python';
@@ -23,6 +24,7 @@ import { GML_TRANSLATIONS }      from './translators/gml';
 
 export type CompileMode =
   | 'js_toonboom'
+  | 'py_harmony'
   | 'py_maya'
   | 'py_houdini'
   | 'cs_csharp'
@@ -37,6 +39,7 @@ export type CodeBlock = { id: string | null; text: string };
 
 const TRANSLATION_REGISTRY: Record<CompileMode, Record<string, any>> = {
   js_toonboom:  HARMONY_TRANSLATIONS,
+  py_harmony:   HARMONY_PY_TRANSLATIONS,
   py_maya:      MAYA_TRANSLATIONS,
   py_houdini:   HOUDINI_TRANSLATIONS,
   cs_csharp:    CSHARP_TRANSLATIONS,
@@ -48,6 +51,7 @@ const TRANSLATION_REGISTRY: Record<CompileMode, Record<string, any>> = {
 
 const COMMENT_PREFIX: Record<CompileMode, string> = {
   js_toonboom:  '//',
+  py_harmony:   '#',
   py_maya:      '#',
   py_houdini:   '#',
   cs_csharp:    '//',
@@ -59,6 +63,7 @@ const COMMENT_PREFIX: Record<CompileMode, string> = {
 
 const FILE_HEADERS: Partial<Record<CompileMode, string>> = {
   js_toonboom: `function FlowPinsTool() {\n    var d = new QDialog();\n    var layout = new QVBoxLayout();\n`,
+  py_harmony:  HARMONY_PY_PREAMBLE,
   py_maya:     `import maya.cmds as cmds\n`,
   cs_csharp:   `using System;\n\npublic class FlowPinsTool {\n    public static void Execute() {\n`,
   lua_fusion:  `local comp = fusion:GetCurrentComp()\ncomp:StartUndo('FlowPins Build')\n`,
@@ -668,36 +673,101 @@ export function generateCodeBlocks(
     });
   }
 
-  // Pass 3: Toon Boom node-link routing (JS only)
+  // Pass 3: Toon Boom explicit parent/link resolution (JS only)
+  // ==========================================================================
+  // REPLACES the old "imageNodeKinds" allowlist mechanism, which was dormant
+  // and broken: it assumed every node's Harmony name was 'FP_' + safeId(id),
+  // but every node is actually created under whatever name the artist typed
+  // in (via {node_name}/{name} — see the lastCreatedNode chain in Pass 2's
+  // node templates). A wire between two "image" nodes would have compiled to
+  // node.link() calls referencing paths that were never used to create
+  // anything, silently failing in Harmony.
+  //
+  // This pass is spec-driven instead of an allowlist: ANY input pin typed
+  // 'transform' or 'image' that has an incoming wire is treated as this
+  // node's real Harmony parent, using the SAME '_fp_path_{node_id}' variable
+  // each node's own creation code now assigns (see harmony.ts). Runs after
+  // every Pass-2 block, so an explicit wire's node.link() executes AFTER —
+  // and therefore overrides — the implicit lastCreatedNode guess for that
+  // node, on the assumption that a second node.link() call to an
+  // already-connected input port replaces the connection rather than
+  // erroring. That assumption should be confirmed against real Harmony
+  // behaviour before this ships to artists.
+  //
+  // Port index: computed as this pin's position AMONG ONLY the pins sharing
+  // its pin_type on that node — not its raw position in the inputs/outputs
+  // array (which the old Pass 3 used, and which would have been wrong the
+  // moment a node had any exec/string/int input before its image input,
+  // exactly like tb_composite does today). This models Harmony's real ports
+  // as a separate numbered sequence from FlowPins' script-parameter pins.
+  // It does NOT yet model the documented special case where a Composite's
+  // left-most port is reserved for z-order — every image input here is
+  // treated as an equal-priority layer. Worth confirming against a real
+  // multi-layer Composite script before relying on this beyond 2 layers.
+  //
+  // A routing line is only emitted if the SOURCE node's own template text
+  // actually assigns '_fp_path_{node_id}' — checked directly against the
+  // template string — so a node that hasn't been upgraded to this pattern
+  // yet is silently skipped here rather than emitting a call to a variable
+  // that was never declared.
   if (mode === 'js_toonboom') {
-    const imageNodeKinds = new Set([
-      'tb_composite', 'tb_display', 'tb_write', 'tb_multi_layer_write',
-      'tb_image_switch', 'tb_visibility', 'tb_blur_box', 'tb_blur_gaussian',
-      'tb_blur_radial', 'tb_blur_directional', 'tb_blur_variable',
-      'tb_matte_blur', 'tb_matte_resize', 'tb_glow', 'tb_highlight',
-      'tb_tone', 'tb_colour_scale', 'tb_hue_saturation', 'tb_colour_card',
-      'tb_cutter', 'tb_gradient', 'tb_colour_override', 'tb_refract',
-      'tb_dynamic_refract', 'tb_macro_refract_pro', 'uni_drawing',
-    ]);
+    const HARMONY_LINK_TYPES = new Set(['transform', 'image']);
+
+    function typedPinIndex(pins: any[] | undefined, pinName: string): number {
+      if (!pins) return -1;
+      const target = pins.find((p: any) => p.name === pinName);
+      if (!target || !HARMONY_LINK_TYPES.has(target.pin_type)) return -1;
+      const sameType = pins.filter((p: any) => p.pin_type === target.pin_type);
+      return sameType.findIndex((p: any) => p.name === pinName);
+    }
+
     const routingLines: string[] = [];
     edges.forEach(edge => {
-      if (['exec_out','exec_in','exec','loop_body','true','false',
-           'then_1','then_2','then_3','try','catch','completed'].includes(edge.sourceHandle ?? '')) return;
       const sourceNode = nodes.find(n => n.id === edge.source);
       const targetNode = nodes.find(n => n.id === edge.target);
       if (!sourceNode || !targetNode) return;
-      if (!imageNodeKinds.has(sourceNode.data.nodeKind) && !imageNodeKinds.has(targetNode.data.nodeKind)) return;
+
       const sourceSpec = NODE_LIBRARY[sourceNode.data.nodeKind];
       const targetSpec = NODE_LIBRARY[targetNode.data.nodeKind];
       if (!sourceSpec || !targetSpec) return;
-      const outIndex = Math.max(0, sourceSpec.outputs?.findIndex((o: any) => o.name === edge.sourceHandle) ?? 0);
-      const inIndex  = Math.max(0, targetSpec.inputs?.findIndex((i: any) => i.name === edge.targetHandle) ?? 0);
-      const srcName  = 'FP_' + safeId(sourceNode.id);
-      const tgtName  = 'FP_' + safeId(targetNode.id);
-      routingLines.push(`node.link(node.root() + "/${srcName}", ${outIndex}, node.root() + "/${tgtName}", ${inIndex});`);
+
+      const outIndex = typedPinIndex(sourceSpec.outputs, edge.sourceHandle ?? '');
+      const inIndex  = typedPinIndex(targetSpec.inputs,  edge.targetHandle ?? '');
+      // Both ends must be a real transform/image pin — this also naturally
+      // excludes every exec_out/exec_in wire without needing a name-based
+      // exclusion list, since exec pins are never typed 'transform'/'image'.
+      if (outIndex === -1 || inIndex === -1) return;
+
+      // BOTH ends of the generated node.link() reference a '_fp_path_*'
+      // variable, so BOTH the source's AND the target's own template need
+      // to declare it — checking only the source (an earlier version of
+      // this pass did exactly that) let a wire into an unupgraded node like
+      // tb_refract compile to a call referencing a variable nobody ever
+      // declared, which would throw in Harmony at runtime.
+      const templateHasPath = (kind: string): boolean => {
+        const t = translationDict[kind];
+        const text = typeof t === 'function' ? '' : (t ?? '');
+        return text.includes('_fp_path_{node_id}');
+      };
+      const srcReady = templateHasPath(sourceNode.data.nodeKind);
+      const tgtReady = templateHasPath(targetNode.data.nodeKind);
+      if (!srcReady || !tgtReady) {
+        const missing = [!srcReady && sourceNode.data.nodeKind, !tgtReady && targetNode.data.nodeKind]
+          .filter(Boolean).join(' and ');
+        routingLines.push(
+          `${commentPrefix} [FlowPins] Skipped explicit link ${sourceNode.data.nodeKind} -> ` +
+          `${targetNode.data.nodeKind}: ${missing} not yet upgraded to _fp_path_{node_id}.`
+        );
+        return;
+      }
+
+      const srcPath = `_fp_path_${safeId(sourceNode.id)}`;
+      const tgtPath = `_fp_path_${safeId(targetNode.id)}`;
+      routingLines.push(`node.link(${srcPath}, ${outIndex}, ${tgtPath}, ${inIndex});`);
     });
+
     if (routingLines.length > 0) {
-      blocks.push({ id: 'router', text: `\n${commentPrefix} --- Apply Node Connections ---\n` + routingLines.join('\n') + '\n' });
+      blocks.push({ id: 'router', text: `\n${commentPrefix} --- Explicit Wire Overrides ---\n` + routingLines.join('\n') + '\n' });
     }
   }
 
@@ -713,6 +783,7 @@ export function generateCodeBlocks(
 
 export const MODE_LABELS: Record<CompileMode, string> = {
   js_toonboom:  'Harmony (JS)',
+  py_harmony:   'Harmony (Py)',
   py_maya:      'Maya (Py)',
   py_houdini:   'Houdini (Py)',
   cs_csharp:    'Unity (C#)',
@@ -724,6 +795,7 @@ export const MODE_LABELS: Record<CompileMode, string> = {
 
 export const MODE_EXTENSIONS: Record<CompileMode, string> = {
   js_toonboom:  'js',
+  py_harmony:   'py',
   py_maya:      'py',
   py_houdini:   'py',
   cs_csharp:    'cs',
@@ -734,6 +806,6 @@ export const MODE_EXTENSIONS: Record<CompileMode, string> = {
 };
 
 export const ALL_MODES: CompileMode[] = [
-  'js_toonboom', 'py_standard', 'py_maya', 'py_nuke',
+  'js_toonboom', 'py_harmony', 'py_standard', 'py_maya', 'py_nuke',
   'py_houdini', 'lua_fusion', 'cs_csharp', 'gml_standard'
 ];

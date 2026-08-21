@@ -10,8 +10,15 @@
 
 import React, { memo } from 'react';
 import { Handle, Position, type NodeProps } from 'reactflow';
+import { ACCENT, alpha, pinColor } from '../libraries/theme';
+import { useSkin } from '../libraries/SkinProvider';
 
-export const CONFLUENCE_COLOR = '#536878';
+// Re-exported so existing imports keep working. The value now lives in theme.
+export const CONFLUENCE_COLOR = ACCENT.confluence;
+
+// pinColor() previously had a local copy here whose header comment claimed it
+// "matches FPNode.tsx exactly" — it didn't. Both now come from theme.ts.
+export { pinColor };
 
 export type ConfluencePin = {
   name:     string;
@@ -31,18 +38,6 @@ export type ConfluenceNodeData = {
   outputPins?:    ConfluencePin[];
 };
 
-// ── Colour lookup — matches FPNode.tsx exactly ────────────────────────────────
-export function pinColor(pinType: string): string {
-  if (pinType === 'exec')                          return '#ffffff';
-  if (pinType === 'string')                        return '#ff007f';
-  if (pinType === 'int' || pinType === 'float'
-      || pinType === 'number')                     return '#00e5ff';
-  if (pinType === 'boolean')                       return '#ff2a2a';
-  if (pinType === 'list')                          return '#00d8ff';
-  if (pinType === 'any')                           return '#826cf3';
-  return '#888888';
-}
-
 const PIN_ROW_H = 28;   // px per pin row — matches gap in label column
 const HEADER_H  = 54;   // px — outer padding (3) + inner top padding (10)
                         //      + title line (~22) + sub-label (~10) + border (1) + bottom pad (8)
@@ -55,6 +50,8 @@ export const ConfluenceNode = memo(function ConfluenceNode(
   props: NodeProps<ConfluenceNodeData>
 ) {
   const { data, selected } = props;
+  const { surface, border, text, accent, shadow, radius } = useSkin();
+  const CONFLUENCE = accent.confluence;
 
   // exec_in / exec_out are always first — guarantee them even on legacy
   // saved groups that predate this requirement.
@@ -72,17 +69,17 @@ export const ConfluenceNode = memo(function ConfluenceNode(
   const pinRows = Math.max(inputs.length, outputs.length, 1);
 
   const outerBorder = selected
-    ? `2px solid ${CONFLUENCE_COLOR}`
-    : `2px solid ${CONFLUENCE_COLOR}55`;
+    ? `2px solid ${CONFLUENCE}`
+    : `2px solid ${alpha(CONFLUENCE, 0.33)}`;
 
   const outerGlow = selected
-    ? `0 0 18px ${CONFLUENCE_COLOR}44, 0 6px 24px rgba(0,0,0,0.6)`
-    : `0 6px 24px rgba(0,0,0,0.5)`;
+    ? `0 0 18px ${alpha(CONFLUENCE, 0.28)}, ${shadow.node}`
+    : shadow.node;
 
   return (
     <div style={{
       border:       outerBorder,
-      borderRadius: '14px',
+      borderRadius: radius.xl,
       padding:      '3px',
       background:   'transparent',
       boxShadow:    outerGlow,
@@ -93,29 +90,29 @@ export const ConfluenceNode = memo(function ConfluenceNode(
 
       {/* ── Inner ring ────────────────────────────────────────────────────── */}
       <div style={{
-        border:       `1px solid ${CONFLUENCE_COLOR}33`,
+        border:       `1px solid ${alpha(CONFLUENCE, 0.2)}`,
         borderRadius: '11px',
-        background:   'rgba(16, 20, 24, 0.97)',
+        background:   surface.node,
         overflow:     'hidden',
         position:     'relative',
       }}>
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <div style={{
-          background:   `linear-gradient(135deg, ${CONFLUENCE_COLOR}33 0%, ${CONFLUENCE_COLOR}18 100%)`,
-          borderBottom: `1px solid ${CONFLUENCE_COLOR}44`,
+          background:   `linear-gradient(135deg, ${alpha(CONFLUENCE, 0.2)} 0%, ${alpha(CONFLUENCE, 0.09)} 100%)`,
+          borderBottom: `1px solid ${alpha(CONFLUENCE, 0.27)}`,
           padding:      '10px 14px 8px',
           position:     'relative',
         }}>
           <div style={{
             position: 'absolute', top: '8px', right: '10px',
-            color: CONFLUENCE_COLOR, fontSize: '11px',
+            color: CONFLUENCE, fontSize: '11px',
             opacity: selected ? 1 : 0.7,
           }}>◆</div>
 
           <div style={{
             fontSize: '14px', fontWeight: 800,
-            color: selected ? '#ffffff' : '#cccccc',
+            color: selected ? text.bright : text.primary,
             paddingRight: '20px', letterSpacing: '0.2px',
           }}>
             {data.label}
@@ -123,7 +120,7 @@ export const ConfluenceNode = memo(function ConfluenceNode(
 
           <div style={{
             fontSize: '9px', fontWeight: 'bold',
-            color: CONFLUENCE_COLOR, letterSpacing: '1.5px',
+            color: CONFLUENCE, letterSpacing: '1.5px',
             marginTop: '2px', textTransform: 'uppercase',
           }}>
             CONFLUENCE
@@ -168,7 +165,7 @@ export const ConfluenceNode = memo(function ConfluenceNode(
                         height:       inp.pinType === 'exec' ? 12 : 10,
                         borderRadius: inp.pinType === 'exec' ? 2 : 999,
                         background:   pinColor(inp.pinType),
-                        border:       '1px solid #000',
+                        border:       `1px solid ${alpha(surface.canvas, 0.75)}`,
                       }}
                     />
                     <span style={{
@@ -196,9 +193,9 @@ export const ConfluenceNode = memo(function ConfluenceNode(
                   }}>
                     <div style={{ display: 'flex', gap: '3px' }}>
                       <span style={{
-                        background:   '#0d0d0d',
-                        border:       `1px solid ${CONFLUENCE_COLOR}44`,
-                        borderRadius: '3px',
+                        background:   surface.sunken,
+                        border:       `1px solid ${alpha(CONFLUENCE, 0.27)}`,
+                        borderRadius: radius.sm,
                         padding:      '1px 5px',
                         fontSize:     '8px',
                         color:        CONFLUENCE_COLOR,
@@ -207,17 +204,17 @@ export const ConfluenceNode = memo(function ConfluenceNode(
                         {data.innerNodeCount}n
                       </span>
                       <span style={{
-                        background:   '#0d0d0d',
-                        border:       '1px solid #1e1e1e',
-                        borderRadius: '3px',
+                        background:   surface.sunken,
+                        border:       `1px solid ${border.subtle}`,
+                        borderRadius: radius.sm,
                         padding:      '1px 5px',
                         fontSize:     '8px',
-                        color:        '#333',
+                        color:        text.faint,
                       }}>
                         {data.innerWireCount}w
                       </span>
                     </div>
-                    <span style={{ fontSize: '7px', color: '#2a2a2a', fontStyle: 'italic' }}>
+                    <span style={{ fontSize: '7px', color: text.faint, fontStyle: 'italic' }}>
                       dbl-click
                     </span>
                   </div>
@@ -247,7 +244,7 @@ export const ConfluenceNode = memo(function ConfluenceNode(
                         height:       out.pinType === 'exec' ? 12 : 10,
                         borderRadius: out.pinType === 'exec' ? 2 : 999,
                         background:   pinColor(out.pinType),
-                        border:       '1px solid #000',
+                        border:       `1px solid ${alpha(surface.canvas, 0.75)}`,
                       }}
                     />
                   </>
@@ -263,17 +260,17 @@ export const ConfluenceNode = memo(function ConfluenceNode(
         {(data.description || data.category) && (
           <div style={{
             padding:      '4px 14px 8px',
-            borderTop:    '1px solid #111',
+            borderTop:    `1px solid ${border.subtle}`,
           }}>
             {data.description && (
-              <div style={{ fontSize: '9px', color: '#555', lineHeight: '1.4', marginBottom: '3px' }}>
+              <div style={{ fontSize: '9px', color: text.disabled, lineHeight: '1.4', marginBottom: '3px' }}>
                 {data.description}
               </div>
             )}
             {data.category && (
               <div style={{
                 fontSize:      '8px',
-                color:         '#2a2a2a',
+                color:         text.faint,
                 letterSpacing: '0.5px',
                 textTransform: 'uppercase',
               }}>

@@ -8,9 +8,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { type Journey, type JourneyStep } from '../libraries/journeys';
+import { alpha } from '../libraries/theme';
 
-const CYAN  = '#00d8ff';
-const AMBER = '#f5a623';
+const CYAN  = 'var(--fp-accent-primary)';
+const AMBER = 'var(--fp-accent-amber)';
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
@@ -90,17 +91,17 @@ export default function PromptBar({
         transform:       'translateX(-50%)',
         zIndex:          1000,
         width:           '860px',
-        backgroundColor: '#111111',
+        backgroundColor: 'var(--fp-surface-base)',
         borderRadius:    '10px',
-        boxShadow:       `0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px ${CYAN}22`,
-        border:          `1px solid #222`,
+        boxShadow:       `0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px ${alpha(CYAN, 0.13)}`,
+        border:          `1px solid var(--fp-surface-overlay)`,
         overflow:        'hidden',
       }}>
 
         {/* ── Journey header ─────────────────────────────────────────────── */}
         <div style={{
-          background:    '#0d0d0d',
-          borderBottom:  '1px solid #1a1a1a',
+          background:    'var(--fp-surface-sunken)',
+          borderBottom:  '1px solid var(--fp-surface-raised)',
           padding:       '8px 16px',
           display:       'flex',
           alignItems:    'center',
@@ -111,11 +112,11 @@ export default function PromptBar({
             <span style={{ color: CYAN, fontSize: '10px', fontWeight: 'bold', letterSpacing: '1px' }}>
               ⬡ EVELYN
             </span>
-            <span style={{ color: '#444', fontSize: '10px' }}>|</span>
-            <span style={{ color: '#888', fontSize: '10px', fontWeight: 'bold' }}>
+            <span style={{ color: 'var(--fp-border-strong)', fontSize: '10px' }}>|</span>
+            <span style={{ color: 'var(--fp-text-muted)', fontSize: '10px', fontWeight: 'bold' }}>
               {journey.title}
             </span>
-            <span style={{ color: '#444', fontSize: '9px' }}>
+            <span style={{ color: 'var(--fp-border-strong)', fontSize: '9px' }}>
               Step {currentStep + 1} of {totalSteps}
             </span>
           </div>
@@ -123,16 +124,16 @@ export default function PromptBar({
           {/* Exit guided mode */}
           <div
             onClick={onExitJourney}
-            style={{ color: '#444', fontSize: '10px', cursor: 'pointer', padding: '2px 8px', borderRadius: '3px' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#888'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#444'; }}
+            style={{ color: 'var(--fp-border-strong)', fontSize: '10px', cursor: 'pointer', padding: '2px 8px', borderRadius: '3px' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--fp-text-muted)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--fp-border-strong)'; }}
           >
             Exit guided mode ✕
           </div>
         </div>
 
         {/* ── Progress bar ───────────────────────────────────────────────── */}
-        <div style={{ height: '2px', background: '#1a1a1a' }}>
+        <div style={{ height: '2px', background: 'var(--fp-surface-raised)' }}>
           <div style={{
             height:     '100%',
             width:      `${progress}%`,
@@ -146,7 +147,7 @@ export default function PromptBar({
           <div style={{ padding: '14px 16px 10px' }}>
             <div style={{
               fontSize:   '13px',
-              color:      '#cccccc',
+              color:      'var(--fp-text-primary)',
               lineHeight: '1.6',
               marginBottom: '8px',
             }}>
@@ -157,12 +158,12 @@ export default function PromptBar({
             {/* Action hint */}
             <div style={{
               fontSize:   '10px',
-              color:      '#444',
+              color:      'var(--fp-border-strong)',
               fontStyle:  'italic',
             }}>
               Type <span style={{ color: CYAN }}>"place it"</span> to have me place the nodes,{' '}
-              <span style={{ color: '#666' }}>"skip"</span> to move on, or{' '}
-              <span style={{ color: '#666' }}>"exit"</span> to leave guided mode.
+              <span style={{ color: 'var(--fp-text-disabled)' }}>"skip"</span> to move on, or{' '}
+              <span style={{ color: 'var(--fp-text-disabled)' }}>"exit"</span> to leave guided mode.
             </div>
           </div>
         )}
@@ -172,8 +173,8 @@ export default function PromptBar({
           <div
             onClick={onAdvanceStep}
             style={{
-              background:  '#0a1a0a',
-              border:      '1px solid #2a4a2a',
+              background:  'var(--fp-surface-sunken)',
+              border:      '1px solid var(--fp-border-default)',
               margin:      '0 16px 10px',
               borderRadius:'6px',
               padding:     '8px 14px',
@@ -183,10 +184,10 @@ export default function PromptBar({
               cursor:      'pointer',
             }}
           >
-            <span style={{ color: '#4aaa4a', fontSize: '12px', fontWeight: 'bold' }}>
+            <span style={{ color: 'var(--fp-state-success)', fontSize: '12px', fontWeight: 'bold' }}>
               ✓ Step complete
             </span>
-            <span style={{ color: '#4aaa4a', fontSize: '11px' }}>
+            <span style={{ color: 'var(--fp-state-success)', fontSize: '11px' }}>
               Click here or type "next" to continue →
             </span>
           </div>
@@ -197,7 +198,7 @@ export default function PromptBar({
           display:       'flex',
           padding:       '8px 12px 12px',
           gap:           '8px',
-          borderTop:     '1px solid #1a1a1a',
+          borderTop:     '1px solid var(--fp-surface-raised)',
           alignItems:    'center',
         }}>
           {/* Skip step button */}
@@ -205,8 +206,8 @@ export default function PromptBar({
             onClick={onSkipStep}
             style={{
               background:   'transparent',
-              border:       '1px solid #222',
-              color:        '#444',
+              border:       '1px solid var(--fp-surface-overlay)',
+              color:        'var(--fp-border-strong)',
               borderRadius: '4px',
               padding:      '7px 12px',
               fontSize:     '10px',
@@ -214,8 +215,8 @@ export default function PromptBar({
               flexShrink:   0,
               whiteSpace:   'nowrap',
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#888'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#444'; }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--fp-text-muted)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--fp-border-strong)'; }}
           >
             Skip step
           </button>
@@ -230,8 +231,8 @@ export default function PromptBar({
             disabled={isLoading}
             style={{
               flex:            1,
-              backgroundColor: '#0d0d0d',
-              border:          `1px solid #222`,
+              backgroundColor: 'var(--fp-surface-sunken)',
+              border:          `1px solid var(--fp-surface-overlay)`,
               color:           'white',
               padding:         '8px 12px',
               outline:         'none',
@@ -244,8 +245,8 @@ export default function PromptBar({
             onClick={() => { if (prompt.trim() && !isLoading) { onSubmit(prompt); setPrompt(''); } }}
             disabled={isLoading || !prompt.trim()}
             style={{
-              backgroundColor: isLoading ? '#222' : CYAN,
-              color:           isLoading ? '#666' : '#000',
+              backgroundColor: isLoading ? 'var(--fp-surface-overlay)' : CYAN,
+              color:           isLoading ? 'var(--fp-text-disabled)' : 'var(--fp-surface-canvas)',
               border:          'none',
               borderRadius:    '4px',
               padding:         '8px 16px',
@@ -272,12 +273,12 @@ export default function PromptBar({
       transform:       'translateX(-50%)',
       zIndex:          1000,
       width:           '800px',
-      backgroundColor: '#1E1E1E',
+      backgroundColor: 'var(--fp-surface-raised)',
       borderRadius:    '8px',
       boxShadow:       '0 4px 12px rgba(0,0,0,0.5)',
       display:         'flex',
       padding:         '8px',
-      border:          '1px solid #333',
+      border:          '1px solid var(--fp-border-default)',
     }}>
       {/* Evelyn journey button */}
       {onShowWelcome && (
@@ -286,8 +287,8 @@ export default function PromptBar({
           title="Open guided journeys"
           style={{
             background:    'transparent',
-            border:        '1px solid #00d8ff22',
-            color:         '#00d8ff55',
+            border:        '1px solid rgba(0, 216, 255, 0.13)',
+            color:         'rgba(0, 216, 255, 0.33)',
             fontSize:      '9px',
             fontWeight:    'bold',
             letterSpacing: '1px',
@@ -300,13 +301,13 @@ export default function PromptBar({
           }}
           onMouseEnter={e => {
             const el = e.currentTarget as HTMLElement;
-            el.style.color = '#00d8ff';
-            el.style.borderColor = '#00d8ff44';
+            el.style.color = 'var(--fp-accent-primary)';
+            el.style.borderColor = 'rgba(0, 216, 255, 0.27)';
           }}
           onMouseLeave={e => {
             const el = e.currentTarget as HTMLElement;
-            el.style.color = '#00d8ff55';
-            el.style.borderColor = '#00d8ff22';
+            el.style.color = 'rgba(0, 216, 255, 0.33)';
+            el.style.borderColor = 'rgba(0, 216, 255, 0.13)';
           }}
         >
           JOURNEYS
@@ -336,8 +337,8 @@ export default function PromptBar({
         onClick={() => { if (prompt.trim() && !isLoading) { onSubmit(prompt); setPrompt(''); } }}
         disabled={isLoading || !prompt.trim()}
         style={{
-          backgroundColor: isLoading ? '#444' : '#007ACC',
-          color:           isLoading ? '#888' : 'white',
+          backgroundColor: isLoading ? 'var(--fp-border-strong)' : 'var(--fp-accent-dim)',
+          color:           isLoading ? 'var(--fp-text-muted)' : 'white',
           border:          'none',
           borderRadius:    '4px',
           padding:         '8px 16px',

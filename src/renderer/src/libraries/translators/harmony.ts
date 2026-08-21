@@ -84,10 +84,10 @@ export const HARMONY_TRANSLATIONS: Record<string, any> = {
   // ============================================================
   // APP SPECIFIC: TOON BOOM HARMONY
   // ============================================================
-  "tb_create_group":    "node.add({parent_path}, {group_name}, 'GROUP', 0, 0, 0);\n{exec_out}",
-  "tb_create_node":     "node.add({parent_path}, {node_name}, {node_type}, 0, 0, 0);\n{exec_out}",
-  "tb_create_drawing":  "var xPos = parseFloat(\"{offset_x}\") || 0;\nvar yPos = parseFloat(\"{offset_y}\") || 0;\nvar newDrawing = node.add(\"Top\", \"{node_name}\", \"READ\", xPos, yPos, 0);\n{exec_out}",
-  "tb_create_composite":"var xPos = parseFloat(\"{offset_x}\") || 0;\nvar yPos = parseFloat(\"{offset_y}\") || 0;\nvar newComp = node.add(\"Top\", \"{node_name}\", \"COMPOSITE\", xPos, yPos, 0);\nnode.setTextAttr(\"Top/\" + \"{node_name}\", \"COMPOSITE_MODE\", 1, \"Pass Through\");\n{exec_out}",
+  "tb_create_group":    "node.add({parent_path}, {group_name}, 'GROUP', 0, 0, 0);\nvar _fp_path_{node_id} = \"Top/\" + {group_name};\n{exec_out}",
+  "tb_create_node":     "node.add({parent_path}, {node_name}, {node_type}, 0, 0, 0);\nvar _fp_path_{node_id} = \"Top/\" + {node_name};\n{exec_out}",
+  "tb_create_drawing":  "var xPos = parseFloat(\"{offset_x}\") || 0;\nvar yPos = parseFloat(\"{offset_y}\") || 0;\nvar newDrawing = node.add(\"Top\", \"{node_name}\", \"READ\", xPos, yPos, 0);\nvar _fp_path_{node_id} = \"Top/\" + \"{node_name}\";\n{exec_out}",
+  "tb_create_composite":"var xPos = parseFloat(\"{offset_x}\") || 0;\nvar yPos = parseFloat(\"{offset_y}\") || 0;\nvar newComp = node.add(\"Top\", \"{node_name}\", \"COMPOSITE\", xPos, yPos, 0);\nvar _fp_path_{node_id} = newComp;\nnode.setTextAttr(\"Top/\" + \"{node_name}\", \"COMPOSITE_MODE\", 1, \"Pass Through\");\n{exec_out}",
   "tb_link_nodes": `// Link two nodes together
 var _src_{node_id} = {source_node};
 var _tgt_{node_id} = {target_node};
@@ -114,12 +114,12 @@ MessageLog.trace("FlowPins: Linked " + _src_{node_id} + " -> " + _tgt_{node_id})
   "tb_set_camera_fov":  "var camPath = \"Top/\" + (\"{cam_name}\" || \"Camera\");\nnode.setTextAttr(camPath, \"FOV\", 1, {fov_degrees});\n{exec_out}",
   "tb_fbx_importer":    "var modelNodeName = \"{node_name}\" || \"Imported_FBX\";\nvar filePath = \"{file_path}\";\nvar new3DNode = node.add(\"Top\", modelNodeName, \"3D\", 0, 0, 0);\nnode.setTextAttr(\"Top/\" + modelNodeName, \"MODEL_FILE\", 1, filePath);\nif (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== \"\") {\n  node.link(\"Top/\" + lastCreatedNode, 0, \"Top/\" + modelNodeName, 0);\n}\nvar lastCreatedNode = modelNodeName;\n{exec_out}",
 
-  "tb_refract":         "var node_refract = node.add(node.root(), \"FP_{node_id}\", \"REFRACT\", 0, 0, 0);\nnode.setTextAttr(node_refract, \"intensity\", 1, \"{intensity}\");\nnode.setTextAttr(node_refract, \"height\", 1, \"{height}\");\n{exec_out}",
-  "tb_blur_radial":     "var node_blur = node.add(node.root(), \"FP_{node_id}\", \"BLUR_RADIAL\", 0, 0, 0);\nnode.setTextAttr(node_blur, \"radius\", 1, \"{radius}\");\nnode.setTextAttr(node_blur, \"quality\", 1, \"{quality}\");\n{exec_out}",
+  "tb_refract":         "var node_refract = node.add(node.root(), \"FP_{node_id}\", \"REFRACT\", 0, 0, 0);\nvar _fp_path_{node_id} = node_refract;\nnode.setTextAttr(node_refract, \"intensity\", 1, \"{intensity}\");\nnode.setTextAttr(node_refract, \"height\", 1, \"{height}\");\n{exec_out}",
+  "tb_blur_radial":     "var node_blur = node.add(node.root(), \"FP_{node_id}\", \"BLUR_RADIAL\", 0, 0, 0);\nvar _fp_path_{node_id} = node_blur;\nnode.setTextAttr(node_blur, \"radius\", 1, \"{radius}\");\nnode.setTextAttr(node_blur, \"quality\", 1, \"{quality}\");\n{exec_out}",
 
   "uni_limb_builder":   "var side = {side};\nvar base = {base_name};\nvar parts = [\"_Upper\", \"_Lower\", \"_End\"];\nvar parent = \"Top\";\nfor (var i = 0; i < parts.length; i++) {\n    var name = side + \"_\" + base + parts[i];\n    node.add(parent, name, \"PEG\", 0, 0, 0);\n    if (i > 0) {\n        var prev = side + \"_\" + base + parts[i-1];\n        node.link(\"Top/\" + prev, 0, \"Top/\" + name, 0);\n    }\n}\n{exec_out}",
-  "uni_joint":          "var currentName = \"{name}\" || \"Joint\";\nvar xPos = parseFloat(\"{offset_x}\") || 0;\nvar yPos = parseFloat(\"{offset_y}\") || 0;\nvar newNode = node.add(\"Top\", currentName, \"PEG\", xPos, yPos, 0);\nif (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== \"\") {\n    node.link(\"Top/\" + lastCreatedNode, 0, \"Top/\" + currentName, 0);\n}\nvar lastCreatedNode = currentName;\n{exec_out}",
-  "uni_drawing":        "var currentName = \"{name}\" || \"Drawing\";\nvar yPos = parseFloat(\"{offset_y}\") || 0;\nvar newNode = node.add(\"Top\", currentName, \"READ\", 0, yPos, 0);\nif (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== \"\") {\n    node.link(\"Top/\" + lastCreatedNode, 0, \"Top/\" + currentName, 0);\n}\nvar lastCreatedNode = currentName;\n{exec_out}",
+  "uni_joint":          "var currentName = \"{name}\" || \"Joint\";\nvar xPos = parseFloat(\"{offset_x}\") || 0;\nvar yPos = parseFloat(\"{offset_y}\") || 0;\nvar newNode = node.add(\"Top\", currentName, \"PEG\", xPos, yPos, 0);\nvar _fp_path_{node_id} = \"Top/\" + currentName;\nif (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== \"\") {\n    node.link(\"Top/\" + lastCreatedNode, 0, \"Top/\" + currentName, 0);\n}\nvar lastCreatedNode = currentName;\n{exec_out}",
+  "uni_drawing":        "var currentName = \"{name}\" || \"Drawing\";\nvar yPos = parseFloat(\"{offset_y}\") || 0;\nvar newNode = node.add(\"Top\", currentName, \"READ\", 0, yPos, 0);\nvar _fp_path_{node_id} = newNode;\nif (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== \"\") {\n    node.link(\"Top/\" + lastCreatedNode, 0, \"Top/\" + currentName, 0);\n}\nvar lastCreatedNode = currentName;\n{exec_out}",
   "tb_autopatch":       "var currentName = \"{name}\" || \"AutoPatch\";\nvar yPos = parseFloat(\"{offset_y}\") || 0;\nvar newNode = node.add(\"Top\", currentName, \"AutoPatch\", 0, yPos, 0);\nif (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== \"\") {\n    node.link(\"Top/\" + lastCreatedNode, 0, \"Top/\" + currentName, 0);\n}\nvar lastCreatedNode = currentName;\n{exec_out}",
   "uni_mirror_action":  "// Toon Boom Mirroring Logic for {prefix}*\n{exec_out}",
   "uni_search_node":    "var searchTarget = InputDialog.getText('FlowPins', 'Enter Node Name:');\nif (searchTarget) {\n    selection.clearSelection();\n    selection.addNodeToSelection(searchTarget);\n}\n{exec_out}",
@@ -145,6 +145,7 @@ node.linkAttr(n_blur, "RADIUS", "../../Radius");
 var fullPath = "Top/" + grpName;
 if (node.type(fullPath) != "") { node.deleteNode(fullPath, true, true); }
 var path = node.add("Top", grpName, "GROUP", 0, 0, 0);
+var _fp_path_{node_id} = path;
 var n_ref = node.add(path, "Refract", "REFRACT", 0, 0, 0);
 var n_swi = node.add(path, "Switch", "Switch", 0, 0, 0);
 var n_bb  = node.add(path, "Blur_Box", "Blur-Box", 0, 0, 0);
@@ -243,6 +244,7 @@ MessageLog.trace("FlowPins: Colourspace validation requires Python target.");
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 var newComp_{node_id} = node.add("Top", "{node_name}", "COMPOSITE", xPos_{node_id}, yPos_{node_id}, 0);
+var _fp_path_{node_id} = newComp_{node_id};
 node.setTextAttr("Top/" + "{node_name}", "compositeMode", 1, "{composite_mode}");
 node.setTextAttr("Top/" + "{node_name}", "flattenOutput", 1, "{flatten}");
 if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
@@ -255,6 +257,7 @@ var lastCreatedNode = "{node_name}";
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 node.add("Top", "{node_name}", "DISPLAY", xPos_{node_id}, yPos_{node_id}, 0);
+var _fp_path_{node_id} = "Top/" + "{node_name}";
 if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
     node.link("Top/" + lastCreatedNode, 0, "Top/" + "{node_name}", 0);
 }
@@ -265,6 +268,7 @@ var lastCreatedNode = "{node_name}";
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 var writePath_{node_id} = "Top/" + "{node_name}";
+var _fp_path_{node_id} = writePath_{node_id};
 node.add("Top", "{node_name}", "WRITE", xPos_{node_id}, yPos_{node_id}, 0);
 node.setTextAttr(writePath_{node_id}, "drawingName",  1, "{drawing_name}");
 node.setTextAttr(writePath_{node_id}, "drawingType",  1, "{drawing_type}");
@@ -278,6 +282,7 @@ var lastCreatedNode = "{node_name}";
 
   "tb_visibility": `// Create Visibility node
 var vis_{node_id} = node.add("Top", "{node_name}", "VISIBILITY", 0, 0, 0);
+var _fp_path_{node_id} = vis_{node_id};
 node.setTextAttr(vis_{node_id}, "oglrender",  1, "{visible}");
 node.setTextAttr(vis_{node_id}, "softrender", 1, "{visible}");
 if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
@@ -288,6 +293,7 @@ var lastCreatedNode = "{node_name}";
 
   "tb_image_switch": `// Create Image Switch node
 var sw_{node_id} = node.add("Top", "{node_name}", "ImageSwitch", 0, 0, 0);
+var _fp_path_{node_id} = sw_{node_id};
 node.setTextAttr(sw_{node_id}, "portIndex", 1, "{port_index}");
 if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
     node.link("Top/" + lastCreatedNode, 0, sw_{node_id}, 0);
@@ -303,6 +309,7 @@ var lastCreatedNode = "{node_name}";
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 var blur_{node_id} = node.add("Top", "{node_name}", "BOXBLUR-PLUGIN", xPos_{node_id}, yPos_{node_id}, 0);
+var _fp_path_{node_id} = blur_{node_id};
 node.setTextAttr(blur_{node_id}, "radius",        1, "{radius}");
 node.setTextAttr(blur_{node_id}, "bidirectional", 1, "{bidirectional}");
 node.setTextAttr(blur_{node_id}, "precision",     1, "{precision}");
@@ -317,6 +324,7 @@ var lastCreatedNode = "{node_name}";
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 var blur_{node_id} = node.add("Top", "{node_name}", "GAUSSIANBLUR-PLUGIN", xPos_{node_id}, yPos_{node_id}, 0);
+var _fp_path_{node_id} = blur_{node_id};
 node.setTextAttr(blur_{node_id}, "blurriness", 1, "{blurriness}");
 node.setTextAttr(blur_{node_id}, "precision",  1, "{precision}");
 if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
@@ -329,6 +337,7 @@ var lastCreatedNode = "{node_name}";
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 var blur_{node_id} = node.add("Top", "{node_name}", "BLUR_VARIABLE", xPos_{node_id}, yPos_{node_id}, 0);
+var _fp_path_{node_id} = blur_{node_id};
 node.setTextAttr(blur_{node_id}, "blackRadius", 1, "{black_radius}");
 node.setTextAttr(blur_{node_id}, "whiteRadius", 1, "{white_radius}");
 node.setTextAttr(blur_{node_id}, "quality",     1, "{quality}");
@@ -342,6 +351,7 @@ var lastCreatedNode = "{node_name}";
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 var blur_{node_id} = node.add("Top", "{node_name}", "BLUR_DIRECTIONAL", xPos_{node_id}, yPos_{node_id}, 0);
+var _fp_path_{node_id} = blur_{node_id};
 node.setTextAttr(blur_{node_id}, "radius", 1, "{radius}");
 node.setTextAttr(blur_{node_id}, "angle",  1, "{angle}");
 if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
@@ -354,6 +364,7 @@ var lastCreatedNode = "{node_name}";
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 var mb_{node_id} = node.add("Top", "{node_name}", "MATTE_BLUR", xPos_{node_id}, yPos_{node_id}, 0);
+var _fp_path_{node_id} = mb_{node_id};
 node.setTextAttr(mb_{node_id}, "radius",      1, "{radius}");
 node.setTextAttr(mb_{node_id}, "blurType",    1, "{blur_type}");
 node.setTextAttr(mb_{node_id}, "invertMatte", 1, "{invert_matte}");
@@ -367,6 +378,7 @@ var lastCreatedNode = "{node_name}";
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 var mr_{node_id} = node.add("Top", "{node_name}", "MATTE_RESIZE", xPos_{node_id}, yPos_{node_id}, 0);
+var _fp_path_{node_id} = mr_{node_id};
 node.setTextAttr(mr_{node_id}, "radius", 1, "{radius}");
 if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
     node.link("Top/" + lastCreatedNode, 0, mr_{node_id}, 0);
@@ -382,6 +394,7 @@ var lastCreatedNode = "{node_name}";
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 var glow_{node_id} = node.add("Top", "{node_name}", "GLOW", xPos_{node_id}, yPos_{node_id}, 0);
+var _fp_path_{node_id} = glow_{node_id};
 node.setTextAttr(glow_{node_id}, "radius",         1, "{radius}");
 node.setTextAttr(glow_{node_id}, "blurType",       1, "{blur_type}");
 node.setTextAttr(glow_{node_id}, "colourGain",     1, "{colour_gain}");
@@ -397,6 +410,7 @@ var lastCreatedNode = "{node_name}";
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 var hl_{node_id} = node.add("Top", "{node_name}", "HIGHLIGHT", xPos_{node_id}, yPos_{node_id}, 0);
+var _fp_path_{node_id} = hl_{node_id};
 node.setTextAttr(hl_{node_id}, "radius",     1, "{radius}");
 node.setTextAttr(hl_{node_id}, "blurType",   1, "{blur_type}");
 node.setTextAttr(hl_{node_id}, "colourGain", 1, "{colour_gain}");
@@ -410,6 +424,7 @@ var lastCreatedNode = "{node_name}";
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 var tone_{node_id} = node.add("Top", "{node_name}", "TONE", xPos_{node_id}, yPos_{node_id}, 0);
+var _fp_path_{node_id} = tone_{node_id};
 node.setTextAttr(tone_{node_id}, "radius",     1, "{radius}");
 node.setTextAttr(tone_{node_id}, "blurType",   1, "{blur_type}");
 node.setTextAttr(tone_{node_id}, "colourGain", 1, "{colour_gain}");
@@ -423,6 +438,7 @@ var lastCreatedNode = "{node_name}";
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 var cs_{node_id} = node.add("Top", "{node_name}", "COLOR_SCALE", xPos_{node_id}, yPos_{node_id}, 0);
+var _fp_path_{node_id} = cs_{node_id};
 node.setTextAttr(cs_{node_id}, "red",        1, "{red}");
 node.setTextAttr(cs_{node_id}, "green",      1, "{green}");
 node.setTextAttr(cs_{node_id}, "blue",       1, "{blue}");
@@ -439,6 +455,7 @@ var lastCreatedNode = "{node_name}";
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 var hs_{node_id} = node.add("Top", "{node_name}", "HUE_SATURATION", xPos_{node_id}, yPos_{node_id}, 0);
+var _fp_path_{node_id} = hs_{node_id};
 node.setTextAttr(hs_{node_id}, "masterrangecolor.hueShift",  1, "{hue_shift}");
 node.setTextAttr(hs_{node_id}, "masterrangecolor.saturation",1, "{saturation}");
 node.setTextAttr(hs_{node_id}, "masterrangecolor.lightness", 1, "{lightness}");
@@ -452,6 +469,7 @@ var lastCreatedNode = "{node_name}";
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 var cc_{node_id} = node.add("Top", "{node_name}", "COLOR_CARD", xPos_{node_id}, yPos_{node_id}, 0);
+var _fp_path_{node_id} = cc_{node_id};
 node.setTextAttr(cc_{node_id}, "offsetZ", 1, "{offset_z}");
 if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
     node.link("Top/" + lastCreatedNode, 0, cc_{node_id}, 0);
@@ -463,6 +481,7 @@ var lastCreatedNode = "{node_name}";
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 var cut_{node_id} = node.add("Top", "{node_name}", "CUTTER", xPos_{node_id}, yPos_{node_id}, 0);
+var _fp_path_{node_id} = cut_{node_id};
 node.setTextAttr(cut_{node_id}, "inverted", 1, "{inverted}");
 if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
     node.link("Top/" + lastCreatedNode, 0, cut_{node_id}, 0);
@@ -474,6 +493,7 @@ var lastCreatedNode = "{node_name}";
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 var grad_{node_id} = node.add("Top", "{node_name}", "GRADIENT-PLUGIN", xPos_{node_id}, yPos_{node_id}, 0);
+var _fp_path_{node_id} = grad_{node_id};
 node.setTextAttr(grad_{node_id}, "type", 1, "{gradient_type}");
 if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
     node.link("Top/" + lastCreatedNode, 0, grad_{node_id}, 0);
@@ -485,6 +505,7 @@ var lastCreatedNode = "{node_name}";
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 var co_{node_id} = node.add("Top", "{node_name}", "COLOR_OVERRIDE_TVG", xPos_{node_id}, yPos_{node_id}, 0);
+var _fp_path_{node_id} = co_{node_id};
 if (typeof lastCreatedNode !== 'undefined' && lastCreatedNode !== "") {
     node.link("Top/" + lastCreatedNode, 0, co_{node_id}, 0);
 }
@@ -495,6 +516,7 @@ var lastCreatedNode = "{node_name}";
 var xPos_{node_id} = parseFloat("{offset_x}") || 0;
 var yPos_{node_id} = parseFloat("{offset_y}") || 0;
 var mlw_{node_id} = node.add("Top", "{node_name}", "MultiLayerWrite", xPos_{node_id}, yPos_{node_id}, 0);
+var _fp_path_{node_id} = mlw_{node_id};
 node.setTextAttr(mlw_{node_id}, "drawingName", 1, "{drawing_name}");
 node.setTextAttr(mlw_{node_id}, "drawingType", 1, "{drawing_type}");
 node.setTextAttr(mlw_{node_id}, "colorSpace",  1, "{color_space}");
